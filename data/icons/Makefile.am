@@ -215,11 +215,13 @@ install_DATA += \
 	numericpad.png \
 	ok.png \
 	personalize.png \
+	picture.png \
 	pip.png \
 	power.png \
 	powervu_green.png \
 	powervu_white.png \
 	powervu_yellow.png \
+	question.png \
 	radar.pal \
 	radar_red.pal \
 	radar0.raw \
