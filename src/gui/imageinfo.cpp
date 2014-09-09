@@ -268,7 +268,7 @@ void CImageInfo::InitInfoData()
 
 	struct utsname uts_info;
 
-	image_info_t imagename 	= {LOCALE_IMAGEINFO_IMAGE,	config.getString("imagename", "Neutrino-HD")};
+	image_info_t imagename 	= {LOCALE_IMAGEINFO_IMAGE,	config.getString("imagename", "Neutrino-MP3")};
 	v_info.push_back(imagename);
 	image_info_t date	= {LOCALE_IMAGEINFO_DATE,	builddate};
 	v_info.push_back(date);
@@ -278,13 +278,13 @@ void CImageInfo::InitInfoData()
 		image_info_t kernel	= {LOCALE_IMAGEINFO_KERNEL,	uts_info.release};
 		v_info.push_back(kernel);
 	}
-	image_info_t creator	= {LOCALE_IMAGEINFO_CREATOR,	config.getString("creator", "n/a")};
+	image_info_t creator	= {LOCALE_IMAGEINFO_CREATOR,	config.getString("creator", "Thomas")};
 	v_info.push_back(creator);
-	image_info_t www	= {LOCALE_IMAGEINFO_HOMEPAGE,	config.getString("homepage", "n/a")};
+	image_info_t www	= {LOCALE_IMAGEINFO_HOMEPAGE,	config.getString("homepage", "http://www.familienforum.biz")};
 	v_info.push_back(www);
 	image_info_t doc	= {LOCALE_IMAGEINFO_DOKUMENTATION, config.getString("docs", "http://wiki.neutrino-hd.de")};
 	v_info.push_back(doc);
-	image_info_t forum	= {LOCALE_IMAGEINFO_FORUM,	config.getString("forum", "http://forum.tuxbox.org")};
+	image_info_t forum	= {LOCALE_IMAGEINFO_FORUM,	config.getString("forum", "http://www.familienforum.biz")};
 	v_info.push_back(forum);
 }
 
