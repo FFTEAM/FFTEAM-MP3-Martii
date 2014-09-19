@@ -46,7 +46,7 @@
 #define Y_CONFIG_USE_YPARSER y					// Add mod: "y-Parsing"
 #define Y_CONFIG_USE_AUTHHOOK y					// Add mod: "Authentication"
 #define Y_CONFIG_USE_WEBLOG y					// Add mod: "WebLogging"
-#define Y_CONFIG_USE_CACHE y					// Add mod: Can cache production pages
+#define Y_CONFIG_USE_CACHE N					// Add mod: Can cache production pages
 #define Y_CONFIG_USE_SENDFILE y					// Add mod: can send static files (mandantory)
 //-----------------------------------------------------------------------------
 // Features & Build
@@ -102,7 +102,7 @@
 #define HTTPD_SENDFILE_EXT				"htm:text/html,html:text/html,xml:text/xml,txt:text/plain,jpg:image/jpeg,jpeg:image/jpeg,gif:image/gif,png:image/png,bmp:image/bmp,css:text/css,js:text/plain,yjs:text/plain,img:application/octet-stream,ico:image/x-icon,m3u:application/octet-stream,tar:application/octet-stream,gz:text/x-gzip,ts:video/MP2T,mkv:video/x-matroska,avi:video/avi,mp3:audio/mpeg,ogg:audio/ogg"
 #define HTTPD_SENDFILE_ALL				"false"
 #define HTTPD_LANGUAGEDIR 				"languages"
-#define HTTPD_DEFAULT_LANGUAGE 			"English"
+#define HTTPD_DEFAULT_LANGUAGE 			"Deutsch"
 #define AUTHUSER						"root"
 
 #define HTTPD_CONFIGDIR 				CONFIGDIR
@@ -120,7 +120,7 @@
 // switch for Box differences
 #ifdef CONFIG_SYSTEM_TUXBOX
 #define AUTHPASSWORD					"dbox2"
-#define PRIVATEDOCUMENTROOT				DATADIR "/neutrino/httpd-y"
+#define PRIVATEDOCUMENTROOT				DATADIR "/neutrino/httpd"
 #endif
 
 #ifdef CONFIG_SYSTEM_TUXBOX_COOLSTREAM
