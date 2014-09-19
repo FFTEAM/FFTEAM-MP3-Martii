@@ -110,5 +110,6 @@ install_DATA =	accept.png \
 		x_red.gif \
 		yjogol.gif \
 		y.png \
+		zap.png \
 		spark.jpg
 

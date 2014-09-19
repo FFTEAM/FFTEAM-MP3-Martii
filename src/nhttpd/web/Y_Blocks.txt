@@ -502,20 +502,18 @@ start-block~remote
 {=var-set:yfbtype={=ini-get:/var/tuxbox/config/Y-Web.conf;fb;0=}=}
 {=var-set:boxtype={=func:get_boxtype=}=}
 {=if-equal:{=var-get:yfbtype=}~0~
+	{=if-equal:{=var-get:nfbtype=}~2~	{=include-block:Y_Blocks.txt;rc_spark_new=}~
+	{=if-equal:{=var-get:nfbtype=}~1~	{=include-block:Y_Blocks.txt;rc_spark_old=}~
 	{=if-equal:{=var-get:boxtype=}~CST Neo SAT~		{=include-block:Y_Blocks.txt;rc_cst_v2=}~
 	{=if-equal:{=var-get:boxtype=}~CST Neo CABLE~		{=include-block:Y_Blocks.txt;rc_cst_v2=}~
 	{=if-equal:{=var-get:boxtype=}~CST Zee SAT~		{=include-block:Y_Blocks.txt;rc_cst_v3=}~
 	{=if-equal:{=var-get:boxtype=}~CST Zee CABLE~		{=include-block:Y_Blocks.txt;rc_cst_v3=}~
 	{=if-equal:{=var-get:boxtype=}~CST Neo Twin SAT~	{=include-block:Y_Blocks.txt;rc_cst_v4=}~
 	{=if-equal:{=var-get:boxtype=}~CST Neo Twin CABLE~	{=include-block:Y_Blocks.txt;rc_cst_v4=}~
-	{=if-equal:{=var-get:boxtype=}~CST Tank~		{=include-block:Y_Blocks.txt;rc_cst_v5=}~
+	{=if-equal:{=var-get:boxtype=}~CST Tank SAT~		{=include-block:Y_Blocks.txt;rc_cst_v5=}~
 	{=if-equal:{=var-get:boxtype=}~CST Tank CABLE~		{=include-block:Y_Blocks.txt;rc_cst_v5=}~
 	{=if-equal:{=var-get:boxtype=}~CST Trinity SAT~		{=include-block:Y_Blocks.txt;rc_cst_v6=}~
 	{=if-equal:{=var-get:boxtype=}~CST Trinity CABLE~	{=include-block:Y_Blocks.txt;rc_cst_v6=}~
-	{=if-equal:{=var-get:boxtype=}~ufs910~			{=include-block:Y_Blocks.txt;rc_ufs910=}~
-	{=if-equal:{=var-get:boxtype=}~ufs922~			{=include-block:Y_Blocks.txt;rc_ufs910=}~
-	{=if-equal:{=var-get:boxtype=}~1~			{=include-block:Y_Blocks.txt;rc_spark_old=}~
-	{=if-equal:{=var-get:boxtype=}~2~			{=include-block:Y_Blocks.txt;rc_spark_new=}~
 
 		{=comment:fallback~=}					{=include-block:Y_Blocks.txt;rc_spark_new=}
 		=}=}=}=}=}=}=}=}=}=}
@@ -1047,5 +1045,5 @@ start-block~rc_spark_new
 <area shape="rect" coords="50,600,66,614" href="javascript:rcsim('KEY_F1')" /> 
 <area shape="rect" coords="83,600,101,614" href="javascript:rcsim('KEY_F2')" /> 
 <area shape="rect" coords="116,600,134,614" href="javascript:rcsim('KEY_F3')" /> 
-</map> 
+</map>
 end-block~rc_spark_new
