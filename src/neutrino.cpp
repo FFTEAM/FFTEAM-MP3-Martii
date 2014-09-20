@@ -4596,6 +4596,7 @@ int main(int argc, char **argv)
 
 	setenv("PATH", "/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin", 1);
 
+	system("killall -9 showiframe");
 	return CNeutrinoApp::getInstance()->run(argc, argv);
 }
 

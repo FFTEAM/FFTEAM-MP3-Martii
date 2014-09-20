@@ -74,6 +74,7 @@
 #include "gui/sleeptimer.h"
 #include "gui/update_menue.h"
 #include "gui/streaminfo2.h"
+#include "gui/bluepanel.h"
 #ifdef ENABLE_TEST_MENU
 #include "gui/test_menu.h"
 #endif
@@ -181,6 +182,11 @@ void CNeutrinoApp::InitMenuMain()
 	CMenuForwarder * mf = new CMenuForwarder(LOCALE_MAINMENU_GAMES, show_games, NULL, new CPluginList(LOCALE_MAINMENU_GAMES,CPlugins::P_TYPE_GAME));
 	mf->setHint(NEUTRINO_ICON_HINT_GAMES, LOCALE_MENU_HINT_GAMES);
 	personalize.addItem(MENU_MAIN, mf, &g_settings.personalize[SNeutrinoSettings::P_MAIN_GAMES]);
+
+	//bluepanel
+	mf = new CMenuForwarder(LOCALE_MAINMENU_BLUEPANEL, true, NULL, new CBluePanel());
+	mf->setHint(NEUTRINO_ICON_FEATURES, LOCALE_MENU_HINT_BLUEPANEL);
+	personalize.addItem(MENU_MAIN, mf, &g_settings.personalize[SNeutrinoSettings::P_MAIN_BLUEPANEL]);
 
 	//scripts
 	bool show_scripts = g_PluginList->hasPlugin(CPlugins::P_TYPE_SCRIPT);
