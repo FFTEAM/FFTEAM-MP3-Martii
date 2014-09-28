@@ -1456,7 +1456,7 @@ void CMoviePlayerGui::callInfoViewer(/*const int duration, const int curr_pos*/)
 	}
 
 	/* fallthrough: use the filename as title */
-	g_InfoViewer->showMovieTitle(playstate, 0, pretty_name, "", "", duration, position, repeat_mode);
+	g_InfoViewer->showMovieTitle(playstate, 0, pretty_name, info_1, info_2, duration, position, repeat_mode);
 }
 
 bool CMoviePlayerGui::getAudioName(int apid, std::string &apidtitle)
