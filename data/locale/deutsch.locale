@@ -246,8 +246,6 @@ channellist.edit Bearbeiten
 channellist.epgtext_align_left links
 channellist.epgtext_align_right rechts
 channellist.extended Sendungsfortschritt anzeigen
-channellist.extended_colored mit farbigem Fortschrittsbalken
-channellist.extended_simple mit einfachem Fortschrittsbalken
 channellist.favs Favoriten
 channellist.foot Kanalinformationen
 channellist.foot_freq Tuning-Parameter
@@ -406,7 +404,6 @@ extra.dboxinfo_size Gesamt
 extra.dboxinfo_swap Swap
 extra.dboxinfo_time Zeit
 extra.dboxinfo_timeformat %FT%H:%M:%S%z
-extra.dboxinfo_uptime Uptime
 extra.dboxinfo_use Nutzung
 extra.dboxinfo_used Benutzt
 extra.east Osten
@@ -881,7 +878,6 @@ mainmenu.channels Kanalliste
 mainmenu.clearsectionsd Lösche EPG Cache
 mainmenu.games Spiele
 mainmenu.head Hauptmenü
-mainmenu.lua Plugins
 mainmenu.media Multimedia
 mainmenu.movieplayer Movieplayer
 mainmenu.pausesectionsd EPG auslesen
@@ -898,7 +894,6 @@ mainmenu.shutdown Ausschalten
 mainmenu.shutdown_menu Ausschalt-Optionen
 mainmenu.sleeptimer SleepTimer
 mainmenu.standby Standby
-mainmenu.tools Werkzeuge
 mainmenu.tvmode TV-Modus
 mainmenu.tvradio_switch TV-Radio Umschaltung
 mainsettings.audio Audio
@@ -908,7 +903,6 @@ mainsettings.language Sprache
 mainsettings.lcd LED/LCD-Display
 mainsettings.manage Einstellungen verwalten
 mainsettings.misc Erweiterte Einstellungen
-mainsettings.multimedia Multimedia
 mainsettings.network Netzwerk
 mainsettings.osd OSD
 mainsettings.recording Aufnahme
@@ -1117,7 +1111,6 @@ menu.hint_leds_standby Definiert den Status der Power-LEDs im Standby
 menu.hint_leds_tv Definiert den Status der Power-LEDs im TV-Modus
 menu.hint_load Laden der Neutrino-Einstellungen aus einer Datei
 menu.hint_longkeypress_duration Tasten, die länger als die angegebene Zeit betätigt werden, werden als "langer Tastendruck" behandelt.
-menu.hint_lua Plugins ausführen
 menu.hint_make_hdlist Bei aktiver Option wird ein Bouquet namens 'HD' erzeugt, in dem alle HD-Sender zusammengefasst sind
 menu.hint_make_newlist Nach einer Kanalsuche wird ein Bouquet namens 'neue Kanäle' erzeugt
 menu.hint_make_removedlist Nach einer Kanalsuche wird ein Bouquet namens 'gelöschte Kanäle' erzeugt
@@ -1923,7 +1916,7 @@ plugins.hdd_dir Externes Plugin-Verz.
 plugins.result Pluginausgabe
 plugintype.disabled Deaktiviert
 plugintype.game Spiel
-plugintype.lua Lua-Plugin
+plugintype.lua LUA Skript
 plugintype.script Skript
 plugintype.tool Werkzeug
 progressbar.color.full farbig
