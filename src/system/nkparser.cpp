@@ -81,7 +81,6 @@ size_t cNKFeedParser::CurlWriteToString(void *ptr, size_t size, size_t nmemb, vo
 	}
 	return size*nmemb;
 }
-
 bool cNKFeedParser::getUrl(std::string &url, std::string &answer, CURL *_curl_handle)
 {
 	const char hex[] = "0123456789abcdef";
