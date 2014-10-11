@@ -159,7 +159,7 @@ class CMoviePlayerGui : public CMenuTarget
 	MI_MOVIE_INFO * p_movie_info;
 	MI_MOVIE_INFO mi;
 #if HAVE_SPARK_HARDWARE
-        CFrameBuffer::Mode3D old3dmode;
+	CFrameBuffer::Mode3D old3dmode;
 #endif
 
 	const static int MOVIE_HINT_BOX_TIMER = 5;	// time to show bookmark hints in seconds

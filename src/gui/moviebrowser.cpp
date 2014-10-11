@@ -2711,15 +2711,15 @@ bool CMovieBrowser::loadTsFileNamesFromDir(const std::string & dirname)
 					test = strcasecmp(ext, "ts");
 					if (test && !m_settings.ts_only)
 						test = true
-# if HAVE_TRIPLEDRAGON
+#if HAVE_TRIPLEDRAGON
 						    && strcasecmp(ext, "vdr")
-# else
+#else
 						    && strcasecmp(ext, "avi")
 						    && strcasecmp(ext, "mkv")
 						    && strcasecmp(ext, "wav")
 						    && strcasecmp(ext, "asf")
 						    && strcasecmp(ext, "aiff")
-# endif
+#endif
 						    && strcasecmp(ext, "mpg")
 						    && strcasecmp(ext, "mpeg")
 						    && strcasecmp(ext, "m2p")
@@ -2728,11 +2728,11 @@ bool CMovieBrowser::loadTsFileNamesFromDir(const std::string & dirname)
 						    && strcasecmp(ext, "m2ts")
 						    && strcasecmp(ext, "mp4")
 						    && strcasecmp(ext, "mov")
-# if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE
 						    && strcasecmp(ext, "vdr")
 						    && strcasecmp(ext, "flv")
 						    && strcasecmp(ext, "wmv")
-# endif
+#endif
 					;
 				}
 				if (test)
@@ -3501,7 +3501,7 @@ bool CMovieBrowser::isFiltered(MI_MOVIE_INFO& movie_info)
 			break;
 			break;
 		default:
-				result = false;
+			result = false;
 			break;
 	}
 	return (result);
