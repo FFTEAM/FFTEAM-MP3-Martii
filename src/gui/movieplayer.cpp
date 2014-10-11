@@ -483,7 +483,6 @@ void CMoviePlayerGui::makeFilename()
 			std::replace(pretty_name.begin(), pretty_name.end(), '_', ' ');
 		} else
 			pretty_name = file_name;
-
 		if(pretty_name.substr(0,14)=="videoplayback?"){//youtube name
 			if(!p_movie_info->epgTitle.empty())
 				pretty_name = p_movie_info->epgTitle;
@@ -1106,7 +1105,6 @@ void CMoviePlayerGui::PlayFileLoop(void)
 			if (repeat_mode > (int) REPEAT_ALL)
 				repeat_mode = REPEAT_OFF;
 			callInfoViewer();
-
 		} else if( msg == (neutrino_msg_t) g_settings.key_next43mode) {
 			g_videoSettings->next43Mode();
 		} else if( msg == (neutrino_msg_t) g_settings.key_switchformat) {
@@ -1456,7 +1454,7 @@ void CMoviePlayerGui::callInfoViewer(/*const int duration, const int curr_pos*/)
 	}
 
 	/* fallthrough: use the filename as title */
-	g_InfoViewer->showMovieTitle(playstate, 0, pretty_name, info_1, info_2, duration, position, repeat_mode);
+	g_InfoViewer->showMovieTitle(playstate, 0, pretty_name, "", "", duration, position, repeat_mode);
 }
 
 bool CMoviePlayerGui::getAudioName(int apid, std::string &apidtitle)
