@@ -164,7 +164,6 @@ class CLuaConfigFile
 		~CLuaConfigFile() { delete c; }
 };
 
-
 /* inspired by Steve Kemp http://www.steve.org.uk/ */
 class CLuaInstance
 {

@@ -443,7 +443,7 @@ void CLuaInstance::runScript(const char *fileName, std::vector<std::string> *arg
 #endif
 	status = lua_pcall(lua, 0, LUA_MULTRET, 0);
 #if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
-	CFrameBuffer::getInstance()->autoBlit();
+	CFrameBuffer::getInstance()->autoBlit(false);
 #endif
 	if (result_code)
 		*result_code = to_string(status);
@@ -520,30 +520,6 @@ const luaL_Reg CLuaInstance::methods[] =
 /* hack: we link against luaposix, which is included in our
  * custom built lualib */
 extern "C" { LUAMOD_API int (luaopen_posix_c) (lua_State *L); }
-#else
-static int dolibrary (lua_State *L, const char *name)
-{
-	int status = 0;
-	const char *msg = "";
-	lua_getglobal(L, "require");
-	lua_pushstring(L, name);
-	status = lua_pcall(L, 1, 0, 0);
-	if (status && !lua_isnil(L, -1))
-	{
-		msg = lua_tostring(L, -1);
-		if (NULL == msg)
-		{
-			msg = "(error object is not a string)";
-		}
-		fprintf(stderr, "[CLuaInstance::%s] error in dolibrary: %s (%s)\n", __func__, name,msg);
-		lua_pop(L, 1);
-	}
-	else
-	{
-		printf("[CLuaInstance::%s] loaded library: %s\n", __func__, name);
-	}
-	return status;
-}
 #endif
 
 /* load basic functions and register our own C callbacks */
@@ -749,7 +725,7 @@ int CLuaInstance::PlayFile(lua_State *L)
 	std::string si1(info1);
 	std::string si2(info2);
 	std::string sf(fname);
-	CMoviePlayerGui::getInstance().SetFile(st, sf);
+	CMoviePlayerGui::getInstance().SetFile(st, sf, si1, si2);
 	CMoviePlayerGui::getInstance().exec(NULL, "http");
 	return 0;
 }
@@ -900,6 +876,7 @@ int CLuaInstance::GetInput(lua_State *L)
 	{
 		DBG("CLuaInstance::%s: msg 0x%08" PRIx32 " data 0x%08" PRIx32 "\n", __func__, msg, data);
 		CNeutrinoApp::getInstance()->handleMsg(msg, data);
+		return 0;
 	}
 	/* signed int is debatable, but the "big" messages can't yet be handled
 	 * inside lua scripts anyway. RC_timeout == -1, RC_nokey == -2 */
@@ -936,7 +913,7 @@ int CLuaInstance::GCWindow(lua_State *L)
 int CLuaInstance::Blit(lua_State *L)
 {
 #if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
-	CFrameBuffer::getInstance()->autoBlit();
+	CFrameBuffer::getInstance()->autoBlit(false);
 #endif
 	CLuaData *W = CheckData(L, 1);
 	if (W && W->fbwin) {
@@ -1195,12 +1172,10 @@ int CLuaInstance::MenuNew(lua_State *L)
 	CMenuWidget *m;
 
 	if (lua_istable(L, 1)) {
-		std::string name, icon, encoding;
+		std::string name, icon;
 		tableLookup(L, "name", name) || tableLookup(L, "title", name);
-		tableLookup(L, "encoding", encoding);
-		if (encoding == "html")
-			htmlEntityDecode(name);
 		tableLookup(L, "icon", icon);
+//		lua_Integer mwidth = 0;
 		lua_Integer mwidth;
 		if(tableLookup(L, "mwidth", mwidth))
 			m = new CMenuWidget(name.c_str(), icon.c_str(), mwidth);
@@ -1267,10 +1242,7 @@ int CLuaInstance::MenuAddItem(lua_State *L)
 	CLuaMenuItem *b = &m->items.back();
 
 	tableLookup(L, "name", b->name);
-	std::string encoding;
-	tableLookup(L, "encoding", encoding);
-	if (encoding == "html")
-		htmlEntityDecode(b->name);
+//	std::string icon;	tableLookup(L, "icon", icon);
 	std::string type;	tableLookup(L, "type", type);
 	if (type == "back") {
 		m->m->addItem(GenericMenuBack);
@@ -1288,10 +1260,12 @@ int CLuaInstance::MenuAddItem(lua_State *L)
 			m->m->addItem(GenericMenuSeparatorLine);
 	} else {
 		std::string right_icon_str;	tableLookup(L, "right_icon", right_icon_str);
+//		std::string right_icon;	tableLookup(L, "right_icon", right_icon);
 		std::string action;	tableLookup(L, "action", action);
 		std::string value;	tableLookup(L, "value", value);
 		std::string hint;	tableLookup(L, "hint", hint);
 		std::string hint_icon_str;	tableLookup(L, "hint_icon", hint_icon_str);
+//		std::string hint_icon;	tableLookup(L, "hint_icon", hint_icon);
 		std::string icon_str;	tableLookup(L, "icon", icon_str);
 		std::string id;		tableLookup(L, "id", id);
 		std::string tmp;
@@ -1315,6 +1289,10 @@ int CLuaInstance::MenuAddItem(lua_State *L)
 		tableLookup(L, "directkey", directkey);
 		tableLookup(L, "pulldown", pulldown);
 
+//		tmp = "true";
+//		tableLookup(L, "enabled", tmp) || tableLookup(L, "active", tmp);
+//		bool enabled = (tmp == "true" || tmp == "1" || tmp == "yes");
+
 		bool enabled = true;
 		if (!(tableLookup(L, "enabled", enabled) || tableLookup(L, "active", enabled)))
 		{
@@ -1333,6 +1311,8 @@ int CLuaInstance::MenuAddItem(lua_State *L)
 		if (type == "forwarder") {
 			b->str_val = value;
 			CLuaMenuForwarder *forwarder = new CLuaMenuForwarder(L, action, id);
+//			mi = new CMenuForwarder(b->name, enabled, b->str_val, forwarder, NULL/*ActionKey*/, directkey, icon.c_str(), right_icon.c_str());
+//			if (!hint.empty() || !hint_icon.empty())
 			mi = new CMenuForwarder(b->name, enabled, b->str_val, forwarder, NULL/*ActionKey*/, directkey, icon, right_icon);
 			if (!hint.empty() || hint_icon)
 				mi->setHint(hint_icon, hint);
@@ -1362,40 +1342,26 @@ int CLuaInstance::MenuAddItem(lua_State *L)
 				for (lua_pushnil(L); lua_next(L, -2); lua_pop(L, 2)) {
 					lua_pushvalue(L, -2);
 					const char *key = lua_tostring(L, -1);
-					const char *_val = lua_tostring(L, -2);
-					std::string val(_val ? lua_tostring(L, -2) : "");
-					if (encoding == "html")
-						htmlEntityDecode(val);
+					const char *val = lua_tostring(L, -2);
 					kext[j].key = atoi(key);
 					kext[j].value = NONEXISTANT_LOCALE;
-					kext[j].valname = strdup(val.c_str());
+					kext[j].valname = strdup(val);
 					m->tofree.push_back((void *)kext[j].valname);
 					if (!strcmp(value.c_str(), kext[j].valname))
 						b->int_val = kext[j].key;
 					j++;
 				}
 			lua_pop(L, 1);
+//			mi = new CMenuOptionChooser(b->name.c_str(), &b->int_val, kext, options_count, enabled, m->observ, directkey, icon.c_str(), pulldown);
 			mi = new CMenuOptionChooser(b->name.c_str(), &b->int_val, kext, options_count, enabled, m->observ, directkey, icon, pulldown);
 		} else if (type == "numeric") {
 			b->int_val = range_from;
 			sscanf(value.c_str(), "%d", &b->int_val);
-			mi = new CMenuOptionNumberChooser(b->name, &b->int_val, enabled, range_from, range_to, m->observ, directkey, icon, 0, 0, NONEXISTANT_LOCALE, pulldown);
+			mi = new CMenuOptionNumberChooser(b->name, &b->int_val, enabled, range_from, range_to, m->observ, 0, 0, NONEXISTANT_LOCALE, pulldown);
 		} else if (type == "string") {
 			b->str_val = value;
-			CMenuOptionStringChooser *misc = new CMenuOptionStringChooser(b->name.c_str(), &b->str_val, enabled, m->observ, directkey, icon, pulldown);
-			lua_pushstring(L, "options");
-			lua_gettable(L, -2);
-			if (lua_istable(L, -1))
-				for (lua_pushnil(L); lua_next(L, -2); lua_pop(L, 2)) {
-					lua_pushvalue(L, -1);
-					const char *_val = lua_tostring(L, -2);
-					std::string val(_val ? lua_tostring(L, -2) : "");
-					if (encoding == "html")
-						htmlEntityDecode(val);
-					misc->addOption(val);
-				}
-			lua_pop(L, 1);
-			mi = misc;
+//			mi = new CMenuOptionStringChooser(b->name.c_str(), &b->str_val, enabled, m->observ, directkey, icon.c_str(), pulldown);
+			mi = new CMenuOptionStringChooser(b->name.c_str(), &b->str_val, enabled, m->observ, directkey, icon, pulldown);
 		} else if (type == "stringinput") {
 			b->str_val = value;
 			std::string valid_chars = "abcdefghijklmnopqrstuvwxyz0123456789!\"§$%&/()=?-. ";
@@ -1403,6 +1369,8 @@ int CLuaInstance::MenuAddItem(lua_State *L)
 			lua_Integer sms = 0, size = 30;
 			tableLookup(L, "sms", sms);
 			tableLookup(L, "size", size);
+//			CLuaMenuStringinput *stringinput = new CLuaMenuStringinput(L, action, id, b->name.c_str(), &b->str_val, size, valid_chars, m->observ, icon.c_str(), sms);
+//			mi = new CMenuForwarder(b->name, enabled, b->str_val, stringinput, NULL/*ActionKey*/, directkey, icon.c_str(), right_icon.c_str());
 			CLuaMenuStringinput *stringinput = new CLuaMenuStringinput(L, action, id, b->name.c_str(), &b->str_val, size, valid_chars, m->observ, icon, sms);
 			mi = new CMenuForwarder(b->name, enabled, b->str_val, stringinput, NULL/*ActionKey*/, directkey, icon, right_icon);
 			m->targets.push_back(stringinput);
@@ -1421,11 +1389,13 @@ int CLuaInstance::MenuAddItem(lua_State *L)
 				}
 			lua_pop(L, 1);
 
+//			mi = new CMenuForwarder(b->name, enabled, b->str_val, filebrowser, NULL/*ActionKey*/, directkey, icon.c_str(), right_icon.c_str());
 			mi = new CMenuForwarder(b->name, enabled, b->str_val, filebrowser, NULL/*ActionKey*/, directkey, icon, right_icon);
 			m->targets.push_back(filebrowser);
 		}
 		if (mi) {
 			mi->setLua(L, action, id);
+//			if (!hint.empty() || !hint_icon.empty())
 			if (!hint.empty() || hint_icon)
 				mi->setHint(hint_icon, hint);
 			m->m->addItem(mi);
@@ -1741,6 +1711,8 @@ int CLuaInstance::CWindowNew(lua_State *L)
 	tableLookup(L, "dy", dy);
 	tableLookup(L, "name", name) || tableLookup(L, "title", name) || tableLookup(L, "caption", name);
 	tableLookup(L, "icon", icon);
+//	tableLookup(L, "has_shadow"  , tmp1);
+//	bool has_shadow = (tmp1 == "true" || tmp1 == "1" || tmp1 == "yes");
 
 	bool has_shadow = false;
 	if (!tableLookup(L, "has_shadow", has_shadow))
@@ -1762,6 +1734,13 @@ int CLuaInstance::CWindowNew(lua_State *L)
 	checkMagicMask(color_frame);
 	checkMagicMask(color_body);
 	checkMagicMask(color_shadow);
+
+//	tmp1 = "true";
+//	tableLookup(L, "show_header"  , tmp1);
+//	bool show_header = (tmp1 == "true" || tmp1 == "show" || tmp1 == "yes");
+//	tmp1 = "true";
+//	tableLookup(L, "show_footer"  , tmp1);
+//	bool show_footer = (tmp1 == "true" || tmp1 == "show" || tmp1 == "yes");
 
 	bool show_header = true;
 	if (!tableLookup(L, "show_header", show_header))
@@ -1826,6 +1805,10 @@ CLuaCWindow *CLuaInstance::CWindowCheck(lua_State *L, int n)
 int CLuaInstance::CWindowPaint(lua_State *L)
 {
 	lua_assert(lua_istable(L,1));
+//	std::string tmp = "true";
+//	tableLookup(L, "do_save_bg", tmp);
+//	bool do_save_bg = (tmp == "true" || tmp == "1" || tmp == "yes");
+
 	CLuaCWindow *m = CWindowCheck(L, 1);
 	if (!m)
 		return 0;
@@ -1845,6 +1828,10 @@ int CLuaInstance::CWindowPaint(lua_State *L)
 int CLuaInstance::CWindowHide(lua_State *L)
 {
 	lua_assert(lua_istable(L,1));
+//	std::string tmp = "false";
+//	tableLookup(L, "no_restore", tmp);
+//	bool no_restore = (tmp == "true" || tmp == "1" || tmp == "yes");
+
 	CLuaCWindow *m = CWindowCheck(L, 1);
 	if (!m)
 		return 0;
@@ -1959,6 +1946,7 @@ int CLuaInstance::CWindowDelete(lua_State *L)
 	if (!m)
 		return 0;
 
+//	m->w->hide();
 	delete m;
 	return 0;
 }
@@ -2014,6 +2002,10 @@ int CLuaInstance::SignalBoxNew(lua_State *L)
 int CLuaInstance::SignalBoxPaint(lua_State *L)
 {
 	lua_assert(lua_istable(L,1));
+//	std::string tmp = "true";
+//	tableLookup(L, "do_save_bg", tmp);
+//	bool do_save_bg = (tmp == "true" || tmp == "1" || tmp == "yes");
+
 	CLuaSignalBox *m = SignalBoxCheck(L, 1);
 	if (!m)
 		return 0;
@@ -2036,6 +2028,7 @@ int CLuaInstance::SignalBoxDelete(lua_State *L)
 	if (!m)
 		return 0;
 
+//	m->s->kill();
 	delete m;
 	return 0;
 }
@@ -2080,6 +2073,7 @@ int CLuaInstance::ComponentsTextNew(lua_State *L)
 	lua_Unsigned color_frame  = (lua_Unsigned)COL_MENUCONTENT_PLUS_6;
 	lua_Unsigned color_body   = (lua_Unsigned)COL_MENUCONTENT_PLUS_0;
 	lua_Unsigned color_shadow = (lua_Unsigned)COL_MENUCONTENTDARK_PLUS_0;
+//	std::string tmp1         = "false";
 
 	tableLookup(L, "parent"      , (void**)&parent);
 	tableLookup(L, "x"           , x);
@@ -2091,6 +2085,8 @@ int CLuaInstance::ComponentsTextNew(lua_State *L)
 	tableLookup(L, "font_text"   , font_text);
 	if (font_text >= SNeutrinoSettings::FONT_TYPE_COUNT || font_text < 0)
 		font_text = SNeutrinoSettings::FONT_TYPE_MENU;
+//	tableLookup(L, "has_shadow"  , tmp1);
+//	bool has_shadow = (tmp1 == "true" || tmp1 == "1" || tmp1 == "yes");
 
 	bool has_shadow = false;
 	if (!tableLookup(L, "has_shadow", has_shadow))
@@ -2152,6 +2148,10 @@ int CLuaInstance::ComponentsTextPaint(lua_State *L)
 	CLuaComponentsText *m = ComponentsTextCheck(L, 1);
 	if (!m) return 0;
 
+//	std::string tmp = "true";
+//	tableLookup(L, "do_save_bg", tmp);
+//	bool do_save_bg = (tmp == "true" || tmp == "1" || tmp == "yes");
+
 	bool do_save_bg = true;
 	if (!tableLookup(L, "do_save_bg", do_save_bg))
 	{
@@ -2169,6 +2169,10 @@ int CLuaInstance::ComponentsTextHide(lua_State *L)
 	lua_assert(lua_istable(L,1));
 	CLuaComponentsText *m = ComponentsTextCheck(L, 1);
 	if (!m) return 0;
+
+//	std::string tmp = "false";
+//	tableLookup(L, "no_restore", tmp);
+//	bool no_restore = (tmp == "true" || tmp == "1" || tmp == "yes");
 
 	bool no_restore = false;
 	if (!tableLookup(L, "no_restore", no_restore))
@@ -2233,6 +2237,7 @@ int CLuaInstance::ComponentsTextDelete(lua_State *L)
 	if (!m)
 		return 0;
 
+//	m->ct->hide();
 	delete m;
 	return 0;
 }
@@ -2268,6 +2273,9 @@ int CLuaInstance::CPictureNew(lua_State *L)
 
 	CLuaCWindow* parent = NULL;
 	lua_Integer x=10, y=10, dx=100, dy=100;
+//	std::string image_name         = "";
+//	lua_Integer alignment          = 0;
+//	std::string tmp1             = "false";	// has_shadow
 	std::string image_name        = "";
 	lua_Integer alignment         = 0;
 	lua_Unsigned color_frame      = (lua_Unsigned)COL_MENUCONTENT_PLUS_6;
@@ -2290,6 +2298,9 @@ int CLuaInstance::CPictureNew(lua_State *L)
 	tableLookup(L, "alignment"        , alignment); //invalid argumet, for compatibility
 	if (alignment)
 		dprintf(DEBUG_NORMAL, "[CLuaInstance][%s - %d] invalid argument: 'alignment' has no effect!\n", __func__, __LINE__);
+
+//	tableLookup(L, "has_shadow"       , tmp1);
+//	bool has_shadow = (tmp1 == "true" || tmp1 == "1" || tmp1 == "yes");
 
 	bool has_shadow = false;
 	if (!tableLookup(L, "has_shadow", has_shadow))
@@ -2325,6 +2336,10 @@ int CLuaInstance::CPicturePaint(lua_State *L)
 	CLuaPicture *m = CPictureCheck(L, 1);
 	if (!m) return 0;
 
+//	std::string tmp = "true";
+//	tableLookup(L, "do_save_bg", tmp);
+//	bool do_save_bg = (tmp == "true" || tmp == "1" || tmp == "yes");
+
 	bool do_save_bg = true;
 	if (!tableLookup(L, "do_save_bg", do_save_bg))
 	{
@@ -2342,6 +2357,10 @@ int CLuaInstance::CPictureHide(lua_State *L)
 	lua_assert(lua_istable(L,1));
 	CLuaPicture *m = CPictureCheck(L, 1);
 	if (!m) return 0;
+
+//	std::string tmp = "false";
+//	tableLookup(L, "no_restore", tmp);
+//	bool no_restore = (tmp == "true" || tmp == "1" || tmp == "yes");
 
 	bool no_restore = false;
 	if (!tableLookup(L, "no_restore", no_restore))
@@ -2378,6 +2397,7 @@ int CLuaInstance::CPictureDelete(lua_State *L)
 	CLuaPicture *m = CPictureCheck(L, 1);
 	if (!m) return 0;
 
+//	m->cp->hide();
 	delete m;
 	return 0;
 }
