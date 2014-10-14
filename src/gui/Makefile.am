@@ -42,7 +42,6 @@ libneutrino_gui_a_SOURCES = \
 	audioplayer.cpp \
 	audioplayer_setup.cpp\
 	batchepg.cpp \
-	bluepanel.cpp \
 	bookmarkmanager.cpp \
 	bouquetlist.cpp \
 	buildinfo.cpp \

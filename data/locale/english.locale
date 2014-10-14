@@ -870,7 +870,6 @@ lua.function_deprecated1 Attention!
 lua.function_deprecated2 Function
 lua.function_deprecated3 is deprecated,\n                      please use
 mainmenu.audioplayer Audioplayer
-mainmenu.bluepanel BluePanel
 mainmenu.channels Channels
 mainmenu.clearsectionsd Clear EPG Cache
 mainmenu.games Games
@@ -942,7 +941,6 @@ menu.hint_back_brief Return to previous menu
 menu.hint_backlight Configure buttons backlight
 menu.hint_backup Backup configs and channels to selected dir
 menu.hint_bedit Edit favorites and bouquets
-menu.hint_bluepanel Softcam, Services and more
 menu.hint_boot_spark Don't boot SPARK unless you're familiar with the way back to Neutrino.
 menu.hint_buildinfo Information about compilers, compiler flags, kernel
 menu.hint_cache_txt Start teletext caching after channel switch
