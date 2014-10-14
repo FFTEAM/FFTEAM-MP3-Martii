@@ -45,7 +45,7 @@
 #else
 #include "cdrdec.h"
 #include "mp3dec.h"
-#include "oggdec.h"
+//#include "oggdec.h"
 #include "wavdec.h"
 #ifdef ENABLE_FLAC
 #include "flacdec.h"
@@ -94,10 +94,10 @@ CBaseDec::RetCode CBaseDec::DecoderBase(CAudiofile* const in,
 				fprintf( stderr, "Error adding shoutcast callback: %s",
 						err_txt );
 
-			if (ftype(fp, "ogg"))
-				Status = COggDec::getInstance()->Decoder( fp, OutputFd, state,
-						&in->MetaData, t,
-						secondsToSkip );
+//			if (ftype(fp, "ogg"))
+//				Status = COggDec::getInstance()->Decoder( fp, OutputFd, state,
+//						&in->MetaData, t,
+//						secondsToSkip );
 			else
 				Status = CMP3Dec::getInstance()->Decoder( fp, OutputFd, state,
 						&in->MetaData, t,
@@ -107,10 +107,10 @@ CBaseDec::RetCode CBaseDec::DecoderBase(CAudiofile* const in,
 			Status = CMP3Dec::getInstance()->Decoder( fp, OutputFd, state,
 					&in->MetaData, t,
 					secondsToSkip );
-		else if( in->FileType == CFile::FILE_OGG )
-			Status = COggDec::getInstance()->Decoder( fp, OutputFd, state,
-					&in->MetaData, t,
-					secondsToSkip );
+//		else if( in->FileType == CFile::FILE_OGG )
+//			Status = COggDec::getInstance()->Decoder( fp, OutputFd, state,
+//					&in->MetaData, t,
+//					secondsToSkip );
 		else if( in->FileType == CFile::FILE_WAV )
 			Status = CWavDec::getInstance()->Decoder( fp, OutputFd, state,
 					&in->MetaData, t,
@@ -230,11 +230,11 @@ bool CBaseDec::GetMetaDataBase(CAudiofile* const in, const bool nice)
 				Status = CMP3Dec::getInstance()->GetMetaData(fp, nice,
 						&in->MetaData);
 			}
-			else if(in->FileType == CFile::FILE_OGG)
-			{
-				Status = COggDec::getInstance()->GetMetaData(fp, nice,
-						&in->MetaData);
-			}
+//			else if(in->FileType == CFile::FILE_OGG)
+//			{
+//				Status = COggDec::getInstance()->GetMetaData(fp, nice,
+//						&in->MetaData);
+//			}
 			else if(in->FileType == CFile::FILE_WAV)
 			{
 				Status = CWavDec::getInstance()->GetMetaData(fp, nice,

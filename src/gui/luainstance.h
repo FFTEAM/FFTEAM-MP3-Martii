@@ -30,6 +30,8 @@ extern "C" {
 #include <gui/widget/hintbox.h>
 #include <gui/widget/messagebox.h>
 #include <gui/components/cc.h>
+#include <configfile.h>
+#include <vector>
 
 /* this is stored as userdata in the lua_State */
 struct CLuaData
@@ -130,16 +132,36 @@ class CLuaSignalBox
 {
 	public:
 		CSignalBox *s;
-		CLuaSignalBox() { s = NULL; }
-		~CLuaSignalBox() { delete s; }
+		CComponentsForm *parent;
+		CLuaSignalBox() { s = NULL; parent = NULL;}
+		~CLuaSignalBox() { if (parent == NULL) delete s; }
 };
 
 class CLuaComponentsText
 {
 	public:
 		CComponentsText *ct;
-		CLuaComponentsText() { ct = NULL; }
-		~CLuaComponentsText() { delete ct; }
+		CComponentsForm *parent;
+		int mode, font_text;
+		CLuaComponentsText() { ct = NULL; parent = NULL; mode = 0; font_text = 0;}
+		~CLuaComponentsText() { if (parent == NULL) delete ct; }
+};
+
+class CLuaPicture
+{
+	public:
+		CComponentsPicture *cp;
+		CComponentsForm *parent;
+		CLuaPicture() { cp = NULL; parent = NULL; }
+		~CLuaPicture() { if (parent == NULL) delete cp; }
+};
+
+class CLuaConfigFile
+{
+	public:
+		CConfigFile *c;
+		CLuaConfigFile() { c = NULL; }
+		~CLuaConfigFile() { delete c; }
 };
 
 
@@ -153,11 +175,21 @@ class CLuaInstance
 public:
 	CLuaInstance();
 	~CLuaInstance();
-	void runScript(const char *fileName);
+	void runScript(const char *fileName, std::vector<std::string> *argv = NULL, std::string *result_code = NULL, std::string *result_string = NULL, std::string *error_string = NULL);
+
+	// Example: runScript(fileName, "Arg1", "Arg2", "Arg3", ..., NULL);
+	//	Type of all parameters: const char*
+	//	The last parameter to NULL is imperative.
+	void runScript(const char *fileName, const char *arg0, ...);
 
 private:
 	lua_State* lua;
 	void registerFunctions();
+
+	static bool _luaL_checkbool(lua_State *L, int numArg);
+	static void paramBoolDeprecated(lua_State *L, const char* val);
+	static void functionDeprecated(lua_State *L, const char* oldFunc, const char* newFunc);
+	static lua_Unsigned checkMagicMask(lua_Unsigned &col);
 
 	static int NewWindow(lua_State *L);
 	static int PaintBox(lua_State *L);
@@ -172,6 +204,13 @@ private:
 	static int runScriptExt(lua_State *L);
 	static int GetSize(lua_State *L);
 	static int DisplayImage(lua_State *L);
+	static int setBlank(lua_State *L);
+	static int ShowPicture(lua_State *L);
+	static int StopPicture(lua_State *L);
+	static int PlayFile(lua_State *L);
+
+	static int strFind(lua_State *L);
+	static int strSub(lua_State *L);
 
 	void MenuRegister(lua_State *L);
 	static int MenuNew(lua_State *L);
@@ -199,8 +238,13 @@ private:
 	static CLuaCWindow *CWindowCheck(lua_State *L, int n);
 	static int CWindowPaint(lua_State *L);
 	static int CWindowHide(lua_State *L);
+	static int CWindowSetCaption(lua_State *L);
+	static int CWindowSetWindowColor(lua_State *L);
+	static int CWindowPaintHeader(lua_State *L);
 	static int CWindowGetHeaderHeight(lua_State *L);
 	static int CWindowGetFooterHeight(lua_State *L);
+	static int CWindowGetHeaderHeight_dep(lua_State *L); // function 'header_height' is deprecated
+	static int CWindowGetFooterHeight_dep(lua_State *L); // function 'footer_height' is deprecated
 	static int CWindowDelete(lua_State *L);
 
 	static CLuaSignalBox *SignalBoxCheck(lua_State *L, int n);
@@ -214,11 +258,36 @@ private:
 	static int ComponentsTextNew(lua_State *L);
 	static int ComponentsTextPaint(lua_State *L);
 	static int ComponentsTextHide(lua_State *L);
+	static int ComponentsTextSetText(lua_State *L);
 	static int ComponentsTextScroll(lua_State *L);
 	static int ComponentsTextDelete(lua_State *L);
 
+	static CLuaPicture *CPictureCheck(lua_State *L, int n);
+	static void CPictureRegister(lua_State *L);
+	static int CPictureNew(lua_State *L);
+	static int CPicturePaint(lua_State *L);
+	static int CPictureHide(lua_State *L);
+	static int CPictureSetPicture(lua_State *L);
+	static int CPictureDelete(lua_State *L);
+
+	static CLuaConfigFile *LuaConfigFileCheck(lua_State *L, int n);
+	static void LuaConfigFileRegister(lua_State *L);
+	static int LuaConfigFileNew(lua_State *L);
+	static int LuaConfigFileLoadConfig(lua_State *L);
+	static int LuaConfigFileSaveConfig(lua_State *L);
+	static int LuaConfigFileClear(lua_State *L);
+	static int LuaConfigFileGetString(lua_State *L);
+	static int LuaConfigFileSetString(lua_State *L);
+	static int LuaConfigFileGetInt32(lua_State *L);
+	static int LuaConfigFileSetInt32(lua_State *L);
+	static int LuaConfigFileGetBool(lua_State *L);
+	static int LuaConfigFileSetBool(lua_State *L);
+	static int LuaConfigFileDelete(lua_State *L);
 	static bool tableLookup(lua_State*, const char*, std::string&);
-	static bool tableLookup(lua_State*, const char*, int&);
+	static bool tableLookup(lua_State*, const char*, lua_Integer&);
+	static bool tableLookup(lua_State*, const char*, lua_Unsigned&);
+	static bool tableLookup(lua_State*, const char*, void**);
+	static bool tableLookup(lua_State*, const char*, bool &value);
 };
 
 #endif /* _LUAINSTANCE_H */

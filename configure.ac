@@ -31,6 +31,48 @@ fi
 if ! diff local_build_config.h.tmp local_build_config.h >/dev/null 2>&1; then
 	rm -f local_build_config.h
 	mv local_build_config.h.tmp local_build_config.h
+fi
+
+AC_ARG_ENABLE(ffmpegdec,
+	AS_HELP_STRING(--enable-ffmpegdec,include ffmpeg decoder support),
+	,[enable_ffmpegdec=no])
+
+AM_CONDITIONAL(ENABLE_FFMPEGDEC,test "$enable_ffmpegdec" = "yes")
+if test "$enable_ffmpegdec" = "yes"; then
+	AC_DEFINE(ENABLE_FFMPEGDEC,1,[include ffmpeg decoder support])
+fi
+
+if test x"$enable_ffmpegdec" != xyes; then
+
+AC_ARG_WITH([tremor], [AS_HELP_STRING([--with-tremor],
+	[use libvorbisidec instead of libogg/libvorbis])],
+	[TREMOR="$withval"],
+	[TREMOR=no])
+
+AC_ARG_WITH([tremor-static], [AS_HELP_STRING([--with-tremor-static],
+	[use statically linked libvorbisidec instead of libogg/libvorbis])],
+	[TREMOR_STATIC="$withval"],
+	[TREMOR_STATIC=no])
+
+if test "$TREMOR_STATIC" = "yes"; then
+	TREMOR=yes
+fi
+
+if test "$TREMOR" = "yes"; then
+	TUXBOX_APPS_LIB_PKGCONFIG(VORBISIDEC,vorbisidec)
+	AC_DEFINE(USE_TREMOR,1,use libvorbisidec/tremor library)
+fi
+
+if test "$TREMOR_STATIC" = "yes"; then
+	# hack to get the static lib location from the pkg-config data
+	VORBISIDEC_LIBS="$(echo $VORBISIDEC_LIBS | sed 's@-L@@; s@ -l.*@/libvorbisidec.a@;')"
+fi
+
+TUXBOX_APPS_LIB_PKGCONFIG_CHECK(ID3TAG,libid3tag)
+if test x"$ID3TAG_EXISTS" != xyes; then
+	TUXBOX_APPS_LIB_PKGCONFIG(ID3TAG,id3tag)
+fi
+
 else
 	rm -f local_build_config.h.tmp
 fi
@@ -48,16 +90,6 @@ TUXBOX_APPS_LIB_PKGCONFIG(AVCODEC,libavcodec)
 TUXBOX_APPS_LIB_PKGCONFIG(AVUTIL,libavutil)
 TUXBOX_APPS_LIB_PKGCONFIG(SWRESAMPLE,libswresample)
 
-# either use dynamic lualib in package lua (openSUSE)
-# ... or in package lua5.2 (debian-derivates)
-# ... and if all fails, assume it is in the linker path (cross build)
-PKG_CHECK_MODULES([LUA], [lua >= 5.2], echo "lua >= 5.2 found", [
-	PKG_CHECK_MODULES([LUA], [lua5.2 >= 5.2], echo "lua5.2 found", [
-		echo "=> lualib not found, assuming static lua in linker path..."
-		LUA_LIBS="-llua -ldl"
-		AC_DEFINE(STATIC_LUAPOSIX,1,[Define to 1 for static lua build.])
-	])
-])
 TUXBOX_APPS_LIB_PKGCONFIG(BLURAY,libbluray)
 
 #TUXBOX_APPS_LIB_PKGCONFIG(CONFIGFILE,tuxbox-configfile)
@@ -161,6 +193,17 @@ if test "$BOXTYPE" != coolstream; then
 	fi
 	HWLIB_CFLAGS="-I$STB_HAL_INC"
 fi
+
+# either use dynamic lualib in package lua (openSUSE)
+# ... or in package lua5.2 (debian-derivates)
+# ... and if all fails, assume it is in the linker path (cross build)
+PKG_CHECK_MODULES([LUA], [lua >= 5.2], echo "lua >= 5.2 found", [
+	PKG_CHECK_MODULES([LUA], [lua5.2 >= 5.2], echo "lua5.2 found", [
+		echo "=> lualib not found, assuming static lua in linker path..."
+		LUA_LIBS="-llua -ldl"
+		AC_DEFINE(STATIC_LUAPOSIX,1,[Define to 1 for static lua build.])
+	])
+])
 
 AC_ARG_ENABLE(cleanup,
 	[  --enable-cleanup                  enable cleanup on exit],

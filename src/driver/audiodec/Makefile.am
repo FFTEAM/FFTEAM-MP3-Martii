@@ -25,7 +25,6 @@ ASOURCES = cdrdec.cpp \
 	crc.c \
 	$(FLACdec) \
 	mp3dec.cpp \
-	oggdec.cpp \
 	tag.c \
 	wavdec.cpp
 #	vis.cpp
