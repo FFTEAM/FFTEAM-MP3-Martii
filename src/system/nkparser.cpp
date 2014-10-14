@@ -446,8 +446,13 @@ std::string cNKFeedParser::GetUrl(std::string &s, bool rtmp)
 {
 	if (rtmp)
 <<<<<<< HEAD
+<<<<<<< HEAD
 		return "http://netzkino_seite-vh.akamaihd.net/z/" + s + ".mp4/manifest.f4m?hdcore";
 	return "http://pmd.netzkino-seite.netzkino.de/" + s + ".mp4";
+=======
+		return "rtmp://mf.netzkino.c.nmdn.net/netzkino/_definst_/mp4:" + s;
+	return "http://dl.netzkinotv.c.nmdn.net/netzkino_tv/" + s + ".mp4";
+>>>>>>> parent of adfe960... system/nkparser: disable rtmp
 =======
 		return "rtmp://mf.netzkino.c.nmdn.net/netzkino/_definst_/mp4:" + s;
 	return "http://dl.netzkinotv.c.nmdn.net/netzkino_tv/" + s + ".mp4";
