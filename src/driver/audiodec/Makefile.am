@@ -19,9 +19,6 @@ else
 ASOURCES = cdrdec.cpp \
 	crc.c \
 	flacdec.cpp \
-	mp3dec.cpp \
-	oggdec.cpp \
-	tag.c \
 	wavdec.cpp
 endif
 

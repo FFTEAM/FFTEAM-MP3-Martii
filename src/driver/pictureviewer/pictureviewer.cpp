@@ -813,18 +813,28 @@ void CPictureViewer::rescaleImageDimensions(int *width, int *height, const int m
 
 bool CPictureViewer::DisplayImage(const std::string & name, int posx, int posy, int width, int height, int transp)
 {
-	CFrameBuffer* frameBuffer = CFrameBuffer::getInstance();
+#if 0
+	fb_pixel_t *data = cacheGet(name, width, height, transp);
+	if (data) {
+		frameBuffer->blit2FB(data, width, height, posx, posy);
+		return true;
+	}
+
+#else
+	fb_pixel_t *data;
+        CFrameBuffer* frameBuffer = CFrameBuffer::getInstance();
+#endif
 	if (transp > CFrameBuffer::TM_EMPTY)
 		frameBuffer->SetTransparent(transp);
 
-	fb_pixel_t * data = getImage(name, width, height);
+	data = getImage(name, width, height);
 
 	if (transp > CFrameBuffer::TM_EMPTY)
 		frameBuffer->SetTransparentDefault();
 
 	if(data) {
 		frameBuffer->blit2FB(data, width, height, posx, posy);
-		cs_free_uncached(data);
+		cachePut(name, width, height, transp, data);
 		return true;
 	}
 	return false;
