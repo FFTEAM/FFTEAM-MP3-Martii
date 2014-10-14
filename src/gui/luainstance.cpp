@@ -1036,17 +1036,12 @@ int CLuaInstance::MenuAddItem(lua_State *L)
 		m->m->addItem(GenericMenuNext);
 	} else if (type == "cancel") {
 		m->m->addItem(GenericMenuCancel);
-	} else if (type == "separator" || type == "separatorline") {
-		if (type == "separatorline")
-			fprintf(stderr, "[CLuaInstance::%s] \"separatorline\" needlessly duplicates \"separator\" functionality and is deprecated.\n", __func__);
+	} else if (type == "separator") {
 		if (!b->name.empty()) {
 			m->m->addItem(new CMenuSeparator(CMenuSeparator::STRING | CMenuSeparator::LINE, b->name.c_str(), NONEXISTANT_LOCALE));
 		} else {
 			m->m->addItem(GenericMenuSeparatorLine);
 		}
-	} else if (type == "subhead") {
-		if (!b->name.empty())
-			m->m->addItem(new CMenuSeparator(CMenuSeparator::STRING | CMenuSeparator::SUB_HEAD, b->name.c_str(), NONEXISTANT_LOCALE));
 	} else {
 		std::string right_icon_str;	tableLookup(L, "right_icon", right_icon_str);
 		std::string action;		tableLookup(L, "action", action);
