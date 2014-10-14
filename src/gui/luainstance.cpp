@@ -1930,6 +1930,15 @@ int CLuaInstance::CPictureNew(lua_State *L)
 	lua_Integer color_frame      = (lua_Integer)COL_MENUCONTENT_PLUS_6;
 	lua_Integer color_background = (lua_Integer)COL_MENUCONTENT_PLUS_0;
 	lua_Integer color_shadow     = (lua_Integer)COL_MENUCONTENTDARK_PLUS_0;
+<<<<<<< HEAD
+=======
+
+	/*
+	transparency = CFrameBuffer::TM_BLACK (2): Transparency when black content ('pseudo' transparency)
+	transparency = CFrameBuffer::TM_NONE  (1): No 'pseudo' transparency
+	*/
+	lua_Integer transparency     = CFrameBuffer::TM_NONE;
+>>>>>>> parent of d9f69fd... CLuainstance: Use lua_Unsigned for color definitions
 
 	tableLookup(L, "parent"           , (void**)&parent);
 	tableLookup(L, "x"                , x);
