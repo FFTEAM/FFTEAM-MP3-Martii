@@ -39,7 +39,6 @@ luaclient test a b c d
 #include <vector>
 
 #include <unistd.h>
-#include <poll.h>
 
 #include <global.h>
 #include <neutrino.h>
