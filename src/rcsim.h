@@ -50,7 +50,11 @@ enum {
 	RC_plus		= KEY_VOLUMEUP,     /* /include/linux/input.h: #define KEY_VOLUMEUP		115   */
 	RC_standby	= KEY_POWER,	    /* /include/linux/input.h: #define KEY_POWER		116   */
 	RC_help		= KEY_HELP,	    /* /include/linux/input.h: #define KEY_HELP			138   */
+	#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
+	RC_home		= KEY_HOME,     /* /include/linux/input.h: #define KEY_HOME			102   */
+	#else
 	RC_home		= KEY_EXIT,	    /* /include/linux/input.h: #define KEY_HOME			102   */
+	#endif
 	RC_setup	= KEY_MENU,	    /* /include/linux/input.h: #define KEY_SETUP		141   */
 	RC_topleft	= KEY_TOPLEFT,	
 	RC_topright	= KEY_TOPRIGHT,	
@@ -80,10 +84,14 @@ enum {
 	RC_record	= KEY_RECORD,
 	RC_play		= KEY_PLAY,
 	RC_pause	= KEY_PAUSE,
+	#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE /* evremote don't use forward */
+	RC_forward	= KEY_FASTFORWARD,
+	#else
 	RC_forward	= KEY_FORWARD,
+	#endif
 	RC_rewind	= KEY_REWIND,
 	RC_stop		= KEY_STOP,
-	RC_timeshift	= KEY_T,
+	RC_timeshift	= KEY_TIME,
 	RC_mode		= KEY_MODE,
 	RC_games	= KEY_GAMES,
 	RC_next		= KEY_NEXT,
@@ -92,33 +100,7 @@ enum {
 	RC_sub		= KEY_SUBTITLE,
 	RC_pos		= KEY_MOVE,
 	RC_sleep	= KEY_SLEEP,
-	
-	/* tripledragon keys */
-	RC_eject	= KEY_EJECTCD,
-	RC_aux		= KEY_AUX,          /* 0x186 */
-	RC_timer	= KEY_TIME,
-	RC_tttv		= KEY_FN_1,
-	RC_ttzoom	= KEY_FN_2,
-	RC_ttreveal	= KEY_FN_D,
-	RC_zoomin	= KEY_ZOOMIN,
-	RC_zoomout	= KEY_ZOOMOUT,
-	
-	/* SPARK keys */
-	RC_find		= KEY_FIND,
-	RC_pip		= KEY_PRESENTATION,
-	RC_archive	= KEY_ARCHIVE,
-	RC_fastforward	= KEY_FASTFORWARD,
-	RC_slow		= KEY_SLOW,
 	RC_playmode	= KEY_P,
-	RC_usb		= KEY_CLOSE,
-	RC_f1		= KEY_F1,
-	RC_f2		= KEY_F2,
-	RC_f3		= KEY_F3,
-	RC_f4		= KEY_F4,
-	RC_prog1	= KEY_PROG1,
-	RC_prog2	= KEY_PROG2,
-	RC_prog3	= KEY_PROG3,
-	RC_prog4	= KEY_PROG4,
 	
 	RC_power_on	= KEY_POWERON,
 	RC_power_off	= KEY_POWEROFF,
@@ -162,6 +144,7 @@ static const struct key keyname[] = {
 	{ "KEY_VOLUMEUP",		KEY_VOLUMEUP },
 	{ "KEY_POWER",		KEY_POWER },
 	{ "KEY_HELP",		KEY_HELP },
+	{ "KEY_HOME",		KEY_HOME },
 	{ "KEY_EXIT",		KEY_EXIT },
 	{ "KEY_MENU",		KEY_MENU },
 	{ "KEY_TOPLEFT",		KEY_TOPLEFT },
@@ -191,10 +174,11 @@ static const struct key keyname[] = {
 	{ "KEY_RECORD",		KEY_RECORD },
 	{ "KEY_PLAY",		KEY_PLAY },
 	{ "KEY_PAUSE",		KEY_PAUSE },
+	{ "KEY_FASTFORWARD",		KEY_FASTFORWARD },
 	{ "KEY_FORWARD",		KEY_FORWARD },
 	{ "KEY_REWIND",		KEY_REWIND },
 	{ "KEY_STOP",		KEY_STOP },
-	{ "KEY_T",		KEY_T },
+	{ "KEY_TIME",		KEY_TIME },
 	{ "KEY_MODE",		KEY_MODE },
 	{ "KEY_GAMES",		KEY_GAMES },
 	{ "KEY_NEXT",		KEY_NEXT },
@@ -203,29 +187,7 @@ static const struct key keyname[] = {
 	{ "KEY_SUBTITLE",		KEY_SUBTITLE },
 	{ "KEY_MOVE",		KEY_MOVE },
 	{ "KEY_SLEEP",		KEY_SLEEP },
-	{ "KEY_EJECTCD",		KEY_EJECTCD },
-	{ "KEY_AUX",		KEY_AUX },
-	{ "KEY_TIME",		KEY_TIME },
-	{ "KEY_FN_1",		KEY_FN_1 },
-	{ "KEY_FN_2",		KEY_FN_2 },
-	{ "KEY_FN_D",		KEY_FN_D },
-	{ "KEY_ZOOMIN",		KEY_ZOOMIN },
-	{ "KEY_ZOOMOUT",		KEY_ZOOMOUT },
-	{ "KEY_FIND",		KEY_FIND },
-	{ "KEY_PRESENTATION",		KEY_PRESENTATION },
-	{ "KEY_ARCHIVE",		KEY_ARCHIVE },
-	{ "KEY_FASTFORWARD",		KEY_FASTFORWARD },
-	{ "KEY_SLOW",		KEY_SLOW },
 	{ "KEY_P",		KEY_P },
-	{ "KEY_CLOSE",		KEY_CLOSE },
-	{ "KEY_F1",		KEY_F1 },
-	{ "KEY_F2",		KEY_F2 },
-	{ "KEY_F3",		KEY_F3 },
-	{ "KEY_F4",		KEY_F4 },
-	{ "KEY_PROG1",		KEY_PROG1 },
-	{ "KEY_PROG2",		KEY_PROG2 },
-	{ "KEY_PROG3",		KEY_PROG3 },
-	{ "KEY_PROG4",		KEY_PROG4 },
 	{ "KEY_POWERON",		KEY_POWERON },
 	{ "KEY_POWEROFF",		KEY_POWEROFF },
 	{ "KEY_STANDBYON",		KEY_STANDBYON },
