@@ -94,7 +94,7 @@ CBaseDec::RetCode CBaseDec::DecoderBase(CAudiofile* const in,
 		{
 			struct stat st;
 			if (!fstat(fileno(fp), &st))
-						in->MetaData.filesize = st.st_size;
+				in->MetaData.filesize = st.st_size;
 
 		}
 		in->MetaData.type = ft;
