@@ -155,7 +155,7 @@ bool CFfmpegDec::Init(void *_in, const CFile::FileType /* ft */)
 #if 0
 	switch (ft) {
 	case CFile::FILE_OGG:
-		input_format = av_find_input_format("ogg");
+		input_format = av_find_input_format("vorbis");
 		break;
 	case CFile::FILE_MP3:
 		input_format = av_find_input_format("mp3");
