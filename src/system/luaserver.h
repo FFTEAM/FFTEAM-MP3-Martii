@@ -29,6 +29,7 @@ class CLuaServer
 	private:
 		int count;
 		pthread_t thr;
+		pthread_mutex_t mutex;
 
 		static void *luaserver_thread(void *arg);
 		static void *luaserver_main_thread(void *);
@@ -39,7 +40,7 @@ class CLuaServer
 		~CLuaServer();
 	public:
 		sem_t may_run;
-		bool did_run;
+		sem_t did_run;
 
 		void UnBlock();
 		bool Block(const neutrino_msg_t msg, const neutrino_msg_data_t data);

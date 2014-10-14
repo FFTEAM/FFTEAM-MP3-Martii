@@ -28,7 +28,7 @@ end
 return "ok"
 EOT
 
-luaclient test a b c d
+followed by luaclient test a b c d
 #endif
 
 #include <config.h>
@@ -50,7 +50,6 @@ luaclient test a b c d
 #include "luaserver.h"
 
 static CLuaServer *instance = NULL;
-static pthread_mutex_t mutex;
 
 CLuaServer *CLuaServer::getInstance()
 {
@@ -61,37 +60,33 @@ CLuaServer *CLuaServer::getInstance()
 
 void CLuaServer::destroyInstance()
 {
-	Lock();
 	if (instance) {
 		delete instance;
 		instance = NULL;
 	}
-	UnLock();
 }
 
 CLuaServer::CLuaServer()
 {
 	count = 0;
-	did_run = false;
 
 	pthread_mutexattr_t attr;
 	pthread_mutexattr_init(&attr);
 	pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK_NP);
 	pthread_mutex_init(&mutex, &attr);
-	pthread_mutexattr_destroy(&attr);
 
 	sem_init(&may_run, 0, 0);
+	sem_init(&did_run, 0, 0);
 
 	pthread_create (&thr, NULL, luaserver_main_thread, (void *) NULL);
 }
 
 CLuaServer::~CLuaServer()
 {
-	pthread_cancel(thr);
-	pthread_join(thr, NULL);
 	sem_destroy(&may_run);
-	pthread_mutex_destroy(&mutex);
+	sem_destroy(&did_run);
 	instance = NULL;
+	pthread_join(thr, NULL);
 }
 
 void CLuaServer::UnBlock()
@@ -102,10 +97,10 @@ void CLuaServer::UnBlock()
 bool CLuaServer::Block(const neutrino_msg_t msg, const neutrino_msg_data_t data)
 {
 	sem_wait(&may_run);
-	if (did_run) {
+	if (!sem_trywait(&did_run)) {
 		if (msg != CRCInput::RC_timeout)
 			g_RCInput->postMsg(msg, data);
-		did_run = false;
+		while (!sem_trywait(&did_run));
 		return true;
 	}
 	return false;
@@ -130,22 +125,20 @@ class luaserver_data
 
 void CLuaServer::Lock(void)
 {
-	pthread_mutex_lock(&mutex);
+	pthread_mutex_lock(&instance->mutex);
 }
 
 void CLuaServer::UnLock(void)
 {
-	pthread_mutex_unlock(&mutex);
+	pthread_mutex_unlock(&instance->mutex);
 }
 
 void *CLuaServer::luaserver_thread(void *arg) {
 	set_threadname(__func__);
 	Lock();
-	if (instance) {
-		instance->count++;
-		instance->did_run = true;
-	}
+	instance->count++;
 	UnLock();
+	sem_post(&instance->did_run);
 
 	luaserver_data *lsd = (class luaserver_data *)arg;
 
@@ -173,11 +166,9 @@ void *CLuaServer::luaserver_thread(void *arg) {
 
 	delete lsd;
 	Lock();
-	if (instance) {
-		instance->count--;
-		if (!instance->count)
-			sem_post(&instance->may_run);
-	}
+	instance->count--;
+	if (!instance->count)
+		sem_post(&instance->may_run);
 	UnLock();
 	pthread_exit(NULL);
 }
@@ -199,14 +190,9 @@ bool CLuaServer::luaserver_parse_command(CBasicMessage::Header &rmsg __attribute
 		fprintf(stderr, "%s %s %d: unterminated string\n", __FILE__, __func__, __LINE__);
 		return true;
 	}
-	std::string luascript;
-	if (data[0] == '/')
-		luascript = data;
-	else {
-		luascript = LUAPLUGINDIR "/";
-		luascript += data;
-		luascript += ".lua";
-	}
+	std::string luascript(LUAPLUGINDIR "/");
+	luascript += data;
+	luascript += ".lua";
 	if (access(luascript, R_OK)) {
 		fprintf(stderr, "%s %s %d: %s not found\n", __FILE__, __func__, __LINE__, luascript.c_str());
 		const char *result_code = "-1";
@@ -214,7 +200,7 @@ bool CLuaServer::luaserver_parse_command(CBasicMessage::Header &rmsg __attribute
 		std::string error_string = luascript + " not found\n";
 		size_t result_code_len = strlen(result_code) + 1;
 		size_t result_string_len = strlen(result_string) + 1;
-		size_t error_string_len = error_string.size() + 1;
+		size_t error_string_len = strlen(error_string.c_str()) + 1;
 		size = result_code_len + result_string_len + error_string_len;
 		char result[size + sizeof(size)];
 		char *rp = result;
@@ -253,13 +239,13 @@ bool CLuaServer::luaserver_parse_command(CBasicMessage::Header &rmsg __attribute
 
 void *CLuaServer::luaserver_main_thread(void *) {
 	set_threadname(__func__);
-	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
 
 	CBasicServer server;
 	if (!server.prepare(LUACLIENT_UDS_NAME)) {
 		fprintf(stderr, "%s %s %d: prepare failed\n", __FILE__, __func__, __LINE__);
 		pthread_exit(NULL);
 	}
+
 
 	server.run(luaserver_parse_command, LUACLIENT_VERSION);
 	pthread_exit(NULL);
