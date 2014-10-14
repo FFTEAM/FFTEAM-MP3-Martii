@@ -131,9 +131,8 @@ class CLuaSignalBox
 {
 	public:
 		CSignalBox *s;
-		CComponentsForm *parent;
-		CLuaSignalBox() { s = NULL; parent = NULL;}
-		~CLuaSignalBox() { if (parent == NULL) delete s; }
+		CLuaSignalBox() { s = NULL; }
+		~CLuaSignalBox() { delete s; }
 };
 
 class CLuaComponentsText
