@@ -34,7 +34,6 @@
 #include <neutrino.h>
 #include <system/debug.h>
 #include "luainstance.h"
-#include <video.h>
 
 /* the magic color that tells us we are using one of the palette colors */
 #define MAGIC_COLOR 0x42424200
@@ -198,20 +197,6 @@ static void set_lua_variables(lua_State *L)
 		{ "MENUCONTENTSELECTED_TEXT_PLUS_1",	(lua_Unsigned) (COL_MENUCONTENTSELECTED_TEXT_PLUS_1) },
 		{ "MENUCONTENTSELECTED_TEXT_PLUS_2",	(lua_Unsigned) (COL_MENUCONTENTSELECTED_TEXT_PLUS_2) },
 		{ "MENUCONTENTINACTIVE_TEXT",		(lua_Unsigned) (COL_MENUCONTENTINACTIVE_TEXT) },
-		{ "MENUHEAD_PLUS_0",			(lua_Unsigned) (COL_MENUHEAD_PLUS_0) },
-		{ "MENUCONTENT_PLUS_0",			(lua_Unsigned) (COL_MENUCONTENT_PLUS_0) },
-		{ "MENUCONTENT_PLUS_1",			(lua_Unsigned) (COL_MENUCONTENT_PLUS_1) },
-		{ "MENUCONTENT_PLUS_2",			(lua_Unsigned) (COL_MENUCONTENT_PLUS_2) },
-		{ "MENUCONTENT_PLUS_3",			(lua_Unsigned) (COL_MENUCONTENT_PLUS_3) },
-		{ "MENUCONTENT_PLUS_4",			(lua_Unsigned) (COL_MENUCONTENT_PLUS_4) },
-		{ "MENUCONTENT_PLUS_5",			(lua_Unsigned) (COL_MENUCONTENT_PLUS_5) },
-		{ "MENUCONTENT_PLUS_6",			(lua_Unsigned) (COL_MENUCONTENT_PLUS_6) },
-		{ "MENUCONTENT_PLUS_7",			(lua_Unsigned) (COL_MENUCONTENT_PLUS_7) },
-		{ "MENUCONTENTDARK_PLUS_0",		(lua_Unsigned) (COL_MENUCONTENTDARK_PLUS_0) },
-		{ "MENUCONTENTDARK_PLUS_2",		(lua_Unsigned) (COL_MENUCONTENTDARK_PLUS_2) },
-		{ "MENUCONTENTSELECTED_PLUS_0",		(lua_Unsigned) (COL_MENUCONTENTSELECTED_PLUS_0) },
-		{ "MENUCONTENTSELECTED_PLUS_2",		(lua_Unsigned) (COL_MENUCONTENTSELECTED_PLUS_2) },
-		{ "MENUCONTENTINACTIVE_PLUS_0",		(lua_Unsigned) (COL_MENUCONTENTINACTIVE_PLUS_0) },
 		{ NULL, 0 }
 	};
 
@@ -350,36 +335,6 @@ CLuaInstance::~CLuaInstance()
 	}
 }
 
-/* Ported by Benny Chen, http://www.bennychen.cn/tag/lual_checkbool/ */
-bool CLuaInstance::_luaL_checkbool(lua_State *L, int numArg)
-{
-	bool b = false;
-	if (lua_isboolean(L, numArg))
-		b = lua_toboolean(L, numArg);
-	else {
-		lua_Debug ar;
-		lua_getstack(L, 0, &ar);
-		lua_getinfo(L, "n", &ar);
-		luaL_error(L, "bad argument #%d to '%s' (%s expected, got %s)\n", 
-				numArg-1, ar.name,
-				lua_typename(L, LUA_TBOOLEAN),
-				lua_typename(L, lua_type(L, numArg)));
-	}
-	return b;
-}
-
-void CLuaInstance::paramBoolDeprecated(lua_State *L, const char* val)
-{
-	lua_Debug ar;
-	lua_getstack(L, 1, &ar);
-	lua_getinfo(L, "Sl", &ar);
-	printf("[Lua Script] \33[1;31m%s\33[0m %s (\33[31m\"%s\"\33[0m)\n                      %s \33[32mtrue\33[0m.\n                      (%s:%d)\n",
-					g_Locale->getText(LOCALE_LUA_BOOLPARAM_DEPRECATED1),
-					g_Locale->getText(LOCALE_LUA_BOOLPARAM_DEPRECATED2), val,
-					g_Locale->getText(LOCALE_LUA_BOOLPARAM_DEPRECATED3),
-					ar.short_src, ar.currentline);
-}
-
 void CLuaInstance::functionDeprecated(lua_State *L, const char* oldFunc, const char* newFunc)
 {
 	lua_Debug ar;
@@ -390,14 +345,6 @@ void CLuaInstance::functionDeprecated(lua_State *L, const char* oldFunc, const c
 					g_Locale->getText(LOCALE_LUA_FUNCTION_DEPRECATED2), oldFunc,
 					g_Locale->getText(LOCALE_LUA_FUNCTION_DEPRECATED3), newFunc,
 					ar.short_src, ar.currentline);
-}
-
-lua_Unsigned CLuaInstance::checkMagicMask(lua_Unsigned &col)
-{
-	if ((col & MAGIC_MASK) == MAGIC_COLOR)
-		/* use the color constants */
-		col = CFrameBuffer::getInstance()->realcolor[col & 0x000000ff];
-	return col;
 }
 
 #define SET_VAR1(NAME) \
@@ -420,30 +367,22 @@ void CLuaInstance::runScript(const char *fileName, std::vector<std::string> *arg
 			*error_string = std::string(lua_tostring(lua, -1));
 		return;
 	}
-	int argvSize = 1;
-	int n = 0;
 	set_lua_variables(lua);
-	if (argv && (!argv->empty()))
-		argvSize += argv->size();
-	lua_createtable(lua, argvSize, 0);
-
-	// arg0 is scriptname
-	lua_pushstring(lua, fileName);
-	lua_rawseti(lua, -2, n++);
-
-	if (argv && (!argv->empty())) {
+	if (argv) {
+		lua_createtable(lua, argv->size(), 0);
+		int n = 0;
 		for(std::vector<std::string>::iterator it = argv->begin(); it != argv->end(); ++it) {
 			lua_pushstring(lua, it->c_str());
 			lua_rawseti(lua, -2, n++);
 		}
+		lua_setglobal(lua, "arg");
 	}
-	lua_setglobal(lua, "arg");
-#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
+#if HAVE_SPARK_HARDWARE
 	CFrameBuffer::getInstance()->autoBlit();
 #endif
 	status = lua_pcall(lua, 0, LUA_MULTRET, 0);
-#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
-	CFrameBuffer::getInstance()->autoBlit();
+#if HAVE_SPARK_HARDWARE
+	CFrameBuffer::getInstance()->autoBlit(false);
 #endif
 	if (result_code)
 		*result_code = to_string(status);
@@ -456,32 +395,6 @@ void CLuaInstance::runScript(const char *fileName, std::vector<std::string> *arg
 		if (error_string)
 			*error_string = std::string(lua_tostring(lua, -1));
 	}
-}
-
-// Example: runScript(fileName, "Arg1", "Arg2", "Arg3", ..., NULL);
-//	Type of all parameters: const char*
-//	The last parameter to NULL is imperative.
-void CLuaInstance::runScript(const char *fileName, const char *arg0, ...)
-{
-	int i = 0;
-	std::vector<std::string> args;
-	args.push_back(arg0);
-	va_list list;
-	va_start(list, arg0);
-	const char* temp = va_arg(list, const char*);
-	while (temp != NULL) {
-		if (i >= 64) {
-			fprintf(stderr, "CLuaInstance::runScript: too many arguments!\n");
-			args.clear();
-			return;
-		}
-		args.push_back(temp);
-		temp = va_arg(list, const char*);
-		i++;
-	}
-	va_end(list);
-	runScript(fileName, &args);
-	args.clear();
 }
 
 static void abortHook(lua_State *lua, lua_Debug *)
@@ -504,15 +417,10 @@ const luaL_Reg CLuaInstance::methods[] =
 	{ "getRenderWidth", CLuaInstance::getRenderWidth },
 	{ "GetSize", CLuaInstance::GetSize },
 	{ "DisplayImage", CLuaInstance::DisplayImage },
-	{ "setBlank", CLuaInstance::setBlank },
-	{ "ShowPicture", CLuaInstance::ShowPicture },
-	{ "StopPicture", CLuaInstance::StopPicture },
 	{ "Blit", CLuaInstance::Blit },
 	{ "GetLanguage", CLuaInstance::GetLanguage },
 	{ "runScript", CLuaInstance::runScriptExt },
 	{ "PlayFile", CLuaInstance::PlayFile },
-	{ "strFind", CLuaInstance::strFind },
-	{ "strSub", CLuaInstance::strSub },
 	{ NULL, NULL }
 };
 
@@ -545,7 +453,6 @@ static int dolibrary (lua_State *L, const char *name)
 	return status;
 }
 #endif
-
 /* load basic functions and register our own C callbacks */
 void CLuaInstance::registerFunctions()
 {
@@ -589,7 +496,6 @@ void CLuaInstance::registerFunctions()
 	ComponentsTextRegister(lua);
 	SignalBoxRegister(lua);
 	CPictureRegister(lua);
-	LuaConfigFileRegister(lua);
 }
 
 CLuaData *CLuaInstance::CheckData(lua_State *L, int narg)
@@ -655,7 +561,9 @@ int CLuaInstance::PaintBox(lua_State *L)
 		w = W->fbwin->dx - x;
 	if (h < 0 || y + h > W->fbwin->dy)
 		h = W->fbwin->dy - y;
-	checkMagicMask(c);
+	/* use the color constants */
+	if ((c & MAGIC_MASK) == MAGIC_COLOR)
+		c = CFrameBuffer::getInstance()->realcolor[c & 0x000000ff];
 	W->fbwin->paintBoxRel(x, y, w, h, c, radius, corner);
 	return 0;
 }
@@ -699,31 +607,6 @@ int CLuaInstance::DisplayImage(lua_State *L)
 	return 0;
 }
 
-extern cVideo * videoDecoder;
-
-int CLuaInstance::setBlank(lua_State *L)
-{
-	bool enable = true;
-	int numargs = lua_gettop(L);
-	if (numargs > 1)
-		enable = _luaL_checkbool(L, 2);
-	videoDecoder->setBlank(enable);
-	return 0;
-}
-
-int CLuaInstance::ShowPicture(lua_State *L)
-{
-	const char *fname = luaL_checkstring(L, 2);
-	videoDecoder->ShowPicture(fname);
-	return 0;
-}
-
-int CLuaInstance::StopPicture(lua_State */*L*/)
-{
-	videoDecoder->StopPicture();
-	return 0;
-}
-
 int CLuaInstance::PlayFile(lua_State *L)
 {
 	printf("CLuaInstance::%s %d\n", __func__, lua_gettop(L));
@@ -734,80 +617,16 @@ int CLuaInstance::PlayFile(lua_State *L)
 		return 0;
 	}
 	const char *title;
-	const char *info1 = "";
-	const char *info2 = "";
 	const char *fname;
 
 	title = luaL_checkstring(L, 2);
 	fname = luaL_checkstring(L, 3);
-	if (numargs > 3)
-		info1 = luaL_checkstring(L, 4);
-	if (numargs > 4)
-		info2 = luaL_checkstring(L, 5);
 	printf("CLuaInstance::%s: title %s file %s\n", __func__, title, fname);
 	std::string st(title);
-	std::string si1(info1);
-	std::string si2(info2);
 	std::string sf(fname);
 	CMoviePlayerGui::getInstance().SetFile(st, sf);
 	CMoviePlayerGui::getInstance().exec(NULL, "http");
 	return 0;
-}
-
-int CLuaInstance::strFind(lua_State *L)
-{
-	int numargs = lua_gettop(L);
-	if (numargs < 3) {
-		printf("CLuaInstance::%s: not enough arguments (%d, expected 2 (or 3 or 4))\n", __func__, numargs);
-		lua_pushnil(L);
-		return 1;
-	}
-	const char *s1;
-	const char *s2;
-	int pos=0, n=0, ret=0;
-	s1 = luaL_checkstring(L, 2);
-	s2 = luaL_checkstring(L, 3);
-	if (numargs > 3)
-		pos = luaL_checkint(L, 4);
-	if (numargs > 4)
-		n = luaL_checkint(L, 5);
-
-	std::string str(s1);
-	if (numargs > 4)
-		ret = str.find(s2, pos, n);
-	else
-		ret = str.find(s2, pos);
-
-//	printf("####[%s:%d] str_len: %d, s2: %s, pos: %d, n: %d, ret: %d\n", __func__, __LINE__, str.length(), s2, pos, n, ret);
-	if (ret == (int)std::string::npos)
-		lua_pushnil(L);
-	else
-		lua_pushinteger(L, ret);
-	return 1;
-}
-
-int CLuaInstance::strSub(lua_State *L)
-{
-	int numargs = lua_gettop(L);
-	if (numargs < 3) {
-		printf("CLuaInstance::%s: not enough arguments (%d, expected 2 (or 3))\n", __func__, numargs);
-		lua_pushstring(L, "");
-		return 1;
-	}
-	const char *s1;
-	int pos=0, len=std::string::npos;
-	std::string ret="";
-	s1 = luaL_checkstring(L, 2);
-	pos = luaL_checkint(L, 3);
-	if (numargs > 3)
-		len = luaL_checkint(L, 4);
-
-	std::string str(s1);
-	ret = str.substr(pos, len);
-
-//	printf("####[%s:%d] str_len: %d, pos: %d, len: %d, ret_len: %d\n", __func__, __LINE__, str.length(), pos, len, ret.length());
-	lua_pushstring(L, ret.c_str());
-	return 1;
 }
 
 int CLuaInstance::GetSize(lua_State *L)
@@ -858,9 +677,10 @@ int CLuaInstance::RenderString(lua_State *L)
 		if (rwidth < w)
 			x += (w - rwidth) / 2;
 	}
-	checkMagicMask(c);
+	if ((c & MAGIC_MASK) == MAGIC_COLOR)
+		c = CFrameBuffer::getInstance()->realcolor[c & 0x000000ff];
 	if (boxh > -1) /* if boxh < 0, don't paint string */
-		W->fbwin->RenderString(g_Font[f], x, y, w, text, c, boxh);
+		W->fbwin->RenderString(g_Font[f], x, y, w, text, c, boxh, true);
 	lua_pushinteger(L, rwidth); /* return renderwidth */
 	return 1;
 }
@@ -898,8 +718,9 @@ int CLuaInstance::GetInput(lua_State *L)
 	/* TODO: I'm not sure if this works... */
 	if (msg != CRCInput::RC_timeout && msg > CRCInput::RC_MaxRC)
 	{
-		DBG("CLuaInstance::%s: msg 0x%08" PRIx32 " data 0x%08" PRIx32 "\n", __func__, msg, data);
+		DBG("CLuaInstance::%s: msg 0x%08"PRIx32" data 0x%08"PRIx32"\n", __func__, msg, data);
 		CNeutrinoApp::getInstance()->handleMsg(msg, data);
+		return 0;
 	}
 	/* signed int is debatable, but the "big" messages can't yet be handled
 	 * inside lua scripts anyway. RC_timeout == -1, RC_nokey == -2 */
@@ -935,8 +756,8 @@ int CLuaInstance::GCWindow(lua_State *L)
 
 int CLuaInstance::Blit(lua_State *L)
 {
-#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
-	CFrameBuffer::getInstance()->autoBlit();
+#if HAVE_SPARK_HARDWARE
+	CFrameBuffer::getInstance()->autoBlit(false);
 #endif
 	CLuaData *W = CheckData(L, 1);
 	if (W && W->fbwin) {
@@ -956,24 +777,9 @@ int CLuaInstance::GetLanguage(lua_State *L)
 	return 1;
 }
 
-int CLuaInstance::runScriptExt(lua_State *L)
+int CLuaInstance::runScriptExt(lua_State *)
 {
-	CLuaData *W = CheckData(L, 1);
-	if (!W) return 0;
-
-	int numargs = lua_gettop(L);
-	const char *script = luaL_checkstring(L, 2);
-	std::vector<std::string> args;
-	for (int i = 3; i <= numargs; i++) {
-		std::string arg = luaL_checkstring(L, i);
-		if (!arg.empty())
-			args.push_back(arg);
-	}
-
-	CLuaInstance *lua = new CLuaInstance();
-	lua->runScript(script, &args);
-	args.clear();
-	delete lua;
+	fprintf(stderr, "[CLuaInstance::%s] runScript is not an implemented extension. Please fix your Lua code to use one of the native mechanisms instead.\n", __func__);
 	return 0;
 }
 
@@ -1008,7 +814,7 @@ bool CLuaInstance::tableLookup(lua_State *L, const char *what, lua_Unsigned &val
 	lua_gettable(L, -2);
 	res = lua_isnumber(L, -1);
 	if (res)
-		value = (lua_Unsigned) lua_tonumber(L, -1);
+		value = lua_tointeger(L, -1);
 	lua_pop(L, 1);
 	return res;
 }
@@ -1021,18 +827,6 @@ bool CLuaInstance::tableLookup(lua_State *L, const char *what, void** value)
 	res = lua_isuserdata(L, -1);
 	if (res)
 		*value = lua_unboxpointer(L, -1);
-	lua_pop(L, 1);
-	return res;
-}
-
-bool CLuaInstance::tableLookup(lua_State *L, const char *what, bool &value)
-{
-	bool res = false;
-	lua_pushstring(L, what);
-	lua_gettable(L, -2);
-	res = lua_isboolean(L, -1);
-	if (res)
-		value = lua_toboolean(L, -1);
 	lua_pop(L, 1);
 	return res;
 }
@@ -1271,29 +1065,37 @@ int CLuaInstance::MenuAddItem(lua_State *L)
 	tableLookup(L, "encoding", encoding);
 	if (encoding == "html")
 		htmlEntityDecode(b->name);
+	std::string icon_str;	tableLookup(L, "icon", icon_str);
 	std::string type;	tableLookup(L, "type", type);
+	char *icon = NULL;
+	if (!icon_str.empty()) {
+		icon = strdup(icon_str.c_str());
+		m->tofree.push_back(icon);
+	}
 	if (type == "back") {
 		m->m->addItem(GenericMenuBack);
 	} else if (type == "next") {
 		m->m->addItem(GenericMenuNext);
 	} else if (type == "cancel") {
 		m->m->addItem(GenericMenuCancel);
-	} else if (type == "separator") {
-		m->m->addItem(GenericMenuSeparator);
-	} else if ((type == "separatorline") || (type == "subhead")) {
+	} else if (type == "separator" || type == "separatorline") {
+		if (type == "separatorline")
+			fprintf(stderr, "[CLuaInstance::%s] \"separatorline\" needlessly duplicates \"separator\" functionality and is deprecated.\n", __func__);
 		if (!b->name.empty()) {
-			int flag = (type == "separatorline") ? CMenuSeparator::LINE : CMenuSeparator::SUB_HEAD;
-			m->m->addItem(new CMenuSeparator(CMenuSeparator::STRING | flag, b->name.c_str(), NONEXISTANT_LOCALE));
-		} else
+			m->m->addItem(new CMenuSeparator(CMenuSeparator::STRING | CMenuSeparator::LINE, b->name.c_str(), NONEXISTANT_LOCALE));
+		} else {
 			m->m->addItem(GenericMenuSeparatorLine);
+		}
+	} else if (type == "subhead") {
+		if (!b->name.empty())
+			m->m->addItem(new CMenuSeparator(CMenuSeparator::STRING | CMenuSeparator::SUB_HEAD, b->name.c_str(), NONEXISTANT_LOCALE));
 	} else {
 		std::string right_icon_str;	tableLookup(L, "right_icon", right_icon_str);
-		std::string action;	tableLookup(L, "action", action);
-		std::string value;	tableLookup(L, "value", value);
-		std::string hint;	tableLookup(L, "hint", hint);
+		std::string action;		tableLookup(L, "action", action);
+		std::string value;		tableLookup(L, "value", value);
+		std::string hint;		tableLookup(L, "hint", hint);
 		std::string hint_icon_str;	tableLookup(L, "hint_icon", hint_icon_str);
-		std::string icon_str;	tableLookup(L, "icon", icon_str);
-		std::string id;		tableLookup(L, "id", id);
+		std::string id;			tableLookup(L, "id", id);
 		std::string tmp;
 		char *right_icon = NULL;
 		if (!right_icon_str.empty()) {
@@ -1305,25 +1107,12 @@ int CLuaInstance::MenuAddItem(lua_State *L)
 			hint_icon = strdup(hint_icon_str.c_str());
 			m->tofree.push_back(hint_icon);
 		}
-		char *icon = NULL;
-		if (!icon_str.empty()) {
-			icon = strdup(icon_str.c_str());
-			m->tofree.push_back(icon);
-		}
-
 		lua_Integer directkey = CRCInput::RC_nokey, pulldown = false;
 		tableLookup(L, "directkey", directkey);
 		tableLookup(L, "pulldown", pulldown);
-
-		bool enabled = true;
-		if (!(tableLookup(L, "enabled", enabled) || tableLookup(L, "active", enabled)))
-		{
-			tmp = "true";
-			if (tableLookup(L, "enabled", tmp) || tableLookup(L, "active", tmp))
-				paramBoolDeprecated(L, tmp.c_str());
-			enabled = (tmp == "true" || tmp == "1" || tmp == "yes");
-		}
-
+		tmp = "true";
+		tableLookup(L, "enabled", tmp) || tableLookup(L, "active", tmp);
+		bool enabled = (tmp == "true" || tmp == "1" || tmp == "yes");
 		tableLookup(L, "range", tmp);
 		int range_from = 0, range_to = 99;
 		sscanf(tmp.c_str(), "%d,%d", &range_from, &range_to);
@@ -1334,8 +1123,6 @@ int CLuaInstance::MenuAddItem(lua_State *L)
 			b->str_val = value;
 			CLuaMenuForwarder *forwarder = new CLuaMenuForwarder(L, action, id);
 			mi = new CMenuForwarder(b->name, enabled, b->str_val, forwarder, NULL/*ActionKey*/, directkey, icon, right_icon);
-			if (!hint.empty() || hint_icon)
-				mi->setHint(hint_icon, hint);
 			m->targets.push_back(forwarder);
 		} else if (type == "chooser") {
 			int options_count = 0;
@@ -1704,7 +1491,6 @@ void CLuaInstance::CWindowRegister(lua_State *L)
 		{ "paint", CLuaInstance::CWindowPaint },
 		{ "hide", CLuaInstance::CWindowHide },
 		{ "setCaption", CLuaInstance::CWindowSetCaption },
-		{ "setWindowColor", CLuaInstance::CWindowSetWindowColor },
 		{ "paintHeader", CLuaInstance::CWindowPaintHeader },
 		{ "headerHeight", CLuaInstance::CWindowGetHeaderHeight },
 		{ "footerHeight", CLuaInstance::CWindowGetFooterHeight },
@@ -1725,15 +1511,15 @@ int CLuaInstance::CWindowNew(lua_State *L)
 {
 	lua_assert(lua_istable(L,1));
 
-	std::string name, icon   = std::string(NEUTRINO_ICON_INFO);
 	lua_Unsigned color_frame  = (lua_Unsigned)COL_MENUCONTENT_PLUS_6;
 	lua_Unsigned color_body   = (lua_Unsigned)COL_MENUCONTENT_PLUS_0;
 	lua_Unsigned color_shadow = (lua_Unsigned)COL_MENUCONTENTDARK_PLUS_0;
 	std::string tmp1         = "false";
-	std::string btnRed       = "";
-	std::string btnGreen     = "";
-	std::string btnYellow    = "";
-	std::string btnBlue      = "";
+	std::string name, icon = std::string(NEUTRINO_ICON_INFO);
+	std::string btnRed    = "";
+	std::string btnGreen  = "";
+	std::string btnYellow = "";
+	std::string btnBlue   = "";
 	lua_Integer x = 100, y = 100, dx = 450, dy = 250;
 	tableLookup(L, "x", x);
 	tableLookup(L, "y", y);
@@ -1741,16 +1527,8 @@ int CLuaInstance::CWindowNew(lua_State *L)
 	tableLookup(L, "dy", dy);
 	tableLookup(L, "name", name) || tableLookup(L, "title", name) || tableLookup(L, "caption", name);
 	tableLookup(L, "icon", icon);
-
-	bool has_shadow = false;
-	if (!tableLookup(L, "has_shadow", has_shadow))
-	{
-		tmp1 = "false";
-		if (tableLookup(L, "has_shadow", tmp1))
-			paramBoolDeprecated(L, tmp1.c_str());
-		has_shadow = (tmp1 == "true" || tmp1 == "1" || tmp1 == "yes");
-	}
-
+	tableLookup(L, "has_shadow"  , tmp1);
+	bool has_shadow = (tmp1 == "true" || tmp1 == "1" || tmp1 == "yes");
 	tableLookup(L, "color_frame" , color_frame);
 	tableLookup(L, "color_body"  , color_body);
 	tableLookup(L, "color_shadow", color_shadow);
@@ -1759,26 +1537,12 @@ int CLuaInstance::CWindowNew(lua_State *L)
 	tableLookup(L, "btnYellow", btnYellow);
 	tableLookup(L, "btnBlue", btnBlue);
 
-	checkMagicMask(color_frame);
-	checkMagicMask(color_body);
-	checkMagicMask(color_shadow);
-
-	bool show_header = true;
-	if (!tableLookup(L, "show_header", show_header))
-	{
-		tmp1 = "true";
-		if (tableLookup(L, "show_header", tmp1))
-			paramBoolDeprecated(L, tmp1.c_str());
-		show_header = (tmp1 == "true" || tmp1 == "1" || tmp1 == "yes");
-	}
-	bool show_footer = true;
-	if (!tableLookup(L, "show_footer", show_footer))
-	{
-		tmp1 = "true";
-		if (tableLookup(L, "show_footer", tmp1))
-			paramBoolDeprecated(L, tmp1.c_str());
-		show_footer = (tmp1 == "true" || tmp1 == "1" || tmp1 == "yes");
-	}
+	tmp1 = "true";
+	tableLookup(L, "show_header"  , tmp1);
+	bool show_header = (tmp1 == "true" || tmp1 == "show" || tmp1 == "yes");
+	tmp1 = "true";
+	tableLookup(L, "show_footer"  , tmp1);
+	bool show_footer = (tmp1 == "true" || tmp1 == "show" || tmp1 == "yes");
 
 	CLuaCWindow **udata = (CLuaCWindow **) lua_newuserdata(L, sizeof(CLuaCWindow *));
 	*udata = new CLuaCWindow();
@@ -1826,18 +1590,14 @@ CLuaCWindow *CLuaInstance::CWindowCheck(lua_State *L, int n)
 int CLuaInstance::CWindowPaint(lua_State *L)
 {
 	lua_assert(lua_istable(L,1));
+	std::string tmp = "true";
+	tableLookup(L, "do_save_bg", tmp);
+	bool do_save_bg = (tmp == "true" || tmp == "1" || tmp == "yes");
+
 	CLuaCWindow *m = CWindowCheck(L, 1);
 	if (!m)
 		return 0;
 
-	bool do_save_bg = true;
-	if (!tableLookup(L, "do_save_bg", do_save_bg))
-	{
-		std::string tmp = "true";
-		if (tableLookup(L, "do_save_bg", tmp))
-			paramBoolDeprecated(L, tmp.c_str());
-		do_save_bg = (tmp == "true" || tmp == "1" || tmp == "yes");
-	}
 	m->w->paint(do_save_bg);
 	return 0;
 }
@@ -1845,18 +1605,14 @@ int CLuaInstance::CWindowPaint(lua_State *L)
 int CLuaInstance::CWindowHide(lua_State *L)
 {
 	lua_assert(lua_istable(L,1));
+	std::string tmp = "false";
+	tableLookup(L, "no_restore", tmp);
+	bool no_restore = (tmp == "true" || tmp == "1" || tmp == "yes");
+
 	CLuaCWindow *m = CWindowCheck(L, 1);
 	if (!m)
 		return 0;
 
-	bool no_restore = false;
-	if (!tableLookup(L, "no_restore", no_restore))
-	{
-		std::string tmp = "false";
-		if (tableLookup(L, "no_restore", tmp))
-			paramBoolDeprecated(L, tmp.c_str());
-		no_restore = (tmp == "true" || tmp == "1" || tmp == "yes");
-	}
 	m->w->hide(no_restore);
 	return 0;
 }
@@ -1871,29 +1627,6 @@ int CLuaInstance::CWindowSetCaption(lua_State *L)
 	tableLookup(L, "name", name) || tableLookup(L, "title", name) || tableLookup(L, "caption", name);
 
 	m->w->setWindowCaption(name);
-	return 0;
-}
-
-int CLuaInstance::CWindowSetWindowColor(lua_State *L)
-{
-	lua_assert(lua_istable(L,1));
-	CLuaCWindow *m = CWindowCheck(L, 1);
-	if (!m) return 0;
-
-	lua_Unsigned color;
-	if (tableLookup(L, "color_frame"  , color)) {
-		checkMagicMask(color);
-		m->w->setColorFrame(color);
-	}
-	if (tableLookup(L, "color_body"  , color)) {
-		checkMagicMask(color);
-		m->w->setColorBody(color);
-	}
-	if (tableLookup(L, "color_shadow"  , color)) {
-		checkMagicMask(color);
-		m->w->setColorShadow(color);
-	}
-
 	return 0;
 }
 
@@ -1959,6 +1692,7 @@ int CLuaInstance::CWindowDelete(lua_State *L)
 	if (!m)
 		return 0;
 
+	m->w->hide();
 	delete m;
 	return 0;
 }
@@ -2014,18 +1748,14 @@ int CLuaInstance::SignalBoxNew(lua_State *L)
 int CLuaInstance::SignalBoxPaint(lua_State *L)
 {
 	lua_assert(lua_istable(L,1));
+	std::string tmp = "true";
+	tableLookup(L, "do_save_bg", tmp);
+	bool do_save_bg = (tmp == "true" || tmp == "1" || tmp == "yes");
+
 	CLuaSignalBox *m = SignalBoxCheck(L, 1);
 	if (!m)
 		return 0;
 
-	bool do_save_bg = true;
-	if (!tableLookup(L, "do_save_bg", do_save_bg))
-	{
-		std::string tmp = "true";
-		if (tableLookup(L, "do_save_bg", tmp))
-			paramBoolDeprecated(L, tmp.c_str());
-		do_save_bg = (tmp == "true" || tmp == "1" || tmp == "yes");
-	}
 	m->s->paint(do_save_bg);
 	return 0;
 }
@@ -2036,6 +1766,7 @@ int CLuaInstance::SignalBoxDelete(lua_State *L)
 	if (!m)
 		return 0;
 
+	m->s->kill();
 	delete m;
 	return 0;
 }
@@ -2080,6 +1811,7 @@ int CLuaInstance::ComponentsTextNew(lua_State *L)
 	lua_Unsigned color_frame  = (lua_Unsigned)COL_MENUCONTENT_PLUS_6;
 	lua_Unsigned color_body   = (lua_Unsigned)COL_MENUCONTENT_PLUS_0;
 	lua_Unsigned color_shadow = (lua_Unsigned)COL_MENUCONTENTDARK_PLUS_0;
+	std::string tmp1         = "false";
 
 	tableLookup(L, "parent"      , (void**)&parent);
 	tableLookup(L, "x"           , x);
@@ -2091,25 +1823,12 @@ int CLuaInstance::ComponentsTextNew(lua_State *L)
 	tableLookup(L, "font_text"   , font_text);
 	if (font_text >= SNeutrinoSettings::FONT_TYPE_COUNT || font_text < 0)
 		font_text = SNeutrinoSettings::FONT_TYPE_MENU;
-
-	bool has_shadow = false;
-	if (!tableLookup(L, "has_shadow", has_shadow))
-	{
-		std::string tmp1 = "false";
-		if (tableLookup(L, "has_shadow", tmp1))
-			paramBoolDeprecated(L, tmp1.c_str());
-		has_shadow = (tmp1 == "true" || tmp1 == "1" || tmp1 == "yes");
-	}
-
+	tableLookup(L, "has_shadow"  , tmp1);
+	bool has_shadow = (tmp1 == "true" || tmp1 == "1" || tmp1 == "yes");
 	tableLookup(L, "color_text"  , color_text);
 	tableLookup(L, "color_frame" , color_frame);
 	tableLookup(L, "color_body"  , color_body);
 	tableLookup(L, "color_shadow", color_shadow);
-
-	checkMagicMask(color_text);
-	checkMagicMask(color_frame);
-	checkMagicMask(color_body);
-	checkMagicMask(color_shadow);
 
 	if (!tmpMode.empty()) {
 		table_key txt_align[] = {
@@ -2152,14 +1871,10 @@ int CLuaInstance::ComponentsTextPaint(lua_State *L)
 	CLuaComponentsText *m = ComponentsTextCheck(L, 1);
 	if (!m) return 0;
 
-	bool do_save_bg = true;
-	if (!tableLookup(L, "do_save_bg", do_save_bg))
-	{
-		std::string tmp = "true";
-		if (tableLookup(L, "do_save_bg", tmp))
-			paramBoolDeprecated(L, tmp.c_str());
-		do_save_bg = (tmp == "true" || tmp == "1" || tmp == "yes");
-	}
+	std::string tmp = "true";
+	tableLookup(L, "do_save_bg", tmp);
+	bool do_save_bg = (tmp == "true" || tmp == "1" || tmp == "yes");
+
 	m->ct->paint(do_save_bg);
 	return 0;
 }
@@ -2170,14 +1885,10 @@ int CLuaInstance::ComponentsTextHide(lua_State *L)
 	CLuaComponentsText *m = ComponentsTextCheck(L, 1);
 	if (!m) return 0;
 
-	bool no_restore = false;
-	if (!tableLookup(L, "no_restore", no_restore))
-	{
-		std::string tmp = "false";
-		if (tableLookup(L, "no_restore", tmp))
-			paramBoolDeprecated(L, tmp.c_str());
-		no_restore = (tmp == "true" || tmp == "1" || tmp == "yes");
-	}
+	std::string tmp = "false";
+	tableLookup(L, "no_restore", tmp);
+	bool no_restore = (tmp == "true" || tmp == "1" || tmp == "yes");
+
 	if (m->parent) {
 		m->ct->setText("", m->mode, g_Font[m->font_text]);
 		m->ct->paint();
@@ -2233,6 +1944,7 @@ int CLuaInstance::ComponentsTextDelete(lua_State *L)
 	if (!m)
 		return 0;
 
+	m->ct->hide();
 	delete m;
 	return 0;
 }
@@ -2270,6 +1982,8 @@ int CLuaInstance::CPictureNew(lua_State *L)
 	lua_Integer x=10, y=10, dx=100, dy=100;
 	std::string image_name        = "";
 	lua_Integer alignment         = 0;
+
+	std::string tmp1             = "false";	// has_shadow
 	lua_Unsigned color_frame      = (lua_Unsigned)COL_MENUCONTENT_PLUS_6;
 	lua_Unsigned color_background = (lua_Unsigned)COL_MENUCONTENT_PLUS_0;
 	lua_Unsigned color_shadow     = (lua_Unsigned)COL_MENUCONTENTDARK_PLUS_0;
@@ -2291,22 +2005,12 @@ int CLuaInstance::CPictureNew(lua_State *L)
 	if (alignment)
 		dprintf(DEBUG_NORMAL, "[CLuaInstance][%s - %d] invalid argument: 'alignment' has no effect!\n", __func__, __LINE__);
 
-	bool has_shadow = false;
-	if (!tableLookup(L, "has_shadow", has_shadow))
-	{
-		std::string tmp1 = "false";
-		if (tableLookup(L, "has_shadow", tmp1))
-			paramBoolDeprecated(L, tmp1.c_str());
-		has_shadow = (tmp1 == "true" || tmp1 == "1" || tmp1 == "yes");
-	}
+	tableLookup(L, "has_shadow"       , tmp1);
+	bool has_shadow = (tmp1 == "true" || tmp1 == "1" || tmp1 == "yes");
 	tableLookup(L, "color_frame"      , color_frame);
 	tableLookup(L, "color_background" , color_background);
 	tableLookup(L, "color_shadow"     , color_shadow);
 	tableLookup(L, "transparency"     , transparency);
-
-	checkMagicMask(color_frame);
-	checkMagicMask(color_background);
-	checkMagicMask(color_shadow);
 
 	CComponentsForm* pw = (parent && parent->w) ? parent->w->getBodyObject() : NULL;
 
@@ -2325,14 +2029,10 @@ int CLuaInstance::CPicturePaint(lua_State *L)
 	CLuaPicture *m = CPictureCheck(L, 1);
 	if (!m) return 0;
 
-	bool do_save_bg = true;
-	if (!tableLookup(L, "do_save_bg", do_save_bg))
-	{
-		std::string tmp = "true";
-		if (tableLookup(L, "do_save_bg", tmp))
-			paramBoolDeprecated(L, tmp.c_str());
-		do_save_bg = (tmp == "true" || tmp == "1" || tmp == "yes");
-	}
+	std::string tmp = "true";
+	tableLookup(L, "do_save_bg", tmp);
+	bool do_save_bg = (tmp == "true" || tmp == "1" || tmp == "yes");
+
 	m->cp->paint(do_save_bg);
 	return 0;
 }
@@ -2343,14 +2043,10 @@ int CLuaInstance::CPictureHide(lua_State *L)
 	CLuaPicture *m = CPictureCheck(L, 1);
 	if (!m) return 0;
 
-	bool no_restore = false;
-	if (!tableLookup(L, "no_restore", no_restore))
-	{
-		std::string tmp = "false";
-		if (tableLookup(L, "no_restore", tmp))
-			paramBoolDeprecated(L, tmp.c_str());
-		no_restore = (tmp == "true" || tmp == "1" || tmp == "yes");
-	}
+	std::string tmp = "false";
+	tableLookup(L, "no_restore", tmp);
+	bool no_restore = (tmp == "true" || tmp == "1" || tmp == "yes");
+
 	if (m->parent) {
 		m->cp->setPicture("");
 		m->cp->paint();
@@ -2378,168 +2074,8 @@ int CLuaInstance::CPictureDelete(lua_State *L)
 	CLuaPicture *m = CPictureCheck(L, 1);
 	if (!m) return 0;
 
+	m->cp->hide();
 	delete m;
-	return 0;
-}
-
-// --------------------------------------------------------------------------------
-
-CLuaConfigFile *CLuaInstance::LuaConfigFileCheck(lua_State *L, int n)
-{
-	return *(CLuaConfigFile **) luaL_checkudata(L, n, "configfile");
-}
-
-void CLuaInstance::LuaConfigFileRegister(lua_State *L)
-{
-	luaL_Reg meth[] = {
-		{ "new", CLuaInstance::LuaConfigFileNew },
-		{ "loadConfig", CLuaInstance::LuaConfigFileLoadConfig },
-		{ "saveConfig", CLuaInstance::LuaConfigFileSaveConfig },
-		{ "clear", CLuaInstance::LuaConfigFileClear },
-		{ "getString", CLuaInstance::LuaConfigFileGetString },
-		{ "setString", CLuaInstance::LuaConfigFileSetString },
-		{ "getInt32", CLuaInstance::LuaConfigFileGetInt32 },
-		{ "setInt32", CLuaInstance::LuaConfigFileSetInt32 },
-		{ "getBool", CLuaInstance::LuaConfigFileGetBool },
-		{ "setBool", CLuaInstance::LuaConfigFileSetBool },
-		{ "__gc", CLuaInstance::LuaConfigFileDelete },
-		{ NULL, NULL }
-	};
-
-	luaL_newmetatable(L, "configfile");
-	luaL_setfuncs(L, meth, 0);
-	lua_pushvalue(L, -1);
-	lua_setfield(L, -1, "__index");
-	lua_setglobal(L, "configfile");
-}
-
-int CLuaInstance::LuaConfigFileNew(lua_State *L)
-{
-	CLuaConfigFile **udata = (CLuaConfigFile **) lua_newuserdata(L, sizeof(CLuaConfigFile *));
-	*udata = new CLuaConfigFile();
-	(*udata)->c = new CConfigFile('\t');
-	luaL_getmetatable(L, "configfile");
-	lua_setmetatable(L, -2);
-	return 1;
-}
-
-int CLuaInstance::LuaConfigFileLoadConfig(lua_State *L)
-{
-	CLuaConfigFile *c = LuaConfigFileCheck(L, 1);
-	if (!c) return 0;
-
-	const char *fname = luaL_checkstring(L, 2);
-	bool ret = c->c->loadConfig(fname);
-	lua_pushboolean(L, ret);
-	return 1;
-}
-
-int CLuaInstance::LuaConfigFileSaveConfig(lua_State *L)
-{
-	CLuaConfigFile *c = LuaConfigFileCheck(L, 1);
-	if (!c) return 0;
-
-	const char *fname = luaL_checkstring(L, 2);
-	bool ret = c->c->saveConfig(fname);
-	lua_pushboolean(L, ret);
-	return 1;
-}
-
-int CLuaInstance::LuaConfigFileClear(lua_State *L)
-{
-	CLuaConfigFile *c = LuaConfigFileCheck(L, 1);
-	if (!c) return 0;
-
-	c->c->clear();
-	return 0;
-}
-
-int CLuaInstance::LuaConfigFileGetString(lua_State *L)
-{
-	CLuaConfigFile *c = LuaConfigFileCheck(L, 1);
-	if (!c) return 0;
-	int numargs = lua_gettop(L);
-
-	std::string ret;
-	const char *key = luaL_checkstring(L, 2);
-	const char *defaultVal = "";
-	if (numargs > 2)
-		defaultVal = luaL_checkstring(L, 3);
-	ret = c->c->getString(key, defaultVal);
-	lua_pushstring(L, ret.c_str());
-	return 1;
-}
-
-int CLuaInstance::LuaConfigFileSetString(lua_State *L)
-{
-	CLuaConfigFile *c = LuaConfigFileCheck(L, 1);
-	if (!c) return 0;
-
-	const char *key = luaL_checkstring(L, 2);
-	const char *val = luaL_checkstring(L, 3);
-	c->c->setString(key, val);
-	return 0;
-}
-
-int CLuaInstance::LuaConfigFileGetInt32(lua_State *L)
-{
-	CLuaConfigFile *c = LuaConfigFileCheck(L, 1);
-	if (!c) return 0;
-	int numargs = lua_gettop(L);
-
-	int ret;
-	const char *key = luaL_checkstring(L, 2);
-	int defaultVal = 0;
-	if (numargs > 2)
-		defaultVal = luaL_checkint(L, 3);
-	ret = c->c->getInt32(key, defaultVal);
-	lua_pushinteger(L, ret);
-	return 1;
-}
-
-int CLuaInstance::LuaConfigFileSetInt32(lua_State *L)
-{
-	CLuaConfigFile *c = LuaConfigFileCheck(L, 1);
-	if (!c) return 0;
-
-	const char *key = luaL_checkstring(L, 2);
-	int val = luaL_checkint(L, 3);
-	c->c->setInt32(key, val);
-	return 0;
-}
-
-int CLuaInstance::LuaConfigFileGetBool(lua_State *L)
-{
-	CLuaConfigFile *c = LuaConfigFileCheck(L, 1);
-	if (!c) return 0;
-	int numargs = lua_gettop(L);
-
-	bool ret;
-	const char *key = luaL_checkstring(L, 2);
-	bool defaultVal = false;
-	if (numargs > 2)
-		defaultVal = _luaL_checkbool(L, 3);
-	ret = c->c->getBool(key, defaultVal);
-	lua_pushboolean(L, ret);
-	return 1;
-}
-
-int CLuaInstance::LuaConfigFileSetBool(lua_State *L)
-{
-	CLuaConfigFile *c = LuaConfigFileCheck(L, 1);
-	if (!c) return 0;
-
-	const char *key = luaL_checkstring(L, 2);
-	bool val = _luaL_checkbool(L, 3);
-	c->c->setBool(key, val);
-	return 0;
-}
-
-int CLuaInstance::LuaConfigFileDelete(lua_State *L)
-{
-	CLuaConfigFile *c = LuaConfigFileCheck(L, 1);
-	if (!c) return 0;
-	delete c;
 	return 0;
 }
 

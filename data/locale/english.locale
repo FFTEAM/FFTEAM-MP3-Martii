@@ -855,9 +855,6 @@ ledcontroler.off Led1 & Led2 off
 ledcontroler.on.all Led1 & Led2 on
 ledcontroler.on.led1 Led1 on
 ledcontroler.on.led2 Led2 on
-lua.boolparam_deprecated1 Caution!
-lua.boolparam_deprecated2 The use of number or string
-lua.boolparam_deprecated3 for a Boolean parameter is deprecated.\n                      Please use native bool values eg.
 ledcontroller.mode.deepstandby In deep standby
 ledcontroller.mode.deepstandby_timer In deep standby, if timer set
 ledcontroller.mode.playback During playback
@@ -870,7 +867,6 @@ ledcontroller.on.green Green
 ledcontroller.on.red Red
 ledcontroller.title LEDs
 lua.function_deprecated1 Attention!
-lua.function_deprecated1 Caution!
 lua.function_deprecated2 Function
 lua.function_deprecated3 is deprecated,\n                      please use
 mainmenu.audioplayer Audioplayer
@@ -878,7 +874,6 @@ mainmenu.channels Channels
 mainmenu.clearsectionsd Clear EPG Cache
 mainmenu.games Games
 mainmenu.head Main Menu
-mainmenu.lua Lua Plugins
 mainmenu.media Media
 mainmenu.movieplayer Movieplayer
 mainmenu.pausesectionsd Read EPG
@@ -1112,7 +1107,6 @@ menu.hint_leds_standby LEDs state in soft-standby mode
 menu.hint_leds_tv Working LEDs state
 menu.hint_load Load Neutrino GUI settings from file
 menu.hint_longkeypress_duration A key press will be considered as "long key press" if it's pressed longer than the specified time.
-menu.hint_lua Run Lua Plugins
 menu.hint_make_hdlist Auto-create HD channel list based on\nchannel type and name
 menu.hint_make_newlist Create list of recently added channels
 menu.hint_make_removedlist Create list of recently removed channels
@@ -1919,7 +1913,7 @@ plugins.hdd_dir Plugin HDD dir.
 plugins.result plugin output
 plugintype.disabled Disabled
 plugintype.game Game
-plugintype.lua Lua plugin
+plugintype.lua LUA Script
 plugintype.script Script
 plugintype.tool Tool
 progressbar.color.full colored
