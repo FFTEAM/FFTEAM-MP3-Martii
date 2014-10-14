@@ -438,7 +438,13 @@ void CLuaInstance::runScript(const char *fileName, std::vector<std::string> *arg
 		}
 	}
 	lua_setglobal(lua, "arg");
+#if HAVE_SPARK_HARDWARE
+	CFrameBuffer::getInstance()->autoBlit();
+#endif
 	status = lua_pcall(lua, 0, LUA_MULTRET, 0);
+#if HAVE_SPARK_HARDWARE
+	CFrameBuffer::getInstance()->autoBlit(false);
+#endif
 	if (result_code)
 		*result_code = to_string(status);
 	if (result_string && lua_isstring(lua, -1))
@@ -887,14 +893,11 @@ int CLuaInstance::GCWindow(lua_State *L)
 	return 0;
 }
 
-#if 1
-int CLuaInstance::Blit(lua_State *)
-{
-	return 0;
-}
-#else
 int CLuaInstance::Blit(lua_State *L)
 {
+#if HAVE_SPARK_HARDWARE
+    CFrameBuffer::getInstance()->autoBlit(false);
+#endif
 	CLuaData *W = CheckData(L, 1);
 	if (W && W->fbwin) {
 		if (lua_isnumber(L, 2))
@@ -904,7 +907,6 @@ int CLuaInstance::Blit(lua_State *L)
 	}
 	return 0;
 }
-#endif
 
 int CLuaInstance::GetLanguage(lua_State *L)
 {

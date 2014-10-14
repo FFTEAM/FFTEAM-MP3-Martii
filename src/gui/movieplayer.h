@@ -79,8 +79,8 @@ class CMoviePlayerGui : public CMenuTarget
 	CFrameBuffer * frameBuffer;
 	int            m_LastMode;	
 
-	std::string	file_name;
 	std::string	pretty_name;
+	std::string	file_name;
 	std::string	info_1, info_2;
 	std::string    	currentaudioname;
 	bool		playing;
