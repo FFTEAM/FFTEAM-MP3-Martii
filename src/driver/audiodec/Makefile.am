@@ -13,15 +13,7 @@ AM_CPPFLAGS = \
 
 noinst_LIBRARIES = libneutrino_driver_audiodec.a
 
-if ENABLE_FFMPEGDEC
-ASOURCES = ffmpegdec.cpp
-else
-ASOURCES = cdrdec.cpp \
-	crc.c \
-	flacdec.cpp \
-	wavdec.cpp
-endif
-
 libneutrino_driver_audiodec_a_SOURCES = \
 	basedec.cpp \
-	$(ASOURCES)
+	ffmpegdec.cpp
+
