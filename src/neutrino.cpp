@@ -166,8 +166,6 @@ static bool timerd_thread_started = false;
 
 void * nhttpd_main_thread(void *data);
 
-void * luaserver_main_thread(void *data);
-
 //#define DISABLE_SECTIONSD
 
 extern cVideo * videoDecoder;
@@ -2248,10 +2246,6 @@ fprintf(stderr, "[neutrino start] %d  -> %5ld ms\n", __LINE__, time_monotonic_ms
 	if (!pthread_create (&nhttpd_thread, NULL, nhttpd_main_thread, (void *) NULL))
 		pthread_detach (nhttpd_thread);
 
-	pthread_t luaserver_thread;
-	pthread_create (&luaserver_thread, NULL, luaserver_main_thread, (void *) NULL);
-	pthread_detach(luaserver_thread);
-
 	CStreamManager::getInstance()->Start();
 
 	CFSMounter::automount_async_stop();
@@ -2449,19 +2443,8 @@ void CNeutrinoApp::RealRun(CMenuWidget &_mainMenu)
 
 	//cCA::GetInstance()->Ready(true);
 
-	sem_init(&lua_may_run, 0, 0);
-	sem_init(&lua_did_run, 0, 0);
-
 	while( true ) {
-		sem_post(&lua_may_run);
 		g_RCInput->getMsg(&msg, &data, 100, ((g_settings.mode_left_right_key_tv == SNeutrinoSettings::VOLUME) && (g_RemoteControl->subChannels.size() < 1)) ? true : false);	// 10 secs..
-		sem_wait(&lua_may_run);
-		if (!sem_trywait(&lua_did_run)) {
-			if (msg != CRCInput::RC_timeout)
-				g_RCInput->postMsg(msg, data);
-			while (!sem_trywait(&lua_did_run));
-			continue;
-		}
 
 #if ENABLE_SHAIRPLAY
 		if (shairPlay && shairplay_enabled_cur && shairplay_active) {
@@ -5136,10 +5119,6 @@ void CNeutrinoApp::Cleanup()
 	printf("cleanup 5\n");fflush(stdout);
 	delete CEitManager::getInstance();
 	printf("cleanup 6\n");fflush(stdout);
-
-	// FIXME -- wait for luaserver threads to terminate?
-	sem_destroy(&lua_may_run);
-	sem_destroy(&lua_did_run);
 #if 0
 	delete CVFD::getInstance();
 #ifdef __UCLIBC__

@@ -238,7 +238,6 @@ lib/libdvbsub/Makefile
 lib/libupnpclient/Makefile
 lib/libiw/Makefile
 lib/jsoncpp/Makefile
-lib/luaclient/Makefile
 src/lcddisplay/Makefile
 src/nhttpd/Makefile
 src/nhttpd/web/Makefile

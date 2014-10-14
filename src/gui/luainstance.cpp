@@ -31,6 +31,7 @@
 #include <driver/pictureviewer/pictureviewer.h>
 #include <neutrino.h>
 <<<<<<< HEAD
+<<<<<<< HEAD
 #include <system/debug.h>
 =======
 #include <system/helpers.h>
@@ -38,6 +39,8 @@
 #include <luaclient/luaclient.h>
 #include <connection/basicserver.h>
 #include <list>
+=======
+>>>>>>> parent of 1d29753... lua: implement "luaclient". This allows for starting Lua scripts in neutrino context from the command line. Experimental, not fully regression-tested.
 
 >>>>>>> parent of 6de147f... luaserver: reorganize
 #include "luainstance.h"
@@ -321,7 +324,7 @@ CLuaInstance::~CLuaInstance()
 	lua_setglobal(lua, #NAME);
 
 /* Run the given script. */
-void CLuaInstance::runScript(const char *fileName, std::vector<std::string> *argv, std::string *result_code, std::string *result_string, std::string *error_string)
+void CLuaInstance::runScript(const char *fileName)
 {
 	// luaL_dofile(lua, fileName);
 	/* run the script */
@@ -329,31 +332,14 @@ void CLuaInstance::runScript(const char *fileName, std::vector<std::string> *arg
 	if (status) {
 		fprintf(stderr, "[CLuaInstance::%s] Can't load file: %s\n", __func__, lua_tostring(lua, -1));
 		ShowMsg2UTF("Lua script error:", lua_tostring(lua, -1), CMsgBox::mbrBack, CMsgBox::mbBack);
-		if (error_string)
-			*error_string = std::string(lua_tostring(lua, -1));
 		return;
 	}
 	set_lua_variables(lua);
-	if (argv) {
-		lua_createtable(lua, argv->size(), 0);
-		int n = 0;
-		for(std::vector<std::string>::iterator it = argv->begin(); it != argv->end(); ++it) {
-			lua_pushstring(lua, it->c_str());
-			lua_rawseti(lua, -2, n++);
-		}
-		lua_setglobal(lua, "arg");
-	}
 	status = lua_pcall(lua, 0, LUA_MULTRET, 0);
-	if (result_code)
-		*result_code = to_string(status);
-	if (result_string && lua_isstring(lua, -1))
-		*result_string = std::string(lua_tostring(lua, -1));
 	if (status)
 	{
 		fprintf(stderr, "[CLuaInstance::%s] error in script: %s\n", __func__, lua_tostring(lua, -1));
 		ShowMsg2UTF("Lua script error:", lua_tostring(lua, -1), CMsgBox::mbrBack, CMsgBox::mbBack);
-		if (error_string)
-			*error_string = std::string(lua_tostring(lua, -1));
 	}
 }
 
@@ -1607,6 +1593,7 @@ int CLuaInstance::SignalBoxDelete(lua_State *L)
 }
 
 // --------------------------------------------------------------------------------
+<<<<<<< HEAD
 
 <<<<<<< HEAD
 CLuaComponentsText *CLuaInstance::ComponentsTextCheck(lua_State *L, int n)
@@ -2075,3 +2062,5 @@ void *luaserver_main_thread(void *) {
 }
 
 // --------------------------------------------------------------------------------
+=======
+>>>>>>> parent of 1d29753... lua: implement "luaclient". This allows for starting Lua scripts in neutrino context from the command line. Experimental, not fully regression-tested.
