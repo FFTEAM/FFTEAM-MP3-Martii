@@ -4104,8 +4104,7 @@ bool CMovieBrowser::showNKMenu(bool calledExternally)
 	const CMenuOptionChooser::keyval NK_PROTOCOL_OPTIONS[NK_PROTOCOL_OPTION_COUNT] =
 	{
 		{ 0, LOCALE_PROTOCOL_HTTP },
-		{ 1, LOCALE_PROTOCOL_RTMP }
-		{ 2, LOCALE_PROTOCOL_F4V }
+		{ 1, LOCALE_PROTOCOL_F4V }
 	};
 
 	mainMenu.addItem(new CMenuOptionNumberChooser(LOCALE_MOVIEBROWSER_YT_MAX_RESULTS, &m_settings.nkresults, true, 0, 1000, NULL, 0, 0, LOCALE_MOVIEBROWSER_UNLIMITED));
