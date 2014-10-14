@@ -305,18 +305,6 @@ CLuaInstance::~CLuaInstance()
 	}
 }
 
-void CLuaInstance::functionDeprecated(lua_State *L, const char* oldFunc, const char* newFunc)
-{
-	lua_Debug ar;
-	lua_getstack(L, 1, &ar);
-	lua_getinfo(L, "Sl", &ar);
-	printf("[Lua Script] \33[1;31m%s\33[0m %s \33[33m%s\33[0m %s \33[1;33m%s\33[0m.\n                      (%s:%d)\n", 
-					g_Locale->getText(LOCALE_LUA_FUNCTION_DEPRECATED1), 
-					g_Locale->getText(LOCALE_LUA_FUNCTION_DEPRECATED2), oldFunc,
-					g_Locale->getText(LOCALE_LUA_FUNCTION_DEPRECATED3), newFunc,
-					ar.short_src, ar.currentline);
-}
-
 #define SET_VAR1(NAME) \
 	lua_pushinteger(lua, NAME); \
 	lua_setglobal(lua, #NAME);
@@ -458,7 +446,6 @@ void CLuaInstance::registerFunctions()
 	CWindowRegister(lua);
 	ComponentsTextRegister(lua);
 	SignalBoxRegister(lua);
-	CPictureRegister(lua);
 }
 
 CLuaData *CLuaInstance::CheckData(lua_State *L, int narg)
@@ -749,18 +736,6 @@ bool CLuaInstance::tableLookup(lua_State *L, const char *what, lua_Integer &valu
 	res = lua_isnumber(L, -1);
 	if (res)
 		value = lua_tointeger(L, -1);
-	lua_pop(L, 1);
-	return res;
-}
-
-bool CLuaInstance::tableLookup(lua_State *L, const char *what, void** value)
-{
-	bool res = false;
-	lua_pushstring(L, what);
-	lua_gettable(L, -2);
-	res = lua_isuserdata(L, -1);
-	if (res)
-		*value = lua_unboxpointer(L, -1);
 	lua_pop(L, 1);
 	return res;
 }
@@ -1419,12 +1394,8 @@ void CLuaInstance::CWindowRegister(lua_State *L)
 		{ "new", CLuaInstance::CWindowNew },
 		{ "paint", CLuaInstance::CWindowPaint },
 		{ "hide", CLuaInstance::CWindowHide },
-		{ "setCaption", CLuaInstance::CWindowSetCaption },
-		{ "paintHeader", CLuaInstance::CWindowPaintHeader },
-		{ "headerHeight", CLuaInstance::CWindowGetHeaderHeight },
-		{ "footerHeight", CLuaInstance::CWindowGetFooterHeight },
-		{ "header_height", CLuaInstance::CWindowGetHeaderHeight_dep }, /* function 'header_height' is deprecated */
-		{ "footer_height", CLuaInstance::CWindowGetFooterHeight_dep }, /* function 'footer_height' is deprecated */
+		{ "header_height", CLuaInstance::CWindowGetHeaderHeight },
+		{ "footer_height", CLuaInstance::CWindowGetFooterHeight },
 		{ "__gc", CLuaInstance::CWindowDelete },
 		{ NULL, NULL }
 	};
@@ -1533,46 +1504,6 @@ int CLuaInstance::CWindowHide(lua_State *L)
 	return 0;
 }
 
-int CLuaInstance::CWindowSetCaption(lua_State *L)
-{
-	lua_assert(lua_istable(L,1));
-	CLuaCWindow *m = CWindowCheck(L, 1);
-	if (!m) return 0;
-
-	std::string name = "";
-	tableLookup(L, "name", name) || tableLookup(L, "title", name) || tableLookup(L, "caption", name);
-
-	m->w->setWindowCaption(name);
-	return 0;
-}
-
-int CLuaInstance::CWindowPaintHeader(lua_State *L)
-{
-	CLuaCWindow *m = CWindowCheck(L, 1);
-	if (!m) return 0;
-
-	CComponentsHeader* header = m->w->getHeaderObject();
-	if (header)
-		m->w->showHeader();
-		header->paint();
-
-	return 0;
-}
-
-// function 'header_height' is deprecated
-int CLuaInstance::CWindowGetHeaderHeight_dep(lua_State *L)
-{
-	functionDeprecated(L, "header_height", "headerHeight");
-	return CWindowGetHeaderHeight(L);
-}
-
-// function 'footer_height' is deprecated
-int CLuaInstance::CWindowGetFooterHeight_dep(lua_State *L)
-{
-	functionDeprecated(L, "footer_height", "footerHeight");
-	return CWindowGetFooterHeight(L);
-}
-
 int CLuaInstance::CWindowGetHeaderHeight(lua_State *L)
 {
 	CLuaCWindow *m = CWindowCheck(L, 1);
@@ -1603,12 +1534,11 @@ int CLuaInstance::CWindowGetFooterHeight(lua_State *L)
 
 int CLuaInstance::CWindowDelete(lua_State *L)
 {
-	DBG("CLuaInstance::%s %d\n", __func__, lua_gettop(L));
 	CLuaCWindow *m = CWindowCheck(L, 1);
 	if (!m)
 		return 0;
 
-	m->w->hide();
+	m->w->kill();
 	delete m;
 	return 0;
 }
@@ -1696,7 +1626,6 @@ void CLuaInstance::ComponentsTextRegister(lua_State *L)
 		{ "new", CLuaInstance::ComponentsTextNew },
 		{ "paint", CLuaInstance::ComponentsTextPaint },
 		{ "hide", CLuaInstance::ComponentsTextHide },
-		{ "setText", CLuaInstance::ComponentsTextSetText },
 		{ "scroll", CLuaInstance::ComponentsTextScroll },
 		{ "__gc", CLuaInstance::ComponentsTextDelete },
 		{ NULL, NULL }
@@ -1713,7 +1642,6 @@ int CLuaInstance::ComponentsTextNew(lua_State *L)
 {
 	lua_assert(lua_istable(L,1));
 
-	CLuaCWindow* parent = NULL;
 	lua_Integer x = 10, y = 10, dx = 100, dy = 100;
 	std::string text         = "";
 	std::string tmpMode      = "";
@@ -1725,7 +1653,6 @@ int CLuaInstance::ComponentsTextNew(lua_State *L)
 	lua_Integer color_shadow = (lua_Integer)COL_MENUCONTENTDARK_PLUS_0;
 	std::string tmp1         = "false";
 
-	tableLookup(L, "parent"      , (void**)&parent);
 	tableLookup(L, "x"           , x);
 	tableLookup(L, "y"           , y);
 	tableLookup(L, "dx"          , dx);
@@ -1764,14 +1691,9 @@ int CLuaInstance::ComponentsTextNew(lua_State *L)
 			htmlEntityDecode(text);
 	}
 
-	CComponentsForm* pw = (parent && parent->w) ? parent->w->getBodyObject() : NULL;
-
 	CLuaComponentsText **udata = (CLuaComponentsText **) lua_newuserdata(L, sizeof(CLuaComponentsText *));
 	*udata = new CLuaComponentsText();
-	(*udata)->ct = new CComponentsText(x, y, dx, dy, text, mode, g_Font[font_text], pw, has_shadow, (fb_pixel_t)color_text, (fb_pixel_t)color_frame, (fb_pixel_t)color_body, (fb_pixel_t)color_shadow);
-	(*udata)->parent = pw;
-	(*udata)->mode = mode;
-	(*udata)->font_text = font_text;
+	(*udata)->ct = new CComponentsText(x, y, dx, dy, text, mode, g_Font[font_text], NULL, has_shadow, (fb_pixel_t)color_text, (fb_pixel_t)color_frame, (fb_pixel_t)color_body, (fb_pixel_t)color_shadow);
 	luaL_getmetatable(L, "ctext");
 	lua_setmetatable(L, -2);
 	return 1;
@@ -1780,12 +1702,13 @@ int CLuaInstance::ComponentsTextNew(lua_State *L)
 int CLuaInstance::ComponentsTextPaint(lua_State *L)
 {
 	lua_assert(lua_istable(L,1));
-	CLuaComponentsText *m = ComponentsTextCheck(L, 1);
-	if (!m) return 0;
-
 	std::string tmp = "true";
 	tableLookup(L, "do_save_bg", tmp);
 	bool do_save_bg = (tmp == "true" || tmp == "1" || tmp == "yes");
+
+	CLuaComponentsText *m = ComponentsTextCheck(L, 1);
+	if (!m)
+		return 0;
 
 	m->ct->paint(do_save_bg);
 	CFrameBuffer::getInstance()->blit();
@@ -1795,26 +1718,12 @@ int CLuaInstance::ComponentsTextPaint(lua_State *L)
 int CLuaInstance::ComponentsTextHide(lua_State *L)
 {
 	lua_assert(lua_istable(L,1));
-	CLuaComponentsText *m = ComponentsTextCheck(L, 1);
-	if (!m) return 0;
-
 	std::string tmp = "false";
 	tableLookup(L, "no_restore", tmp);
 	bool no_restore = (tmp == "true" || tmp == "1" || tmp == "yes");
 
-	if (m->parent) {
-		m->ct->setText("", m->mode, g_Font[m->font_text]);
-		m->ct->paint();
-	} else
-		m->ct->hide(no_restore);
-	CFrameBuffer::getInstance()->blit();
-	return 0;
-}
-
-int CLuaInstance::ComponentsTextSetText(lua_State *L)
-{
-	lua_assert(lua_istable(L,1));
 	CLuaComponentsText *m = ComponentsTextCheck(L, 1);
+<<<<<<< HEAD
 	if (!m) return 0;
 
 	std::string text = "";
@@ -1823,20 +1732,26 @@ int CLuaInstance::ComponentsTextSetText(lua_State *L)
 	tableLookup(L, "text", text);
 	tableLookup(L, "mode", mode);
 	tableLookup(L, "font_text", font_text);
+=======
+	if (!m)
+		return 0;
+>>>>>>> parent of e5727e9... merge next-cc
 
-	m->ct->setText(text, mode, g_Font[font_text]);
+	m->ct->hide(no_restore);
+	CFrameBuffer::getInstance()->blit();
 	return 0;
 }
 
 int CLuaInstance::ComponentsTextScroll(lua_State *L)
 {
 	lua_assert(lua_istable(L,1));
-	CLuaComponentsText *m = ComponentsTextCheck(L, 1);
-	if (!m) return 0;
-
 	std::string tmp = "true";
 	tableLookup(L, "dir", tmp);
 	bool scrollDown = (tmp == "down" || tmp == "1");
+
+	CLuaComponentsText *m = ComponentsTextCheck(L, 1);
+	if (!m)
+		return 0;
 
 	//get the textbox instance from lua object and use CTexBbox scroll methods
 	CTextBox* ctb = m->ct->getCTextBoxObject();
@@ -1854,11 +1769,11 @@ int CLuaInstance::ComponentsTextScroll(lua_State *L)
 
 int CLuaInstance::ComponentsTextDelete(lua_State *L)
 {
-	DBG("CLuaInstance::%s %d\n", __func__, lua_gettop(L));
 	CLuaComponentsText *m = ComponentsTextCheck(L, 1);
 	if (!m)
 		return 0;
 
+<<<<<<< HEAD
 	m->ct->hide();
 	delete m;
 	return 0;
@@ -1992,6 +1907,9 @@ int CLuaInstance::CPictureDelete(lua_State *L)
 	if (!m) return 0;
 
 	m->cp->hide();
+=======
+	m->ct->kill();
+>>>>>>> parent of e5727e9... merge next-cc
 	delete m;
 	CFrameBuffer::getInstance()->blit();
 	return 0;
