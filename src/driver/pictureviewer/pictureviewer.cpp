@@ -298,7 +298,7 @@ bool CPictureViewer::ShowImage (const std::string & filename, bool unscaled)
 		free (m_CurrentPic_Buffer);
 		m_CurrentPic_Buffer = NULL;
 	}
-	if (DecodeImage (filename, true, unscaled))
+	if (DecodeImage (filename, true, unscaled));
 		DisplayNextImage ();
 	//  dbout("Show Image }\n");
 	return true;
@@ -662,6 +662,7 @@ void CPictureViewer::getSize(const char* name, int* width, int *height)
 }
 
 #define LOGO_FLASH_DIR DATADIR "/neutrino/icons/logo"
+#define LOGO_FLASH_DIR_VAR "/var/logos"
 
 bool CPictureViewer::GetLogoName(const uint64_t& channel_id, const std::string& _ChannelName, std::string & name, int *width, int *height)
 {

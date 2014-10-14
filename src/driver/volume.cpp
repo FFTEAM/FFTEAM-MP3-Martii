@@ -162,7 +162,7 @@ void CVolume::setVolume(const neutrino_msg_t key)
 					}
 					g_settings.current_volume = v;
 #ifdef ENABLE_GRAPHLCD
-					nGLCD::ShowVolume(false);
+					nGLCD::ShowVolume(true);
 #endif
 				}
 			}

@@ -40,7 +40,7 @@
 						 in __USE_FILE_OFFSET64 mode */
 
 #ifndef __USE_FILE_OFFSET64
-#error not using 64 bit file offsets
+#define __USE_FILE_OFFSET64
 #endif /* __USE_FILE__OFFSET64 */
 #endif
 
@@ -72,7 +72,10 @@ public:
 		FILE_PLAYLIST,
 		STREAM_AUDIO,
 		FILE_PICTURE,
-		STREAM_PICTURE
+		STREAM_PICTURE,
+		FILE_VOB,
+		FILE_MPG,
+		FILE_TS
 	};
 
 	FileType	getType(void) const;
