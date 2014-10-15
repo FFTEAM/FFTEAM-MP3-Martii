@@ -298,7 +298,7 @@ bool CPictureViewer::ShowImage (const std::string & filename, bool unscaled)
 		free (m_CurrentPic_Buffer);
 		m_CurrentPic_Buffer = NULL;
 	}
-	if (DecodeImage (filename, true, unscaled));
+	if (DecodeImage (filename, true, unscaled))
 		DisplayNextImage ();
 	//  dbout("Show Image }\n");
 	return true;
@@ -813,28 +813,18 @@ void CPictureViewer::rescaleImageDimensions(int *width, int *height, const int m
 
 bool CPictureViewer::DisplayImage(const std::string & name, int posx, int posy, int width, int height, int transp)
 {
-#if 0
-	fb_pixel_t *data = cacheGet(name, width, height, transp);
-	if (data) {
-		frameBuffer->blit2FB(data, width, height, posx, posy);
-		return true;
-	}
-
-#else
-	fb_pixel_t *data;
-        CFrameBuffer* frameBuffer = CFrameBuffer::getInstance();
-#endif
+	CFrameBuffer* frameBuffer = CFrameBuffer::getInstance();
 	if (transp > CFrameBuffer::TM_EMPTY)
 		frameBuffer->SetTransparent(transp);
 
-	data = getImage(name, width, height);
+	fb_pixel_t * data = getImage(name, width, height);
 
 	if (transp > CFrameBuffer::TM_EMPTY)
 		frameBuffer->SetTransparentDefault();
 
 	if(data) {
 		frameBuffer->blit2FB(data, width, height, posx, posy);
-		cachePut(name, width, height, transp, data);
+		cs_free_uncached(data);
 		return true;
 	}
 	return false;
