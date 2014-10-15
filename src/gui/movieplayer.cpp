@@ -542,11 +542,6 @@ bool CMoviePlayerGui::SelectFile()
 					file_name = file->Url;
 				}
 				fillPids();
-				if (file->Name.empty()) {
-					// reset pids for multi-program selection
-					vpid = 0;
-					currentapid = 0;
-				}
 
 				// get the start position for the movie
 				startposition = 1000 * moviebrowser->getCurrentStartPos();
