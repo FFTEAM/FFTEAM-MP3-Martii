@@ -878,10 +878,10 @@ fb_pixel_t * CPictureViewer::int_getImage(const std::string & name, int *width, 
 				ret = (fb_pixel_t *) frameBuffer->convertRGB2FB(buffer, x, y, convertSetupAlpha2Alpha(g_settings.theme.infobar_alpha));
 			*width = x;
 			*height = y;
-		} else
+		}else
 			printf("%s: Error decoding file %s\n", mode_str.c_str(), name.c_str());
 		free(buffer);
-	} else
+	}else
 		printf("%s: Error open file %s\n", mode_str.c_str(), name.c_str());
 	return ret;
 }
@@ -908,7 +908,7 @@ unsigned char * CPictureViewer::int_Resize(unsigned char *orgin, int ox, int oy,
 			printf("Resize Error: malloc\n");
 			return(orgin);
 		}
-	} else
+	}else
 		cr = dst;
 
 	if(type == SIMPLE)
@@ -926,7 +926,8 @@ unsigned char * CPictureViewer::int_Resize(unsigned char *orgin, int ox, int oy,
 				memmove(l+k, p+ip, 3);
 			}
 		}
-	} else {
+	}else
+	{
 		unsigned char *p,*q;
 		int i,j,k,l,ya,yb;
 		int sq,r,g,b,a;
@@ -963,7 +964,7 @@ unsigned char * CPictureViewer::int_Resize(unsigned char *orgin, int ox, int oy,
 					p[0]=r/sq; p[1]=g/sq; p[2]=b/sq; p[3]=a/sq;
 				}
 			}
-		} else
+		}else
 		{
 			for(j=0;j<dy;j++)
 			{
