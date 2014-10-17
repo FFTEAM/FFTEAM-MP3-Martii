@@ -40,58 +40,57 @@
 						 in __USE_FILE_OFFSET64 mode */
 
 #ifndef __USE_FILE_OFFSET64
-#define __USE_FILE_OFFSET64
+#error not using 64 bit file offsets
 #endif /* __USE_FILE__OFFSET64 */
 #endif
 
 #include <sys/types.h>
-#include <sys/stat.h>
 
 #include <string>
 #include <vector>
 
 class CFile
 {
-	private:
-		mutable int Type;
-	public:
-		enum FileType
-		{
-			FILE_UNKNOWN = 0,
-			FILE_AAC,
-			FILE_AVI,
-			FILE_ASF,
-			FILE_DIR,
-			FILE_ISO,
-			FILE_TEXT,
-			FILE_CDR,
-			FILE_MP3,
-			FILE_MKV,
-			FILE_OGG,
-			FILE_WAV,
-			FILE_FLAC,
-			FILE_XML,
-			FILE_PLAYLIST,
-			STREAM_AUDIO,
-			FILE_PICTURE,
-			STREAM_PICTURE,
-			FILE_VOB,
-			FILE_MPG,
-			FILE_TS
-		};
+public:
+	enum FileType
+	{
+		FILE_UNKNOWN = 0,
+		FILE_AAC,
+		FILE_AVI,
+		FILE_ASF,
+		FILE_DIR,
+		FILE_ISO,
+		FILE_TEXT,
+		FILE_CDR,
+		FILE_MP3,
+		FILE_MKV,
+		FILE_OGG,
+		FILE_WAV,
+		FILE_FLAC,
+		FILE_XML,
+		FILE_PLAYLIST,
+		STREAM_AUDIO,
+		STREAM_VIDEO,
+		FILE_PICTURE,
+		STREAM_FLV,
+		STREAM_PICTURE,
+		FILE_FLV,
+		FILE_VOB,
+		FILE_MPG,
+		FILE_TS
+	};
 
-		FileType	getType(void) const;
-		std::string	getFileName(void) const;
-		std::string	getPath(void) const;
-		bool		isDir(void) { return S_ISDIR(Mode); };
+	FileType	getType(void) const;
+	std::string	getFileName(void) const;
+	std::string	getPath(void) const;
 
-		CFile();
-		off_t Size;
-		std::string Name;
-		std::string Url;
-		mode_t Mode;
-		bool Marked;
-		time_t Time;
+	CFile();
+	off_t Size;
+	std::string Name;
+	std::string Url;
+	mode_t Mode;
+	bool Marked;
+	time_t Time;
 };
 
 typedef std::vector<CFile> CFileList;
