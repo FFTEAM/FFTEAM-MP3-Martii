@@ -180,6 +180,8 @@ void CMoviePlayerGui::Init(void)
 	playback = new cPlayback(3);
 	stopped = true;
 	iso_file = false;
+	info_1 = "";
+	info_2 = "";
 }
 
 void CMoviePlayerGui::cutNeutrino()
@@ -470,7 +472,7 @@ void CMoviePlayerGui::Cleanup()
 	vpid = 0;
 	vtype = 0;
 
-	startposition = 0;
+	startposition = -1;
 	p_movie_info = NULL;
 }
 
@@ -483,7 +485,7 @@ void CMoviePlayerGui::makeFilename()
 			std::replace(pretty_name.begin(), pretty_name.end(), '_', ' ');
 		} else
 			pretty_name = file_name;
-		
+
 		if(pretty_name.substr(0,14)=="videoplayback?"){//youtube name
 			if(!p_movie_info->epgTitle.empty())
 				pretty_name = p_movie_info->epgTitle;
@@ -542,6 +544,11 @@ bool CMoviePlayerGui::SelectFile()
 					file_name = file->Url;
 				}
 				fillPids();
+				if (file->Name.empty()) {
+					// reset pids for multi-program selection
+					vpid = 0;
+					currentapid = 0;
+				}
 
 				// get the start position for the movie
 				startposition = 1000 * moviebrowser->getCurrentStartPos();
@@ -675,7 +682,6 @@ bool CMoviePlayerGui::PlayBackgroundStart(const std::string &file, const std::st
 	isNK = false;
 	isBookmark = false;
 	timeshift = TSHIFT_MODE_OFF;
-	isHTTP = true;
 	isUPNP = false;
 	isHTTP = true;
 
