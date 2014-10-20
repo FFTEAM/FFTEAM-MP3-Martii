@@ -31,6 +31,38 @@
 
 #define __NFILE__ 1
 #define NEUTRINO_CPP
+#include "gui/two_choose_emu.h"
+#include "gui/two_choose_cs.h"
+#include "gui/two_choose_cs2gbox.h"
+#include "gui/two_mgcamdconfig.h"
+#include "gui/two_mgcamdecminfo.h"
+#include "gui/two_mgcamdpidinfo.h"
+#include "gui/two_mgcamduptimeinfo.h"
+#include "gui/two_mgcamdversioninfo.h"
+#include "gui/two_mgcamdmemoryinfo.h"
+#include "gui/two_mgcamdgboxshareinfo.h"
+#include "gui/two_mgcamdnewcamdshareinfo.h"
+#include "gui/two_gboxconfig.h"
+#include "gui/two_gboxversioninfo.h"
+#include "gui/two_gboxshareonline.h"
+#include "gui/two_gboxshareinfo.h"
+#include "gui/two_gboxsharestats.h"
+#include "gui/two_gboxpidinfo.h"
+#include "gui/two_gboxecminfo.h"
+#include "gui/two_gboxscinfo.h"
+#include "gui/two_gboxscinfo01.h"
+#include "gui/two_gboxatackinfo.h"
+#include "gui/two_gboxsmseingang.h"
+#include "gui/two_gboxsmseingang2.h"
+#include "gui/two_gboxsmsausgang.h"
+#include "gui/two_gboxsms.h"
+#include "gui/two_gboxgesamtstat.h"
+#include "gui/two_gboxsmsadress.h"
+#include "gui/two_sysinfo1.h"
+#include "gui/two_sysinfo2.h"
+#include "gui/two_sysinfo3.h"
+#include "gui/two_sysinfo4.h"
+#include "gui/two_sonstiges.h"
 
 #include <stdio.h>
 #include <unistd.h>
@@ -146,7 +178,7 @@
 #include <lib/libtuxtxt/teletext.h>
 #include <eitd/sectionsd.h>
 
-// #include <system/luaserver.h>
+#include <system/luaserver.h>
 
 int old_b_id = -1;
 CHintBox * reloadhintBox = 0;
@@ -677,7 +709,7 @@ int CNeutrinoApp::loadSetup(const char * fname)
 	//recording (server + vcr)
 	g_settings.recording_type = configfile.getInt32("recording_type", RECORDING_FILE);
 	g_settings.recording_stopsectionsd         = configfile.getBool("recording_stopsectionsd"            , false );
-	g_settings.recording_audio_pids_default    = configfile.getInt32("recording_audio_pids_default", TIMERD_APIDS_STD | TIMERD_APIDS_AC3);
+	g_settings.recording_audio_pids_default    = configfile.getInt32("recording_audio_pids_default", TIMERD_APIDS_STD | TIMERD_APIDS_ALT | TIMERD_APIDS_AC3);
 	g_settings.recording_zap_on_announce       = configfile.getBool("recording_zap_on_announce"      , false);
 	g_settings.shutdown_timer_record_type      = configfile.getBool("shutdown_timer_record_type"      , false);
 
@@ -897,6 +929,11 @@ int CNeutrinoApp::loadSetup(const char * fname)
 	g_settings.filebrowser_multi_select = configfile.getBool("filebrowser_multi_select", true);
 	g_settings.filebrowser_multi_select_confirm_dir = configfile.getBool("filebrowser_multi_select_confirm_dir", false);
 
+
+	//two erweiterungen
+	g_settings.emudebug =  configfile.getInt32("emudebug",0);
+	g_settings.infoviewer_ecm_info =  configfile.getInt32("infoviewer_ecm_info",0);
+
 	//zapit setup
 	g_settings.StartChannelTV = configfile.getString("startchanneltv","");
 	g_settings.StartChannelRadio = configfile.getString("startchannelradio","");
@@ -924,8 +961,7 @@ int CNeutrinoApp::loadSetup(const char * fname)
 	if (configfile.getString("usermenu_key_red", "").empty() ||
 	    configfile.getString("usermenu_key_green", "").empty() ||
 	    configfile.getString("usermenu_key_yellow", "").empty() ||
-	    configfile.getString("usermenu_key_blue", "").empty())
-	{
+	    configfile.getString("usermenu_key_blue", "").empty()) {
 		for(SNeutrinoSettings::usermenu_t *um = usermenu_default; um->key != CRCInput::RC_nokey; um++) {
 			SNeutrinoSettings::usermenu_t *u = new SNeutrinoSettings::usermenu_t;
 			*u = *um;
@@ -1373,6 +1409,8 @@ void CNeutrinoApp::saveSetup(const char * fname)
 	//Picture-Viewer
 	configfile.setInt32( "picviewer_slide_time", g_settings.picviewer_slide_time);
 	configfile.setInt32( "picviewer_scaling", g_settings.picviewer_scaling );
+	configfile.setString( "picviewer_decode_server_ip", g_settings.picviewer_decode_server_ip );
+	configfile.setString( "picviewer_decode_server_port", g_settings.picviewer_decode_server_port);
 
 	//Audio-Player
 	configfile.setInt32( "audioplayer_display", g_settings.audioplayer_display );
@@ -1395,6 +1433,10 @@ void CNeutrinoApp::saveSetup(const char * fname)
 	configfile.setBool("filebrowser_usefilter", g_settings.filebrowser_use_filter);
 	configfile.setBool("filebrowser_multi_select", g_settings.filebrowser_multi_select);
 	configfile.setBool("filebrowser_multi_select_confirm_dir", g_settings.filebrowser_multi_select_confirm_dir);
+
+	//two erweiterungen
+	configfile.setInt32("emudebug", g_settings.emudebug);
+	configfile.setInt32("infoviewer_ecm_info", g_settings.infoviewer_ecm_info);
 
 	//zapit setup
 	configfile.setString( "startchanneltv", g_settings.StartChannelTV );
@@ -2091,7 +2133,7 @@ fprintf(stderr, "[neutrino start] %d  -> %5ld ms\n", __LINE__, time_monotonic_ms
 	CLocaleManager::loadLocale_ret_t loadLocale_ret = g_Locale->loadLocale(g_settings.language.c_str());
 	if (loadLocale_ret == CLocaleManager::NO_SUCH_LOCALE)
 	{
-		g_settings.language = "english";
+		g_settings.language = "deutsch";
 		loadLocale_ret = g_Locale->loadLocale(g_settings.language.c_str());
 		show_startwizard = true;
 	}
@@ -2446,13 +2488,13 @@ void CNeutrinoApp::RealRun(CMenuWidget &_mainMenu)
 
 	//cCA::GetInstance()->Ready(true);
 
-//	CLuaServer *luaServer = CLuaServer::getInstance();
+	CLuaServer *luaServer = CLuaServer::getInstance();
 
 	while( true ) {
-//		luaServer->UnBlock();
+		luaServer->UnBlock();
 		g_RCInput->getMsg(&msg, &data, 100, ((g_settings.mode_left_right_key_tv == SNeutrinoSettings::VOLUME) && (g_RemoteControl->subChannels.size() < 1)) ? true : false);	// 10 secs..
-//		if (luaServer->Block(msg, data))
-//			continue;
+		if (luaServer->Block(msg, data))
+			continue;
 
 #if ENABLE_SHAIRPLAY
 		if (shairPlay && shairplay_enabled_cur && shairplay_active) {
@@ -2896,7 +2938,6 @@ int CNeutrinoApp::handleMsg(const neutrino_msg_t _msg, neutrino_msg_data_t data)
 #if HAVE_SPARK_HARDWARE
 		C3DSetup::getInstance()->exec(NULL, "zapped");
 #endif
-		CVFD::getInstance()->UpdateIcons();
 #ifdef ENABLE_GRAPHLCD
 		nGLCD::Update();
 #endif
@@ -3930,7 +3971,7 @@ void CNeutrinoApp::scartMode( bool bOnOff )
 		if( lastMode == mode_radio ) {
 			radioMode( false );
 		}
-		else if( lastMode == mode_tv || lastMode == mode_webtv) {
+		else if( lastMode == mode_tv || lastMode == mode_webtv ) {
 			tvMode( false );
 		}
 		else if( lastMode == mode_standby ) {
@@ -4424,6 +4465,195 @@ int CNeutrinoApp::exec(CMenuTarget* parent, const std::string & actionKey)
 		return showChannelList(CRCInput::RC_ok, true);
 	else if(actionKey == "standby")
 		g_RCInput->postMsg(NeutrinoMessages::STANDBY_ON, 0);
+
+	else if(actionKey=="restartemu")
+	{
+		if(file_exists("/var/etc/.mgcamd"))
+		{
+			CHintBox * hintBox = new CHintBox(LOCALE_MESSAGEBOX_INFO, g_Locale->getText(LOCALE_TWO_SERVICEMENU_RESTARTMGCAMD_HINT));
+			hintBox->paint();
+
+			killmgcamd(true);
+			std::string mgcamdstart;
+			if(file_exists("/var/emu/mgcamd"))
+				mgcamdstart  = "/var/emu/mgcamd 2>&1 > ";
+			else if(file_exists("/bin/mgcamd"))
+				mgcamdstart  = "/bin/mgcamd 2>&1 > ";
+
+			mgcamdstart += g_settings.emudebug ? "/dev/console" : "/dev/null";
+			mgcamdstart += " &";
+			my_system(3, "/bin/sh", "-c", mgcamdstart.c_str() );
+
+			hintBox->hide();
+			delete hintBox;
+		}
+		else if(file_exists("/var/etc/.gbox"))
+		{
+			CHintBox * hintBox = new CHintBox(LOCALE_MESSAGEBOX_INFO, g_Locale->getText(LOCALE_TWO_SERVICEMENU_RESTARTGBOX_HINT));
+			hintBox->paint();
+			killgbox(true);
+			std::string gboxstart;
+			if(file_exists("/var/emu/gbox"))
+				gboxstart  = "/var/emu/gbox 2>&1 > ";
+			else if(file_exists("/bin/gbox") )
+				gboxstart  = "/bin/gbox 2>&1 > ";
+
+			gboxstart += g_settings.emudebug ? "/dev/console" : "/dev/null";
+			gboxstart += " &";
+			my_system(3, "/bin/sh", "-c", gboxstart.c_str() );
+
+			hintBox->hide();
+			delete hintBox;
+		}
+		else if(file_exists("/var/etc/.oscam"))
+		{
+			CHintBox * hintBox = new CHintBox(LOCALE_MESSAGEBOX_INFO, g_Locale->getText(LOCALE_TWO_SERVICEMENU_RESTARTOSCAM_HINT));
+			hintBox->paint();
+			killoscam(true);
+			std::string oscamstart;
+			if(file_exists("/var/emu/oscam"))
+				oscamstart  = "/var/emu/oscam 2>&1 > ";
+			else if(file_exists("/bin/oscam") )
+				oscamstart  = "/bin/oscam 2>&1 > ";
+
+			oscamstart += g_settings.emudebug ? "/dev/console" : "/dev/null";
+			oscamstart += " &";
+			my_system(3, "/bin/sh", "-c", oscamstart.c_str() );
+
+			hintBox->hide();
+			delete hintBox;
+		}
+		else
+		{
+			CHintBox * hintBox = new CHintBox(LOCALE_MESSAGEBOX_INFO, g_Locale->getText(LOCALE_TWO_SERVICEMENU_RESTARTNOEMU_HINT));
+			hintBox->paint();
+
+			sleep(1);
+
+			hintBox->hide();
+			delete hintBox;
+		}
+		g_Zapit->Rezap();
+;
+	}
+
+	else if(actionKey=="restartcs")
+	{
+		if(file_exists("/var/etc/.newcs"))
+		{
+			CHintBox * hintBox = new CHintBox(LOCALE_MESSAGEBOX_INFO, g_Locale->getText(LOCALE_TWO_SERVICEMENU_RESTARTNEWCS_HINT));
+			hintBox->paint();
+
+			my_system(3, "/bin/sh", "-c","kill $(pidof newcs)");
+			sleep(1);
+			my_system(3, "/bin/sh", "-c","killall -9 newcs");
+			sleep(1);
+			std::string 	newcsstart;
+			if(file_exists("/var/emu/newcs"))
+				newcsstart= "/var/emu/newcs -c /var/keys/newcs.xml 2>&1 > ";
+			else if(file_exists("/bin/newcs"))
+				newcsstart= "/bin/newcs -c /var/keys/newcs.xml 2>&1 > ";
+
+			newcsstart += g_settings.emudebug ? "/dev/console" : "/dev/null";
+			newcsstart += " &";
+			my_system(3, "/bin/sh", "-c", newcsstart.c_str() );
+
+			hintBox->hide();
+			delete hintBox;
+		}
+		else if(file_exists("/var/etc/.oscam"))
+		{
+			CHintBox * hintBox = new CHintBox(LOCALE_MESSAGEBOX_INFO, g_Locale->getText(LOCALE_TWO_SERVICEMENU_RESTARTOSCAM_HINT));
+			hintBox->paint();
+
+			my_system(3, "/bin/sh", "-c","kill $(pidof oscam)");
+			sleep(1);
+			my_system(3, "/bin/sh", "-c","killall -9 oscam");
+			sleep(1);
+			std::string 	occamstart;
+			if(file_exists("/var/emu/oscam"))
+				occamstart = "/var/emu/oscam -c /var/keys 2>&1 > ";
+			else if(file_exists("/bin/oscam"))
+				occamstart = "/bin/oscam -c /var/keys 2>&1 > ";
+
+					occamstart += g_settings.emudebug ? "/dev/console" : "/dev/null";
+					occamstart += " &";
+			my_system(3, "/bin/sh", "-c", occamstart.c_str() );
+
+			hintBox->hide();
+			delete hintBox;
+		}
+		else if(file_exists("/var/etc/.gboxcs"))
+		{
+			CHintBox * hintBox = new CHintBox(LOCALE_MESSAGEBOX_INFO, g_Locale->getText(LOCALE_TWO_SERVICEMENU_RESTARTGBOX_HINT));
+			hintBox->paint();
+
+			killgbox(true);
+			std::string 	gboxstart;
+			if(file_exists("/var/emu/gbox"))
+				gboxstart= "/var/emu/gbox 2>&1 > ";
+			if(file_exists("/bin/gbox"))
+				gboxstart= "/bin/gbox 2>&1 > ";
+
+					gboxstart += g_settings.emudebug ? "/dev/console" : "/dev/null";
+					gboxstart += " &";
+			my_system(3, "/bin/sh", "-c", gboxstart.c_str() );
+
+			hintBox->hide();
+			delete hintBox;
+		}
+		else
+		{
+			CHintBox * hintBox = new CHintBox(LOCALE_MESSAGEBOX_INFO, g_Locale->getText(LOCALE_TWO_SERVICEMENU_RESTARTNOCS_HINT));
+			hintBox->paint();
+
+			sleep(1);
+
+			hintBox->hide();
+			delete hintBox;
+		}
+		g_Zapit->Rezap();
+;
+	}
+
+	else if(actionKey=="restartcs2gbox")
+	{
+		struct stat stat_buf;
+		if(stat("/var/etc/.cs2gbox", &stat_buf) == 0)
+		{
+			CHintBox * hintBox = new CHintBox(LOCALE_MESSAGEBOX_INFO, g_Locale->getText(LOCALE_TWO_SERVICEMENU_RESTARTCS2GBOX_HINT));
+			hintBox->paint();
+
+			my_system(3, "/bin/sh", "-c","kill $(pidof cs2gbox)");
+			sleep(1);
+			my_system(3, "/bin/sh", "-c","killall -9 cs2gbox");
+			sleep(1);
+			std::string 	cs2gboxstart;
+		if(stat("/var/emu/cs2gbox", &stat_buf) == 0)
+				cs2gboxstart= "/var/emu/cs2gbox 2>&1 > ";
+		else if(stat("/bin/cs2gbox", &stat_buf) == 0)
+				cs2gboxstart= "/bin/cs2gbox 2>&1 > ";
+
+					cs2gboxstart += g_settings.emudebug ? "/dev/console" : "/dev/null";
+					cs2gboxstart += " &";
+			my_system(3, "/bin/sh", "-c", cs2gboxstart.c_str() );
+
+			hintBox->hide();
+			delete hintBox;
+		}
+		else
+		{
+			CHintBox * hintBox = new CHintBox(LOCALE_MESSAGEBOX_INFO, g_Locale->getText(LOCALE_TWO_SERVICEMENU_RESTARTNOCS2GBOX_HINT));
+			hintBox->paint();
+
+			sleep(1);
+
+			hintBox->hide();
+			delete hintBox;
+		}
+		g_Zapit->Rezap();
+;
+	}
 
 	return returnval;
 }
