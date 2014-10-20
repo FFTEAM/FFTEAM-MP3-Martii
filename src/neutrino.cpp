@@ -31,38 +31,6 @@
 
 #define __NFILE__ 1
 #define NEUTRINO_CPP
-#include "gui/two_choose_emu.h"
-#include "gui/two_choose_cs.h"
-#include "gui/two_choose_cs2gbox.h"
-#include "gui/two_mgcamdconfig.h"
-#include "gui/two_mgcamdecminfo.h"
-#include "gui/two_mgcamdpidinfo.h"
-#include "gui/two_mgcamduptimeinfo.h"
-#include "gui/two_mgcamdversioninfo.h"
-#include "gui/two_mgcamdmemoryinfo.h"
-#include "gui/two_mgcamdgboxshareinfo.h"
-#include "gui/two_mgcamdnewcamdshareinfo.h"
-#include "gui/two_gboxconfig.h"
-#include "gui/two_gboxversioninfo.h"
-#include "gui/two_gboxshareonline.h"
-#include "gui/two_gboxshareinfo.h"
-#include "gui/two_gboxsharestats.h"
-#include "gui/two_gboxpidinfo.h"
-#include "gui/two_gboxecminfo.h"
-#include "gui/two_gboxscinfo.h"
-#include "gui/two_gboxscinfo01.h"
-#include "gui/two_gboxatackinfo.h"
-#include "gui/two_gboxsmseingang.h"
-#include "gui/two_gboxsmseingang2.h"
-#include "gui/two_gboxsmsausgang.h"
-#include "gui/two_gboxsms.h"
-#include "gui/two_gboxgesamtstat.h"
-#include "gui/two_gboxsmsadress.h"
-#include "gui/two_sysinfo1.h"
-#include "gui/two_sysinfo2.h"
-#include "gui/two_sysinfo3.h"
-#include "gui/two_sysinfo4.h"
-#include "gui/two_sonstiges.h"
 
 #include <stdio.h>
 #include <unistd.h>
@@ -2401,11 +2369,11 @@ fprintf(stderr, "[neutrino start] %d  -> %5ld ms\n", __LINE__, time_monotonic_ms
 	C3DSetup::getInstance()->exec(NULL, "zapped");
 	CPSISetup::getInstance()->blankScreen(false);
 #endif
-	if (!access("/etc/init.d/cam", X_OK)) {
+	if (!access("/etc/init.d/softcam", X_OK)) {
 		CZapitChannel* channel = channelList->getActiveChannel();
 		// no need to rezap on a FTA channel
 		std::string cmd((channel && channel->scrambled) ? "/bin/env REZAP=1 " : "");
-		cmd += "/etc/init.d/cam init >/dev/null 2>/dev/null&";
+		cmd += "/etc/init.d/softcam init >/dev/null 2>/dev/null&";
 		safe_system(cmd.c_str());
 	}
 #if ENABLE_SHAIRPLAY
@@ -4338,12 +4306,12 @@ int CNeutrinoApp::exec(CMenuTarget* parent, const std::string & actionKey)
 		delete hintBox;
 	}
 	else if(actionKey=="restartcam") {
-		if (!access("/etc/init.d/cam", X_OK)) {
+		if (!access("/etc/init.d/softcam", X_OK)) {
 			CHintBox * hintBox = new CHintBox(LOCALE_SERVICEMENU_RESTART_CAM,
 				g_Locale->getText(LOCALE_SERVICEMENU_RESTARTING_CAM));
 			hintBox->paint();
 
-			safe_system("/etc/init.d/cam restart >/dev/null 2>/dev/null&");
+			safe_system("/etc/init.d/softcam restart >/dev/null 2>/dev/null&");
 
 			hintBox->hide();
 			delete hintBox;
@@ -4466,195 +4434,6 @@ int CNeutrinoApp::exec(CMenuTarget* parent, const std::string & actionKey)
 	else if(actionKey == "standby")
 		g_RCInput->postMsg(NeutrinoMessages::STANDBY_ON, 0);
 
-	else if(actionKey=="restartemu")
-	{
-		if(file_exists("/var/etc/.mgcamd"))
-		{
-			CHintBox * hintBox = new CHintBox(LOCALE_MESSAGEBOX_INFO, g_Locale->getText(LOCALE_TWO_SERVICEMENU_RESTARTMGCAMD_HINT));
-			hintBox->paint();
-
-			killmgcamd(true);
-			std::string mgcamdstart;
-			if(file_exists("/var/emu/mgcamd"))
-				mgcamdstart  = "/var/emu/mgcamd 2>&1 > ";
-			else if(file_exists("/bin/mgcamd"))
-				mgcamdstart  = "/bin/mgcamd 2>&1 > ";
-
-			mgcamdstart += g_settings.emudebug ? "/dev/console" : "/dev/null";
-			mgcamdstart += " &";
-			my_system(3, "/bin/sh", "-c", mgcamdstart.c_str() );
-
-			hintBox->hide();
-			delete hintBox;
-		}
-		else if(file_exists("/var/etc/.gbox"))
-		{
-			CHintBox * hintBox = new CHintBox(LOCALE_MESSAGEBOX_INFO, g_Locale->getText(LOCALE_TWO_SERVICEMENU_RESTARTGBOX_HINT));
-			hintBox->paint();
-			killgbox(true);
-			std::string gboxstart;
-			if(file_exists("/var/emu/gbox"))
-				gboxstart  = "/var/emu/gbox 2>&1 > ";
-			else if(file_exists("/bin/gbox") )
-				gboxstart  = "/bin/gbox 2>&1 > ";
-
-			gboxstart += g_settings.emudebug ? "/dev/console" : "/dev/null";
-			gboxstart += " &";
-			my_system(3, "/bin/sh", "-c", gboxstart.c_str() );
-
-			hintBox->hide();
-			delete hintBox;
-		}
-		else if(file_exists("/var/etc/.oscam"))
-		{
-			CHintBox * hintBox = new CHintBox(LOCALE_MESSAGEBOX_INFO, g_Locale->getText(LOCALE_TWO_SERVICEMENU_RESTARTOSCAM_HINT));
-			hintBox->paint();
-			killoscam(true);
-			std::string oscamstart;
-			if(file_exists("/var/emu/oscam"))
-				oscamstart  = "/var/emu/oscam 2>&1 > ";
-			else if(file_exists("/bin/oscam") )
-				oscamstart  = "/bin/oscam 2>&1 > ";
-
-			oscamstart += g_settings.emudebug ? "/dev/console" : "/dev/null";
-			oscamstart += " &";
-			my_system(3, "/bin/sh", "-c", oscamstart.c_str() );
-
-			hintBox->hide();
-			delete hintBox;
-		}
-		else
-		{
-			CHintBox * hintBox = new CHintBox(LOCALE_MESSAGEBOX_INFO, g_Locale->getText(LOCALE_TWO_SERVICEMENU_RESTARTNOEMU_HINT));
-			hintBox->paint();
-
-			sleep(1);
-
-			hintBox->hide();
-			delete hintBox;
-		}
-		g_Zapit->Rezap();
-;
-	}
-
-	else if(actionKey=="restartcs")
-	{
-		if(file_exists("/var/etc/.newcs"))
-		{
-			CHintBox * hintBox = new CHintBox(LOCALE_MESSAGEBOX_INFO, g_Locale->getText(LOCALE_TWO_SERVICEMENU_RESTARTNEWCS_HINT));
-			hintBox->paint();
-
-			my_system(3, "/bin/sh", "-c","kill $(pidof newcs)");
-			sleep(1);
-			my_system(3, "/bin/sh", "-c","killall -9 newcs");
-			sleep(1);
-			std::string 	newcsstart;
-			if(file_exists("/var/emu/newcs"))
-				newcsstart= "/var/emu/newcs -c /var/keys/newcs.xml 2>&1 > ";
-			else if(file_exists("/bin/newcs"))
-				newcsstart= "/bin/newcs -c /var/keys/newcs.xml 2>&1 > ";
-
-			newcsstart += g_settings.emudebug ? "/dev/console" : "/dev/null";
-			newcsstart += " &";
-			my_system(3, "/bin/sh", "-c", newcsstart.c_str() );
-
-			hintBox->hide();
-			delete hintBox;
-		}
-		else if(file_exists("/var/etc/.oscam"))
-		{
-			CHintBox * hintBox = new CHintBox(LOCALE_MESSAGEBOX_INFO, g_Locale->getText(LOCALE_TWO_SERVICEMENU_RESTARTOSCAM_HINT));
-			hintBox->paint();
-
-			my_system(3, "/bin/sh", "-c","kill $(pidof oscam)");
-			sleep(1);
-			my_system(3, "/bin/sh", "-c","killall -9 oscam");
-			sleep(1);
-			std::string 	occamstart;
-			if(file_exists("/var/emu/oscam"))
-				occamstart = "/var/emu/oscam -c /var/keys 2>&1 > ";
-			else if(file_exists("/bin/oscam"))
-				occamstart = "/bin/oscam -c /var/keys 2>&1 > ";
-
-					occamstart += g_settings.emudebug ? "/dev/console" : "/dev/null";
-					occamstart += " &";
-			my_system(3, "/bin/sh", "-c", occamstart.c_str() );
-
-			hintBox->hide();
-			delete hintBox;
-		}
-		else if(file_exists("/var/etc/.gboxcs"))
-		{
-			CHintBox * hintBox = new CHintBox(LOCALE_MESSAGEBOX_INFO, g_Locale->getText(LOCALE_TWO_SERVICEMENU_RESTARTGBOX_HINT));
-			hintBox->paint();
-
-			killgbox(true);
-			std::string 	gboxstart;
-			if(file_exists("/var/emu/gbox"))
-				gboxstart= "/var/emu/gbox 2>&1 > ";
-			if(file_exists("/bin/gbox"))
-				gboxstart= "/bin/gbox 2>&1 > ";
-
-					gboxstart += g_settings.emudebug ? "/dev/console" : "/dev/null";
-					gboxstart += " &";
-			my_system(3, "/bin/sh", "-c", gboxstart.c_str() );
-
-			hintBox->hide();
-			delete hintBox;
-		}
-		else
-		{
-			CHintBox * hintBox = new CHintBox(LOCALE_MESSAGEBOX_INFO, g_Locale->getText(LOCALE_TWO_SERVICEMENU_RESTARTNOCS_HINT));
-			hintBox->paint();
-
-			sleep(1);
-
-			hintBox->hide();
-			delete hintBox;
-		}
-		g_Zapit->Rezap();
-;
-	}
-
-	else if(actionKey=="restartcs2gbox")
-	{
-		struct stat stat_buf;
-		if(stat("/var/etc/.cs2gbox", &stat_buf) == 0)
-		{
-			CHintBox * hintBox = new CHintBox(LOCALE_MESSAGEBOX_INFO, g_Locale->getText(LOCALE_TWO_SERVICEMENU_RESTARTCS2GBOX_HINT));
-			hintBox->paint();
-
-			my_system(3, "/bin/sh", "-c","kill $(pidof cs2gbox)");
-			sleep(1);
-			my_system(3, "/bin/sh", "-c","killall -9 cs2gbox");
-			sleep(1);
-			std::string 	cs2gboxstart;
-		if(stat("/var/emu/cs2gbox", &stat_buf) == 0)
-				cs2gboxstart= "/var/emu/cs2gbox 2>&1 > ";
-		else if(stat("/bin/cs2gbox", &stat_buf) == 0)
-				cs2gboxstart= "/bin/cs2gbox 2>&1 > ";
-
-					cs2gboxstart += g_settings.emudebug ? "/dev/console" : "/dev/null";
-					cs2gboxstart += " &";
-			my_system(3, "/bin/sh", "-c", cs2gboxstart.c_str() );
-
-			hintBox->hide();
-			delete hintBox;
-		}
-		else
-		{
-			CHintBox * hintBox = new CHintBox(LOCALE_MESSAGEBOX_INFO, g_Locale->getText(LOCALE_TWO_SERVICEMENU_RESTARTNOCS2GBOX_HINT));
-			hintBox->paint();
-
-			sleep(1);
-
-			hintBox->hide();
-			delete hintBox;
-		}
-		g_Zapit->Rezap();
-;
-	}
-
 	return returnval;
 }
 
@@ -4706,8 +4485,8 @@ void stop_daemons(bool stopall, bool for_flash)
 	tuxtxt_stop();
 	tuxtxt_close();
 
-	if (!access("/etc/init.d/cam", X_OK))
-		safe_system("/etc/init.d/cam stop >/dev/null 2>/dev/null&");
+	if (!access("/etc/init.d/softcam", X_OK))
+		safe_system("/etc/init.d/softcam stop >/dev/null 2>/dev/null&");
 
 #ifdef ENABLE_GRAPHLCD
 	nGLCD::Exit();
