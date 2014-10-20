@@ -875,6 +875,7 @@ lua.function_deprecated1 Achtung!
 lua.function_deprecated2 Die Funktion
 lua.function_deprecated3 ist veraltet,\n                      bitte nutzen Sie
 mainmenu.audioplayer Audioplayer
+mainmenu.ffteambluepanel FFTeam Bluepanel
 mainmenu.channels Kanalliste
 mainmenu.clearsectionsd Lösche EPG Cache
 mainmenu.games Spiele
