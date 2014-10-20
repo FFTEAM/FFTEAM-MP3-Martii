@@ -316,10 +316,11 @@ struct SNeutrinoSettings
 		P_MAIN_SCRIPTS,
 		P_MAIN_SETTINGS,
 		P_MAIN_SERVICE,
+		P_MAIN_FFTEAMBLUEPANEL,
+		P_MAIN_INFOMENU,
 		P_MAIN_SLEEPTIMER,
 		P_MAIN_REBOOT,
 		P_MAIN_SHUTDOWN,
-		P_MAIN_INFOMENU,
 		P_MAIN_CISETTINGS,
 		
 		//settings menu
@@ -811,7 +812,7 @@ struct SNeutrinoSettings
                 ITEM_EMU_RESTART = 23,
                 ITEM_TUNER_RESTART = 24,
                 ITEM_THREE_D_MODE = 25,
-                //ITEM_WEBTV = 26,
+                ITEM_WEBTV = 26,
                 ITEM_RASS = 27,
                 ITEM_YOUTUBE = 28,
 		ITEM_NETZKINO = 29,
