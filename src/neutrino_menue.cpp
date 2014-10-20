@@ -74,6 +74,7 @@
 #include "gui/sleeptimer.h"
 #include "gui/update_menue.h"
 #include "gui/streaminfo2.h"
+#include "gui/ffteambluepanel.h"
 #ifdef ENABLE_TEST_MENU
 #include "gui/test_menu.h"
 #endif
@@ -197,6 +198,11 @@ void CNeutrinoApp::InitMenuMain()
 	mf = new CMenuForwarder(LOCALE_MAINMENU_SERVICE, true, NULL, &personalize.getWidget(MENU_SERVICE));
 	mf->setHint(NEUTRINO_ICON_HINT_SERVICE, LOCALE_MENU_HINT_SERVICE);
 	personalize.addItem(MENU_MAIN, mf, &g_settings.personalize[SNeutrinoSettings::P_MAIN_SERVICE], false, CPersonalizeGui::PERSONALIZE_SHOW_AS_ACCESS_OPTION);
+
+	//ffteambluepanel
+	mf = new CMenuForwarder(LOCALE_MAINMENU_FFTEAMBLUEPANEL, true, NULL, new CBluePanel());
+	mf->setHint(NEUTRINO_ICON_FEATURES, LOCALE_MENU_HINT_FFTEAMBLUEPANEL);
+	personalize.addItem(MENU_MAIN, mf, &g_settings.personalize[SNeutrinoSettings::P_MAIN_FFTEAMBLUEPANEL]);
 
 	//separator
 	personalize.addSeparator(MENU_MAIN);
@@ -435,7 +441,7 @@ void CNeutrinoApp::InitMenuService()
 	mf->setHint(NEUTRINO_ICON_HINT_RELOAD_CHANNELS, LOCALE_MENU_HINT_RELOAD_PLUGINS);
 	personalize.addItem(MENU_SERVICE, mf, &g_settings.personalize[SNeutrinoSettings::P_MSER_RELOAD_PLUGINS]);
 
- 	//separator
+	//separator
 	personalize.addSeparator(MENU_SERVICE);
 	//firmware update via opkg
 	if (COPKGManager::hasOpkgSupport()) {
