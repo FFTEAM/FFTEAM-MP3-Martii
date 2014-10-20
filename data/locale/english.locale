@@ -318,6 +318,7 @@ colormenusetup.menucontent_inactive Content inactive
 colormenusetup.menucontent_selected Content selected
 colormenusetup.menuhead Header
 colorstatusbar.text Infobar
+colorthememenu.head Select theme
 colorthememenu.head2 Load themes
 colorthememenu.name Theme name
 colorthememenu.neutrino_theme Neutrino Theme
@@ -869,7 +870,7 @@ ledcontroller.title LEDs
 lua.boolparam_deprecated1 Caution!
 lua.boolparam_deprecated2 The use of number or string
 lua.boolparam_deprecated3 for a Boolean parameter is deprecated.\n                      Please use native bool values eg.
-lua.function_deprecated1 Caution!
+lua.function_deprecated1 Attention!
 lua.function_deprecated2 Function
 lua.function_deprecated3 is deprecated,\n                      please use
 mainmenu.audioplayer Audioplayer
