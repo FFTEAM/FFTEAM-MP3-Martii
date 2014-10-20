@@ -338,7 +338,7 @@ bool CUserMenu::showUserMenu(neutrino_msg_t msg)
 			menu_item->setHint("", LOCALE_MENU_HINT_ADZAP);
 			break;
 		case SNeutrinoSettings::ITEM_EMU_RESTART:
-			if (access("/etc/init.d/cam", X_OK))
+			if (access("/etc/init.d/softcam", X_OK))
 				continue;
 			keyhelper.get(&key,&icon);
 			menu_item = new CMenuForwarder(LOCALE_SERVICEMENU_RESTART_CAM, true, NULL, neutrino, "restartcam", key, icon);
