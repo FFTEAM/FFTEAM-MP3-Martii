@@ -316,7 +316,7 @@ struct SNeutrinoSettings
 		P_MAIN_SCRIPTS,
 		P_MAIN_SETTINGS,
 		P_MAIN_SERVICE,
-		P_MAIN_FFTEAMBLUEPANEL,
+		P_MAIN_BLUEPANEL,
 		P_MAIN_INFOMENU,
 		P_MAIN_SLEEPTIMER,
 		P_MAIN_REBOOT,
@@ -729,6 +729,8 @@ struct SNeutrinoSettings
 	// pictureviewer
 	int picviewer_slide_time;
 	int picviewer_scaling;
+	std::string picviewer_decode_server_ip;
+	char    picviewer_decode_server_port[6];
 
 	//audioplayer
 	int   audioplayer_display;
@@ -750,6 +752,9 @@ struct SNeutrinoSettings
 
 	//movieplayer
 	int   movieplayer_repeat_on;
+
+	//two erweiterungen
+	int infoviewer_ecm_info;
 
 	//zapit setup
 	std::string StartChannelTV;
