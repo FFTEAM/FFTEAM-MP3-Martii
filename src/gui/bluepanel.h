@@ -1,5 +1,5 @@
 /*
-	BluePanel - Neutrino-GUI
+	FFTEAM-BluePanel - Neutrino-GUI
 
 	Copyright (C) 2001 Steffen Hehn 'McClean'
 	and some other guys
@@ -26,8 +26,8 @@
 
 */
 
-#ifndef __FFTEAMBLUE_PANEL__
-#define __FFTEAMBLUE_PANEL__
+#ifndef __BLUE_PANEL__
+#define __BLUE_PANEL__
 
 #include <gui/widget/menue.h>
 #include <gui/widget/icons.h>

@@ -146,7 +146,6 @@
 #include <lib/libtuxtxt/teletext.h>
 #include <eitd/sectionsd.h>
 
-#include <system/luaserver.h>
 
 int old_b_id = -1;
 CHintBox * reloadhintBox = 0;
@@ -899,7 +898,6 @@ int CNeutrinoApp::loadSetup(const char * fname)
 
 
 	//two erweiterungen
-	g_settings.emudebug =  configfile.getInt32("emudebug",0);
 	g_settings.infoviewer_ecm_info =  configfile.getInt32("infoviewer_ecm_info",0);
 
 	//zapit setup
@@ -1403,7 +1401,6 @@ void CNeutrinoApp::saveSetup(const char * fname)
 	configfile.setBool("filebrowser_multi_select_confirm_dir", g_settings.filebrowser_multi_select_confirm_dir);
 
 	//two erweiterungen
-	configfile.setInt32("emudebug", g_settings.emudebug);
 	configfile.setInt32("infoviewer_ecm_info", g_settings.infoviewer_ecm_info);
 
 	//zapit setup
@@ -2456,13 +2453,8 @@ void CNeutrinoApp::RealRun(CMenuWidget &_mainMenu)
 
 	//cCA::GetInstance()->Ready(true);
 
-	CLuaServer *luaServer = CLuaServer::getInstance();
-
 	while( true ) {
-		luaServer->UnBlock();
 		g_RCInput->getMsg(&msg, &data, 100, ((g_settings.mode_left_right_key_tv == SNeutrinoSettings::VOLUME) && (g_RemoteControl->subChannels.size() < 1)) ? true : false);	// 10 secs..
-		if (luaServer->Block(msg, data))
-			continue;
 
 #if ENABLE_SHAIRPLAY
 		if (shairPlay && shairplay_enabled_cur && shairplay_active) {
@@ -5068,7 +5060,6 @@ bool CNeutrinoApp::StartPip(const t_channel_id channel_id)
 
 void CNeutrinoApp::Cleanup()
 {
-//	CLuaServer::destroyInstance();
 #ifdef EXIT_CLEANUP
 	INFO("cleanup...");
 	printf("cleanup 10\n");fflush(stdout);

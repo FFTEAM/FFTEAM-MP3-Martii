@@ -1,5 +1,5 @@
 /*
-	FFTEAMFFTEAMBluePanel - Neutrino-GUI
+	FFTEAMBluePanel - Neutrino-GUI
 
 	License: GPL
 
@@ -24,7 +24,7 @@
 #endif
 
 #include <dirent.h>
-#include "ffteambluepanel.h"
+#include "bluepanel.h"
 #include "network_setup.h"
 #include <gui/widget/icons.h>
 #include <gui/widget/stringinput.h>
