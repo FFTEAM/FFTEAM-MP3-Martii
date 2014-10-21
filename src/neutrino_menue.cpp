@@ -74,7 +74,7 @@
 #include "gui/sleeptimer.h"
 #include "gui/update_menue.h"
 #include "gui/streaminfo2.h"
-#include "gui/ffteambluepanel.h"
+#include "gui/bluepanel.h"
 #ifdef ENABLE_TEST_MENU
 #include "gui/test_menu.h"
 #endif
@@ -200,9 +200,9 @@ void CNeutrinoApp::InitMenuMain()
 	personalize.addItem(MENU_MAIN, mf, &g_settings.personalize[SNeutrinoSettings::P_MAIN_SERVICE], false, CPersonalizeGui::PERSONALIZE_SHOW_AS_ACCESS_OPTION);
 
 	//ffteambluepanel
-	mf = new CMenuForwarder(LOCALE_MAINMENU_FFTEAMBLUEPANEL, true, NULL, new CBluePanel());
-	mf->setHint(NEUTRINO_ICON_FEATURES, LOCALE_MENU_HINT_FFTEAMBLUEPANEL);
-	personalize.addItem(MENU_MAIN, mf, &g_settings.personalize[SNeutrinoSettings::P_MAIN_FFTEAMBLUEPANEL]);
+	mf = new CMenuForwarder(LOCALE_MAINMENU_BLUEPANEL, true, NULL, new CBluePanel());
+	mf->setHint(NEUTRINO_ICON_FEATURES, LOCALE_MENU_HINT_BLUEPANEL);
+	personalize.addItem(MENU_MAIN, mf, &g_settings.personalize[SNeutrinoSettings::P_MAIN_BLUEPANEL]);
 
 	//separator
 	personalize.addSeparator(MENU_MAIN);
