@@ -46,26 +46,26 @@ std::string on = "An";
 std::string off = "Aus";
 char none_cam[] = "keine";
 
-CFFTEAMBluePanel::CFFTEAMBluePanel()
+CBluePanel::CBluePanel()
 {
 	width = w_max (40, 10);
 }
 
-CFFTEAMBluePanel::~CFFTEAMBluePanel()
+CBluePanel::~CBluePanel()
 {
 	//leer
 }
 
-int CFFTEAMBluePanel::exec(CMenuTarget* parent, const std::string &actionKey)
+int CBluePanel::exec(CMenuTarget* parent, const std::string &actionKey)
 {
-	dprintf(DEBUG_DEBUG, "Init: FFTEAMBluePanel v1.0 by rgmviper+thomas\n");
+	dprintf(DEBUG_DEBUG, "Init: BluePanel v1.0 by rgmviper+thomas\n");
 
 	int  res = menu_return::RETURN_EXIT_REPAINT;
 		
 	if (parent)
 		parent->hide();
 
-	printf("CFFTEAMBluePanel::exec: %s\n", actionKey.c_str());
+	printf("CBluePanel::exec: %s\n", actionKey.c_str());
 
 	if (actionKey == "save")
 	{
@@ -95,7 +95,7 @@ int CFFTEAMBluePanel::exec(CMenuTarget* parent, const std::string &actionKey)
 		return res;
 	}
 
-	res = showFFTEAMBluePanel();
+	res = showBluePanel();
 	return res;
 }
 
@@ -106,14 +106,14 @@ static int cam_filter(const struct dirent * dent)
 	return 0;
 }
 
-void CFFTEAMBluePanel::RestartCam()
+void CBluePanel::RestartCam()
 {
 	system("/etc/init.d/softcam stop");
 	system("sleep 3");
 	system("/etc/init.d/softcam start");
 }
 
-void CFFTEAMBluePanel::LoadConfig()
+void CBluePanel::LoadConfig()
 {
 	// Aktive Softcam
 	ifstream load_cam_cfg;
@@ -159,7 +159,7 @@ void CFFTEAMBluePanel::LoadConfig()
 		bootlogo = on;
 }
 
-void CFFTEAMBluePanel::SaveConfig()
+void CBluePanel::SaveConfig()
 {
 	// Softcam
 	if (old_cam != active_cam){
@@ -210,11 +210,11 @@ void CFFTEAMBluePanel::SaveConfig()
 		system("/etc/init.d/inadyn start");
 }
 
-/* FFTEAMBluePanel Menü */
-int CFFTEAMBluePanel::showFFTEAMBluePanel()
+/* BluePanel Menü */
+int CBluePanel::showBluePanel()
 {
 	// Head
-	CMenuWidget w_mf("FFTEAMBluePanel", NEUTRINO_ICON_FEATURES, width);
+	CMenuWidget w_mf("BluePanel", NEUTRINO_ICON_FEATURES, width);
 	w_mf.addIntroItems();
 	
 	LoadConfig();
