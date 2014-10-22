@@ -64,7 +64,6 @@ class CInfoViewer
 	bool	       fileplay;
 
 	int            BoxStartX;
-	int            BoxStartY;
 	int            ButtonWidth;
 
         // dimensions of radiotext window
@@ -80,7 +79,6 @@ class CInfoViewer
 	int            ChanNameX;
 	int            ChanNameY;
 	int            ChanWidth;
-	int            ChanHeight;
 
 	CSectionsdClient::CurrentNextInfo info_CurrentNext;
 	CSectionsdClient::CurrentNextInfo oldinfo;
@@ -148,6 +146,8 @@ class CInfoViewer
 	bool	 virtual_zap_mode;
 	char     aspectRatio;
 	uint32_t sec_timer_id;
+	int            BoxStartY;
+	int            ChanHeight;
 
 	int      BoxEndX;
 	int      BoxEndY;

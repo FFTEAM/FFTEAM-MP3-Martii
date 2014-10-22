@@ -1001,7 +1001,7 @@ void CInfoViewer::loop(bool show_dot)
 				showRadiotext();
 
 			infoViewerBB->showIcon_16_9();
-			//infoViewerBB->showIcon_CA_Status(0);
+			infoViewerBB->showIcon_CA_Status(0);
 			infoViewerBB->showIcon_Resolution();
 		} else if ((g_settings.mode_left_right_key_tv == SNeutrinoSettings::VZAP) && ((msg == CRCInput::RC_right) || (msg == CRCInput::RC_left ))) {
 			virtual_zap_mode = true;
@@ -2043,6 +2043,9 @@ void CInfoViewer::killTitle()
 		if (showButtonBar)
 			bottom += infoViewerBB->InfoHeightY_Info;
 		//printf("killTitle(%d, %d, %d, %d)\n", BoxStartX, BoxStartY, BoxEndX+ SHADOW_OFFSET-BoxStartX, bottom-BoxStartY);
+		if ((g_settings.infoviewer_ecm_info == 1) || (g_settings.infoviewer_ecm_info == 2))
+			frameBuffer->paintBackgroundBox(BoxStartX, BoxStartY-185, BoxEndX+ SHADOW_OFFSET, bottom);
+		else
 		frameBuffer->paintBackgroundBox(BoxStartX, BoxStartY, BoxEndX+ SHADOW_OFFSET, bottom);
 		if (g_settings.radiotext_enable && g_Radiotext) {
 			g_Radiotext->S_RtOsd = g_Radiotext->haveRadiotext() ? 1 : 0;

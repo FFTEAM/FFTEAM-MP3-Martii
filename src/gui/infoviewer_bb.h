@@ -120,15 +120,20 @@ class CInfoViewerBB
 		void showOne_CAIcon();
 		void changePB(void);
 
+		void paintEmuIcons(int);
+		void paintECM();
+		void painttECMInfo(int xa, const char *info, char *caid, char *decode, char *response, char *prov);
+
 		static void* scrambledThread(void *arg);
 		void scrambledCheck(bool force=false);
 
 		void showBarSys(int percent = 0);
 		void showBarHdd(int percent = 0);
 
-		CInfoViewerBB();
+		int emu ; // 1 mgcamd 2 gbox  3 oscam
 
 	public:
+		CInfoViewerBB();
 		~CInfoViewerBB();
 		static CInfoViewerBB* getInstance();
 		void Init(void);

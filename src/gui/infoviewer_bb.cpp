@@ -726,8 +726,11 @@ void CInfoViewerBB::paint_ca_icons(int caid, char * icon, int &icon_space_offset
 	}
 }
 
-void CInfoViewerBB::showIcon_CA_Status(int notfirst)
+void CInfoViewerBB::showIcon_CA_Status(int /*notfirst*/)
 {
+	if (!is_visible)
+		return;
+
 	if (g_settings.casystem_display == 3)
 		return;
 	if(NeutrinoMessages::mode_ts == CNeutrinoApp::getInstance()->getMode() && !CMoviePlayerGui::getInstance().timeshift){
@@ -738,27 +741,20 @@ void CInfoViewerBB::showIcon_CA_Status(int notfirst)
 		return;
 	}
 
-	int caids[] = {  0x900, 0xD00, 0xB00, 0x1800, 0x0500, 0x0100, 0x600,  0x2600, 0x4a00, 0x0E00 };
+	const int caids[] = {  0x900, 0xD00, 0xB00, 0x1800, 0x0500, 0x0100, 0x600,  0x2600, 0x4a00, 0x0E00 };
 	const char * white = (char *) "white";
 	const char * yellow = (char *) "yellow";
 	const char * green = (char *) "green";
 	int icon_space_offset = 0;
-
-	int acaid = 0;
-	if(!notfirst) {
-		FILE *f = fopen("/tmp/ecm.info", "rt");
-		if (f) {
-			char buf[80];
-			if (fgets(buf, sizeof(buf), f) != NULL) {
-				char *b = strchr(buf, '0');
-				if (b)
-					sscanf(b, "%X", &acaid);
-			}
-			fclose(f);
-		}
-	}
-
+	const char *ecm_info_f = "/tmp/ecm.info";
 	if(!g_InfoViewer->chanready) {
+		if (g_settings.infoviewer_ecm_info == 1)
+			frameBuffer->paintBackgroundBoxRel(g_InfoViewer->BoxEndX-220, g_InfoViewer->BoxStartY-185, 225, g_InfoViewer->ChanHeight+105);
+		else if (g_settings.infoviewer_ecm_info == 2)
+			frameBuffer->paintBackgroundBoxRel(g_InfoViewer->BoxEndX-220, g_InfoViewer->BoxStartY-185, 225, g_InfoViewer->ChanHeight+105);
+
+		unlink(ecm_info_f);
+
 		if (g_settings.casystem_display == 2) {
 			fta = true;
 			showOne_CAIcon();
@@ -780,8 +776,90 @@ void CInfoViewerBB::showIcon_CA_Status(int notfirst)
 		showOne_CAIcon();
 		return;
 	}
+		emu = 0;
+	if(file_exists("/var/etc/.mgcamd"))
+		emu = 1;
+	else if(file_exists("/var/etc/.gbox"))
+		emu = 2;
+	else if(file_exists("/var/etc/.oscam"))
+		emu = 3;
 
-	if(!notfirst) {
+	if ( (file_exists(ecm_info_f)) && ((g_settings.infoviewer_ecm_info == 1) || (g_settings.infoviewer_ecm_info == 2)) )
+		paintECM();
+
+
+	if ((g_settings.casystem_display == 0) || (g_settings.casystem_display == 1))
+	{
+		FILE* fd = fopen (ecm_info_f, "r");
+		int ecm_caid = 0;
+		int decMode = 0;
+		bool mgcamd_emu = emu==1 ? true:false;
+		char ecm_pid[16] = {0};
+		if (fd)
+		{
+			char *buffer = NULL, *card = NULL;
+			size_t len = 0;
+			ssize_t read;
+			char decode[16] = {0};
+			while ((read = getline(&buffer, &len, fd)) != -1)
+			{
+				if ((sscanf(buffer, "=%*[^9-0]%x", &ecm_caid) == 1) || (sscanf(buffer, "caid: %x", &ecm_caid) == 1)){
+					if (mgcamd_emu && ((ecm_caid & 0xFF00) == 0x1700)){
+						sscanf(buffer, "=%*[^','], pid %6s",ecm_pid);
+					}
+					continue;
+				}
+				else if ((sscanf(buffer, "decode:%15s", decode) == 1) || (sscanf(buffer, "source:%15s", decode) == 1) || (sscanf(buffer, "from: %15s", decode) == 1))
+				{
+					card = strstr(buffer, "127.0.0.1");
+					break;
+				}
+			}
+			fclose (fd);
+			if (buffer)
+				free (buffer);
+			if (strncasecmp(decode, "net", 3) == 0)
+			  decMode = (card == NULL) ? 1 : 3; // net == 1, card == 3
+			else if ((strncasecmp(decode, "emu", 3) == 0) || (strncasecmp(decode, "int", 3) == 0) || (strncasecmp(decode, "cache", 5) == 0) || (strstr(decode, "/" ) != NULL))
+			  decMode = 2; //emu
+			else if ((strncasecmp(decode, "com", 3) == 0) || (strncasecmp(decode, "slot", 4) == 0) || (strncasecmp(decode, "local", 5) == 0))
+			  decMode = 3; //card
+		}
+		if (mgcamd_emu && ((ecm_caid & 0xFF00) == 0x1700)){
+			const char *pid_info_f = "/tmp/pid.info";
+			FILE* pidinfo = fopen (pid_info_f, "r");
+			if (pidinfo){
+				char *buf_mg = NULL;
+				size_t mg_len = 0;
+				ssize_t mg_read;
+				while ((mg_read = getline(&buf_mg, &mg_len, pidinfo)) != -1){
+					if(strcasestr(buf_mg, ecm_pid)){
+						int pidnagra = 0;
+						sscanf(buf_mg, "%*[^':']: CaID: %x *", &pidnagra);
+						ecm_caid = pidnagra;
+					}
+				}
+				fclose (pidinfo);
+				if (buf_mg)
+					free (buf_mg);
+			}
+		}
+		if ( (ecm_caid & 0xFF00) == 0x1700 ){
+			bool nagra_found = false;
+			bool beta_found = false;
+			for(casys_map_iterator_t it = channel->camap.begin(); it != channel->camap.end(); ++it) {
+				int caid = (*it) & 0xFF00;
+				if(caid == 0x1800)
+					nagra_found = true;
+				if (caid == 0x1700)
+				      beta_found = true;
+			}
+			if(beta_found)
+				ecm_caid = 0x600;
+			else if(!beta_found && nagra_found)
+				ecm_caid = 0x1800;
+		}
+
 #if 0
 		static int icon_space_offset = 0;
 		if ((g_settings.casystem_display == 1) && (icon_space_offset)) {
@@ -789,6 +867,8 @@ void CInfoViewerBB::showIcon_CA_Status(int notfirst)
 			icon_space_offset = 0;
 		}
 #endif
+		paintEmuIcons(decMode);
+
 		for (int i = 0; i < (int)(sizeof(caids)/sizeof(int)); i++) {
 			bool found = false;
 			for(casys_map_iterator_t it = channel->camap.begin(); it != channel->camap.end(); ++it) {
@@ -798,12 +878,10 @@ void CInfoViewerBB::showIcon_CA_Status(int notfirst)
 				if((found = (caid == caids[i])))
 					break;
 			}
-			if(g_settings.casystem_display == 0) {
-				if ((caids[i] & 0xFF00) == (acaid & 0xFF00) || (caids[i] == 0x1700 && (acaid & 0xFF00) == 0x0600))
-					paint_ca_icons(caids[i], (char *) green, icon_space_offset);
-				else
-					paint_ca_icons(caids[i], (char *) (found ? yellow : white), icon_space_offset);
-			}
+			if(g_settings.casystem_display == 0)
+				paint_ca_icons(caids[i], (char *) (found ? (caids[i] == (ecm_caid & 0xFF00) ? green : yellow) : white), icon_space_offset);
+			else if(found)
+				paint_ca_icons(caids[i], (char *) ( caids[i] == (ecm_caid & 0xFF00) ? green : yellow), icon_space_offset);
 		}
 	}
 }
@@ -885,3 +963,355 @@ void CInfoViewerBB::scrambledCheck(bool force)
 		scrambledNoSigSave = scrambledNoSig;
 	}
 }
+
+void CInfoViewerBB::paintEmuIcons(int decMode)
+{
+	int attackMode = 0;
+	struct stat stat_buf;
+	if(::stat("/tmp/atack.txt", &stat_buf) == 0)
+	{
+		if (stat_buf.st_size > 0)
+		{
+			attackMode = 1;
+		}
+		else
+		{
+			attackMode = 0;
+		}
+	}
+	else
+	{
+		attackMode = 0;
+	}
+
+	int gsmsMode = 0;
+	if (file_exists("/tmp/gsms.log"))
+		gsmsMode = 1;
+	else
+		gsmsMode = 0;
+
+	char buf[20];
+	int py = g_InfoViewer->BoxEndY + 2; /* hand-crafted, should be automatic */
+
+	const char emu_green[] = "green";
+	const char emu_gray[] = "white";
+	const char emu_yellow[] = "yellow";
+	enum E{
+		GBOX,MGCAMD,OSCAM,NEWCS,CS2GBOX,NET,EMU,CARD,ATTACK,GSMS
+	};
+	static int emus_icon_sizeW[GSMS+1] = {0};
+	const char *icon_emu[GSMS+1] = {"gbox", "mgcamd", "oscam", "newcs", "cs2gbox", "net", "emu", "card", "attack", "gsms"};
+	int icon_sizeH = 0;
+	static int ga = g_InfoViewer->ChanInfoX+30+16;
+	if (emus_icon_sizeW[GBOX] == 0)
+	{
+		for (E e=GBOX; e <= GSMS; e = E(e+1))
+		{
+			snprintf(buf, sizeof(buf), "%s_%s", icon_emu[e], emu_green);
+			frameBuffer->getIconSize(buf, &emus_icon_sizeW[e], &icon_sizeH);
+			if(e < ATTACK)
+				ga+=emus_icon_sizeW[e];
+		}
+	}
+	struct stat sb;
+	int icon_emuX = g_InfoViewer->ChanInfoX ;
+	static int icon_offset = 0;
+	int icon_flag = 0; // gray = 0, yellow = 1, green = 2
+
+	if ((g_settings.casystem_display == 1) && (icon_offset))
+	{
+		paintCA_bar(icon_offset, 0);
+		icon_offset = 0;
+	}
+	bool emuMG = (emu==1 || emu == 3 || file_exists("/var/etc/.no_attack_gsms_icon") ) ;
+	for (E e = GBOX; e <= GSMS; e = E(e+1))
+	{
+		switch (e)
+		{
+			case GBOX:
+			case MGCAMD:
+			case OSCAM:
+			case NEWCS:
+			case CS2GBOX:
+			snprintf(buf, sizeof(buf), "/var/etc/.%s", icon_emu[e]);
+			icon_flag = (stat(buf, &sb) == -1) ? 0 : decMode ? 2 : 1;
+			break;
+			case NET:
+			if (g_settings.casystem_display == 0)
+				icon_emuX += 15 ;
+
+			icon_flag = (decMode == 1) ? 2 : 0;
+			break;
+			case EMU:
+			icon_flag = (decMode == 2) ? 2 : 0;
+			break;
+			case CARD:
+			icon_flag = (decMode == 3) ? 2 : 0;
+			break;
+			case ATTACK:
+			icon_flag = (attackMode == 1) ? 2 : 0;
+			break;
+			case GSMS:
+			icon_flag = (gsmsMode == 1) ? 2 : 0;
+			break;
+			default:
+			break;
+		}
+		if ( (g_settings.casystem_display == 1 && icon_flag != 0) || (g_settings.casystem_display == 0 && (e> CS2GBOX ||  icon_flag != 0)) )
+		{
+			snprintf(buf, sizeof(buf), "%s_%s", icon_emu[e], (icon_flag == 0) ? emu_gray : (icon_flag == 1) ? emu_yellow : emu_green);
+			if(e==ATTACK){
+				if(emuMG)
+					continue;
+				frameBuffer->paintIcon(buf,ga , py);
+			}else if(e==GSMS){
+				if(emuMG)
+				      continue;
+				frameBuffer->paintIcon(buf,ga+emus_icon_sizeW[ATTACK] , py);
+			}
+			else
+			{
+				frameBuffer->paintIcon(buf, icon_emuX, py);
+				if (g_settings.casystem_display == 1)
+				{
+					icon_offset += emus_icon_sizeW[e] + 2;
+					icon_emuX   += icon_offset;
+				}
+				else
+					icon_emuX += emus_icon_sizeW[e] + 2;
+			}
+		}
+	}
+}
+
+void CInfoViewerBB::painttECMInfo(int xa, const char *info, char *caid, char *decode, char *response, char *prov)
+{
+	frameBuffer->paintBoxRel(g_InfoViewer->BoxEndX-215, g_InfoViewer->BoxStartY-120, 220, g_InfoViewer->ChanHeight+40, COL_INFOBAR_SHADOW_PLUS_0, g_settings.rounded_corners ? CORNER_RADIUS_MID : 0);
+	frameBuffer->paintBoxRel(g_InfoViewer->BoxEndX-220, g_InfoViewer->BoxStartY-125, 220, g_InfoViewer->ChanHeight+40, COL_INFOBAR_PLUS_0, g_settings.rounded_corners ? CORNER_RADIUS_MID : 0);
+	g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-190, g_InfoViewer->BoxStartY-100, xa, info, COL_INFOBAR_TEXT, 0, true);
+	g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-215, g_InfoViewer->BoxStartY-80, 80, "CaID:", COL_INFOBAR_TEXT, 0, true);
+	g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-150, g_InfoViewer->BoxStartY-80, 130, caid, COL_INFOBAR_TEXT, 0, true);
+	g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-215, g_InfoViewer->BoxStartY-60, 80, "Decode:", COL_INFOBAR_TEXT, 0, true);
+	g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-150, g_InfoViewer->BoxStartY-60, 70, decode, COL_INFOBAR_TEXT, 0, true);
+	if(response[0] != 0 )
+	{
+		g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-90, g_InfoViewer->BoxStartY-60, 15, "in", COL_INFOBAR_TEXT, 0, true);
+		g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-70, g_InfoViewer->BoxStartY-60, 45, response, COL_INFOBAR_TEXT, 0, true);
+		g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-25, g_InfoViewer->BoxStartY-60, 10, "s", COL_INFOBAR_TEXT, 0, true);
+	}
+	g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-215, g_InfoViewer->BoxStartY-40, 80, "Provider:", COL_INFOBAR_TEXT, 0, true);
+	g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-150, g_InfoViewer->BoxStartY-40, 130, prov, COL_INFOBAR_TEXT, 0, true);
+}
+
+void CInfoViewerBB::paintECM()
+{
+	char caid1[5] = {0};
+	char pid1[5] = {0};
+	char prov1[8] = {0};
+	char cw0_[8][3];
+	char cw1_[8][3];
+	char source1[30] = {0};
+	char response1[10] = {0};
+	char reader[20]  = {0};
+	char protocol[20]  = {0};
+
+	char tmp;
+//	static int cw0=0,cw1=0;
+//	int tmp_cw0=0,tmp_cw1=0;
+	const char *ecm_info = "/tmp/ecm.info";
+	FILE* ecminfo = fopen (ecm_info, "r");
+	bool ecmInfoEmpty = true;
+	if (ecminfo)
+	{
+		char *buffer = NULL;
+		size_t len = 0;
+		ssize_t read;
+
+		while ((read = getline(&buffer, &len, ecminfo)) != -1)
+		{
+			ecmInfoEmpty = false;
+			if(emu == 1 || emu == 2){
+				sscanf(buffer, "%*s %*s ECM on CaID 0x%4s, pid 0x%4s", caid1, pid1);										// gbox, mgcamd
+				sscanf(buffer, "prov: %06[^',',(]", prov1);														// gbox, mgcamd
+			}
+			if(emu == 2){
+				sscanf(buffer, "decode:%8s", source1);														// gbox
+				sscanf(buffer, "response:%05s", response1);													// gbox
+				sscanf(buffer, "provider: %02s", prov1);													// gbox
+			}
+			if(emu == 1)
+				sscanf(buffer, "source: %08s", source1);													// mgcamd
+			if(emu == 3){
+				sscanf(buffer, "caid: 0x%4s", caid1);														// oscam
+				sscanf(buffer, "pid: 0x%4s", pid1);														// oscam
+				sscanf(buffer, "from: %29s", source1);														// oscam
+				sscanf(buffer, "prov: 0x%6s", prov1);														// oscam
+				sscanf(buffer, "ecm time: %9s",response1);													// oscam
+
+				sscanf(buffer, "reader: %18s", reader);													// oscam
+				sscanf(buffer, "protocol: %18s", protocol);													// oscam
+			}
+			sscanf(buffer, "%c%c0: %02s %02s %02s %02s %02s %02s %02s %02s",&tmp,&tmp, cw0_[0], cw0_[1], cw0_[2], cw0_[3], cw0_[4], cw0_[5], cw0_[6], cw0_[7]);	// gbox, mgcamd oscam
+			sscanf(buffer, "%c%c1: %02s %02s %02s %02s %02s %02s %02s %02s",&tmp,&tmp, cw1_[0], cw1_[1], cw1_[2], cw1_[3], cw1_[4], cw1_[5], cw1_[6], cw1_[7]);	// gbox, mgcamd oscam
+		}
+		fclose (ecminfo);
+		if (buffer)
+			free (buffer);
+		if(ecmInfoEmpty)
+			return;
+
+		if(emu == 3){
+			std::string kname = source1;
+			size_t pos1 = kname.find_last_of("/")+1;
+			size_t pos2 = kname.find_last_of(".");
+			if(pos2>pos1)
+				kname=kname.substr(pos1, pos2-pos1);
+			snprintf(source1,sizeof(source1),"%s",kname.c_str());
+		}
+		if(emu == 2 && response1[0] != 0){
+			char tmp_res[10] = "";
+			memcpy(tmp_res,response1,sizeof(tmp_res));
+			if(response1[3] != 0){
+				snprintf(response1,sizeof(response1),"%c.%s",tmp_res[0],&tmp_res[1]);
+			}else
+				snprintf(response1,sizeof(response1),"0.%s",tmp_res);
+		}
+// 		tmp_cw0=(cw0_[0][0]<<8)+cw0_[0][1];
+// 		tmp_cw1=(cw1_[0][0]<<8)+cw1_[0][1];
+// 		if((tmp_cw0+tmp_cw1) != (cw0+cw1)){
+// 			cw0=tmp_cw0;
+// 			cw1=tmp_cw1;
+// 		}
+	}
+	else
+	{
+		if (g_settings.infoviewer_ecm_info == 1)
+			frameBuffer->paintBackgroundBoxRel(g_InfoViewer->BoxEndX-220, g_InfoViewer->BoxStartY-185, 225, g_InfoViewer->ChanHeight+105);
+		else
+			frameBuffer->paintBackgroundBoxRel(g_InfoViewer->BoxEndX-220, g_InfoViewer->BoxStartY-185, 225, g_InfoViewer->ChanHeight+105);
+
+		return;
+	}
+
+	if (prov1[strlen(prov1)-1] == '\n')
+		prov1[strlen(prov1)-1] = '\0';
+
+	char share_at[32] = {0};
+	char share_card[5] = {0};
+	char share_id[5] = {0};
+	int share_net = 0;
+
+	const char *share_info = "/tmp/share.info";
+	FILE* shareinfo = fopen (share_info, "r");
+	if (shareinfo)
+	{
+		char *buffer = NULL;
+		size_t len = 0;
+		ssize_t read;
+		while ((read = getline(&buffer, &len, shareinfo)) != -1)
+		{
+			sscanf(buffer, "CardID %*s at %s Card %s Sl:%*s Lev:%*s dist:%*s id:%s", share_at, share_card, share_id);
+			if ((strncmp(caid1, share_card, 4) == 0) && (strncmp(prov1, share_id, 4) == 0))
+			{
+				share_net = 1;
+				break;
+			}
+		}
+		fclose (shareinfo);
+		if (buffer)
+			free (buffer);
+	}
+	const char *gbox_info = "<< Gbox-ECM-Info >>";
+	const char *mgcamd_info = "<< Mgcamd-ECM-Info >>";
+	const char *oscam_info = "<< OScam-ECM-Info >>";
+	if (g_settings.infoviewer_ecm_info == 1)
+	{
+		if (emu == 2)
+		{
+
+			painttECMInfo(160, gbox_info, caid1, source1, response1, prov1);
+
+			g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-215, g_InfoViewer->BoxStartY-20, 80, "From:", COL_INFOBAR_TEXT, 0, true);
+			if (strstr(source1, "Net" ) != NULL)
+			{
+				if (share_net == 1)
+					g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-150, g_InfoViewer->BoxStartY-20, 130, share_at, COL_INFOBAR_TEXT, 0, true);
+				else
+					g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-150, g_InfoViewer->BoxStartY-20, 130, "N/A", COL_INFOBAR_TEXT, 0, true);
+			}
+			else
+				g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-150, g_InfoViewer->BoxStartY-20, 130, "127.0.0.1", COL_INFOBAR_TEXT, 0, true);
+		}
+		else if ((emu == 1) || (emu == 3))
+		{
+			painttECMInfo((emu == 1) ?180:190,(emu == 1)? mgcamd_info:oscam_info, caid1, source1, response1, prov1);
+			if(emu == 3){
+				g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-215, g_InfoViewer->BoxStartY-20, 80, "Reader:", COL_INFOBAR_TEXT, 0, true);
+				g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-150, g_InfoViewer->BoxStartY-20, 130, reader, COL_INFOBAR_TEXT, 0, true);
+			}
+
+		}
+	}
+
+	if (g_settings.infoviewer_ecm_info == 2)
+	{
+		bool gboxECM = false;
+		int gboxoffset = 0,i=0;
+		if (emu == 2){
+			gboxECM = true;
+			gboxoffset = 20;
+		}
+		frameBuffer->paintBoxRel(g_InfoViewer->BoxEndX-215, g_InfoViewer->BoxStartY-180, 220, g_InfoViewer->ChanHeight+80+gboxoffset, COL_INFOBAR_SHADOW_PLUS_0, g_settings.rounded_corners ? CORNER_RADIUS_MID : 0);
+		frameBuffer->paintBoxRel(g_InfoViewer->BoxEndX-220, g_InfoViewer->BoxStartY-185, 220, g_InfoViewer->ChanHeight+80+gboxoffset, COL_INFOBAR_PLUS_0, g_settings.rounded_corners ? CORNER_RADIUS_MID : 0);
+
+		g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-215, g_InfoViewer->BoxStartY-140, 80, "CaID:", COL_INFOBAR_TEXT, 0, true);
+		g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-215, g_InfoViewer->BoxStartY-120, 80, "PID:", COL_INFOBAR_TEXT, 0, true);
+		g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-215, g_InfoViewer->BoxStartY-100, 80, "Decode:", COL_INFOBAR_TEXT, 0, true);
+		g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-215, g_InfoViewer->BoxStartY-80, 80, "Provider:", COL_INFOBAR_TEXT, 0, true);
+
+		g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-215, g_InfoViewer->BoxStartY-60, 42, "CW0:", COL_INFOBAR_TEXT, 0, true);
+		g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-215, g_InfoViewer->BoxStartY-40, 42, "CW1:", COL_INFOBAR_TEXT, 0, true);
+
+		for(i=0;i<8;i++){
+			g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-(173-(i*21)), g_InfoViewer->BoxStartY-60, 21, cw0_[i], COL_INFOBAR_TEXT, 0, true);
+			g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-(173-(i*21)), g_InfoViewer->BoxStartY-40, 21, cw1_[i], COL_INFOBAR_TEXT, 0, true);
+		}
+
+		if (gboxECM)
+		{
+			g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-190, g_InfoViewer->BoxStartY-160, 160, gbox_info, COL_INFOBAR_TEXT, 0, true);
+			g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-150, g_InfoViewer->BoxStartY-140, 80, caid1, COL_INFOBAR_TEXT, 0, true);
+			g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-150, g_InfoViewer->BoxStartY-120, 80, pid1, COL_INFOBAR_TEXT, 0, true);
+			g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-150, g_InfoViewer->BoxStartY-100, 70, source1, COL_INFOBAR_TEXT, 0, true);
+			if(response1[0] != 0)
+			{
+				g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-90, g_InfoViewer->BoxStartY-100, 15, "in", COL_INFOBAR_TEXT, 0, true);
+				g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-70, g_InfoViewer->BoxStartY-100, 45, response1, COL_INFOBAR_TEXT, 0, true);
+				g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-25, g_InfoViewer->BoxStartY-100, 10, "s", COL_INFOBAR_TEXT, 0, true);
+			}
+
+			g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-150, g_InfoViewer->BoxStartY-80, 130, prov1, COL_INFOBAR_TEXT, 0, true);
+			g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-215, g_InfoViewer->BoxStartY-20, 50, "From:", COL_INFOBAR_TEXT, 0, true);
+			if (strstr(source1, "Net") != NULL)
+			{
+				if (share_net == 1)
+					g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-173, g_InfoViewer->BoxStartY-20, 160, share_at, COL_INFOBAR_TEXT, 0, true);
+				else
+					g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-173, g_InfoViewer->BoxStartY-20, 160, "N/A", COL_INFOBAR_TEXT, 0, true);
+			}
+			else
+				g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-173, g_InfoViewer->BoxStartY-20, 160, "127.0.0.1", COL_INFOBAR_TEXT, 0, true);
+		}
+		else if ((emu == 1) || (emu == 3))
+		{
+			g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-200, g_InfoViewer->BoxStartY-160, 190,(emu == 1)? mgcamd_info:oscam_info, COL_INFOBAR_TEXT, 0, true);
+			g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-135, g_InfoViewer->BoxStartY-140, 80, caid1, COL_INFOBAR_TEXT, 0, true);
+			g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-135, g_InfoViewer->BoxStartY-120, 80, pid1, COL_INFOBAR_TEXT, 0, true);
+			g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-135, g_InfoViewer->BoxStartY-100, 70, source1, COL_INFOBAR_TEXT, 0, true);
+			//g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-70, g_InfoViewer->BoxStartY-100, 20, "", COL_INFOBAR_TEXT, 0, true);
+			g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-55, g_InfoViewer->BoxStartY-100, 70, response1, COL_INFOBAR_TEXT, 0, true);
+			//g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-25, g_InfoViewer->BoxStartY-100, 20, "", COL_INFOBAR_TEXT, 0, true);
+			g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-135, g_InfoViewer->BoxStartY-80, 130, prov1, COL_INFOBAR_TEXT, 0, true);
+		}
+	}
+ }
