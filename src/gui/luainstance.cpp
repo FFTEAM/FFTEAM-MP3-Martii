@@ -26,6 +26,7 @@
 #include <global.h>
 #include <system/helpers.h>
 #include <system/settings.h>
+#include <system/set_threadname.h>
 #include <gui/widget/msgbox.h>
 #include <gui/widget/messagebox.h>
 #include <gui/filebrowser.h>
@@ -484,6 +485,16 @@ void CLuaInstance::runScript(const char *fileName, const char *arg0, ...)
 	args.clear();
 }
 
+static void abortHook(lua_State *lua, lua_Debug *)
+{
+	luaL_error(lua, "aborted");
+}
+
+void CLuaInstance::abortScript()
+{
+	lua_sethook(lua, &abortHook, LUA_MASKCALL | LUA_MASKRET | LUA_MASKCOUNT, 1);
+}
+
 const luaL_Reg CLuaInstance::methods[] =
 {
 	{ "PaintBox", CLuaInstance::PaintBox },
@@ -860,7 +871,6 @@ int CLuaInstance::GetInput(lua_State *L)
 	{
 		DBG("CLuaInstance::%s: msg 0x%08" PRIx32 " data 0x%08" PRIx32 "\n", __func__, msg, data);
 		CNeutrinoApp::getInstance()->handleMsg(msg, data);
-		return 0;
 	}
 	/* signed int is debatable, but the "big" messages can't yet be handled
 	 * inside lua scripts anyway. RC_timeout == -1, RC_nokey == -2 */
@@ -897,13 +907,16 @@ int CLuaInstance::GCWindow(lua_State *L)
 #if 1
 int CLuaInstance::Blit(lua_State *)
 {
+#if HAVE_SPARK_HARDWARE
+	CFrameBuffer::getInstance()->autoBlit(false);
+#endif
 	return 0;
 }
 #else
 int CLuaInstance::Blit(lua_State *L)
 {
 #if HAVE_SPARK_HARDWARE
-    CFrameBuffer::getInstance()->autoBlit(false);
+	CFrameBuffer::getInstance()->autoBlit(false);
 #endif
 	CLuaData *W = CheckData(L, 1);
 	if (W && W->fbwin) {
