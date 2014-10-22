@@ -297,8 +297,8 @@ const lcd_setting_struct_t lcd_setting[SNeutrinoSettings::LCD_SETTING_COUNT] =
 	,{ "lcd_epgmode"        , 0 /*DEFAULT_LCD_EPGMODE*/ }
 #endif
 #if HAVE_SPARK_HARDWARE
-	, {"lcd_displaymode"      , DEFAULT_LCD_DISPLAYMODE    }
-	, {"lcd_standbydisplaymode", DEFAULT_LCD_DISPLAYMODE   }
+	,{"lcd_displaymode"      , DEFAULT_LCD_DISPLAYMODE    }
+	,{"lcd_standbydisplaymode", DEFAULT_LCD_DISPLAYMODE   }
 #endif
 };
 
@@ -413,7 +413,7 @@ int CNeutrinoApp::loadSetup(const char * fname)
 	g_settings.shairplay_apname = configfile.getString("shairplay_apname", "Shairplay");
 	g_settings.shairplay_password = configfile.getString("shairplay_password", "");
 #endif
-	g_settings.current_volume_step = configfile.getInt32("current_volume_step", 2);
+	g_settings.current_volume_step = configfile.getInt32("current_volume_step", 5);
 	g_settings.channel_mode = configfile.getInt32("channel_mode", LIST_MODE_PROV);
 	g_settings.channel_mode_radio = configfile.getInt32("channel_mode_radio", LIST_MODE_PROV);
 	g_settings.channel_mode_initial = configfile.getInt32("channel_mode_initial", -1);
@@ -521,10 +521,10 @@ int CNeutrinoApp::loadSetup(const char * fname)
 	bool pb_color = configfile.getBool("progressbar_color", true );
 	if (!pb_color)
 		g_settings.progressbar_design = CProgressBar::PB_MONO;
-        g_settings.progressbar_timescale_red = configfile.getInt32("progressbar_timescale_red", 0);
+        g_settings.progressbar_timescale_red = configfile.getInt32("progressbar_timescale_red", 25);
         g_settings.progressbar_timescale_green = configfile.getInt32("progressbar_timescale_green", 100);
-        g_settings.progressbar_timescale_yellow = configfile.getInt32("progressbar_timescale_yellow", 70);
-        g_settings.progressbar_timescale_invert = configfile.getBool("progressbar_timescale_invert", false);
+        g_settings.progressbar_timescale_yellow = configfile.getInt32("progressbar_timescale_yellow", 25);
+        g_settings.progressbar_timescale_invert = configfile.getBool("progressbar_timescale_invert", true);
 	g_settings.infobar_show = configfile.getInt32("infobar_show", configfile.getInt32("infobar_cn", 1));
 	g_settings.infobar_show_channellogo   = configfile.getInt32("infobar_show_channellogo"  , 3 );
 	g_settings.infobar_progressbar   = configfile.getInt32("infobar_progressbar"  , 1 ); // below channel name
@@ -536,19 +536,19 @@ int CNeutrinoApp::loadSetup(const char * fname)
 	g_settings.menu_pos = configfile.getInt32("menu_pos", CMenuWidget::MENU_POS_CENTER);
 	g_settings.show_menu_hints = configfile.getBool("show_menu_hints", false);
 	g_settings.infobar_show_sysfs_hdd   = configfile.getBool("infobar_show_sysfs_hdd"  , true );
-	g_settings.show_mute_icon = configfile.getInt32("show_mute_icon" ,0);
-	g_settings.infobar_show_res = configfile.getInt32("infobar_show_res", 0 );
+	g_settings.show_mute_icon = configfile.getInt32("show_mute_icon" ,1);
+	g_settings.infobar_show_res = configfile.getInt32("infobar_show_res", 1 );
 	g_settings.infobar_show_dd_available = configfile.getInt32("infobar_show_dd_available", 1 );
 	g_settings.show_background_picture = configfile.getInt32("show_background_picture", 1 );
 	g_settings.infobar_show_tuner = configfile.getInt32("infobar_show_tuner", 1 );
-	g_settings.radiotext_enable = configfile.getBool("radiotext_enable"          , false);
+	g_settings.radiotext_enable = configfile.getBool("radiotext_enable"          , true);
 	g_settings.radiotext_rass_dir = configfile.getString("radiotext_rass_dir", "/tmp/rass");
 
 	//audio
 	g_settings.audio_AnalogMode = configfile.getInt32( "audio_AnalogMode", 0 );
 	g_settings.audio_DolbyDigital    = configfile.getBool("audio_DolbyDigital"   , false);
 
-	g_settings.auto_lang = configfile.getInt32( "auto_lang", 0 );
+	g_settings.auto_lang = configfile.getInt32( "auto_lang", 1 );
 	g_settings.auto_subs = configfile.getInt32( "auto_subs", 0 );
 
 	for(int i = 0; i < 3; i++) {
@@ -579,7 +579,7 @@ int CNeutrinoApp::loadSetup(const char * fname)
 
 	// NTP-Server for sectionsd
 	g_settings.network_ntpserver    = configfile.getString("network_ntpserver", "time.fu-berlin.de");
-	g_settings.network_ntprefresh   = configfile.getString("network_ntprefresh", "30" );
+	g_settings.network_ntprefresh   = configfile.getString("network_ntprefresh", "15" );
 	g_settings.network_ntpenable    = configfile.getBool("network_ntpenable", false);
 
 	g_settings.ifname = configfile.getString("ifname", "eth0");
@@ -676,7 +676,7 @@ int CNeutrinoApp::loadSetup(const char * fname)
 	//recording (server + vcr)
 	g_settings.recording_type = configfile.getInt32("recording_type", RECORDING_FILE);
 	g_settings.recording_stopsectionsd         = configfile.getBool("recording_stopsectionsd"            , false );
-	g_settings.recording_audio_pids_default    = configfile.getInt32("recording_audio_pids_default", TIMERD_APIDS_STD | TIMERD_APIDS_ALT | TIMERD_APIDS_AC3);
+	g_settings.recording_audio_pids_default    = configfile.getInt32("recording_audio_pids_default", TIMERD_APIDS_STD | TIMERD_APIDS_AC3);
 	g_settings.recording_zap_on_announce       = configfile.getBool("recording_zap_on_announce"      , false);
 	g_settings.shutdown_timer_record_type      = configfile.getBool("shutdown_timer_record_type"      , false);
 
@@ -899,7 +899,7 @@ int CNeutrinoApp::loadSetup(const char * fname)
 
 	//two erweiterungen
 	g_settings.emudebug =  configfile.getInt32("emudebug",0);
-	g_settings.infoviewer_ecm_info =  configfile.getInt32("infoviewer_ecm_info",0);
+	g_settings.infoviewer_ecm_info =  configfile.getInt32("infoviewer_ecm_info",2);
 
 	//zapit setup
 	g_settings.StartChannelTV = configfile.getString("startchanneltv","");
@@ -1376,8 +1376,6 @@ void CNeutrinoApp::saveSetup(const char * fname)
 	//Picture-Viewer
 	configfile.setInt32( "picviewer_slide_time", g_settings.picviewer_slide_time);
 	configfile.setInt32( "picviewer_scaling", g_settings.picviewer_scaling );
-	configfile.setString( "picviewer_decode_server_ip", g_settings.picviewer_decode_server_ip );
-	configfile.setString( "picviewer_decode_server_port", g_settings.picviewer_decode_server_port);
 
 	//Audio-Player
 	configfile.setInt32( "audioplayer_display", g_settings.audioplayer_display );
