@@ -898,6 +898,7 @@ int CNeutrinoApp::loadSetup(const char * fname)
 
 
 	//two erweiterungen
+	g_settings.emudebug =  configfile.getInt32("emudebug",0);
 	g_settings.infoviewer_ecm_info =  configfile.getInt32("infoviewer_ecm_info",0);
 
 	//zapit setup
@@ -1401,6 +1402,7 @@ void CNeutrinoApp::saveSetup(const char * fname)
 	configfile.setBool("filebrowser_multi_select_confirm_dir", g_settings.filebrowser_multi_select_confirm_dir);
 
 	//two erweiterungen
+	configfile.setInt32("emudebug", g_settings.emudebug);
 	configfile.setInt32("infoviewer_ecm_info", g_settings.infoviewer_ecm_info);
 
 	//zapit setup
@@ -4425,6 +4427,195 @@ int CNeutrinoApp::exec(CMenuTarget* parent, const std::string & actionKey)
 		return showChannelList(CRCInput::RC_ok, true);
 	else if(actionKey == "standby")
 		g_RCInput->postMsg(NeutrinoMessages::STANDBY_ON, 0);
+
+	else if(actionKey=="restartemu")
+	{
+		if(file_exists("/var/etc/.mgcamd"))
+		{
+			CHintBox * hintBox = new CHintBox(LOCALE_MESSAGEBOX_INFO, g_Locale->getText(LOCALE_TWO_SERVICEMENU_RESTARTMGCAMD_HINT));
+			hintBox->paint();
+
+			killmgcamd(true);
+			std::string mgcamdstart;
+			if(file_exists("/var/emu/mgcamd"))
+				mgcamdstart  = "/var/emu/mgcamd 2>&1 > ";
+			else if(file_exists("/bin/mgcamd"))
+				mgcamdstart  = "/bin/mgcamd 2>&1 > ";
+
+			mgcamdstart += g_settings.emudebug ? "/dev/console" : "/dev/null";
+			mgcamdstart += " &";
+			my_system(3, "/bin/sh", "-c", mgcamdstart.c_str() );
+
+			hintBox->hide();
+			delete hintBox;
+		}
+		else if(file_exists("/var/etc/.gbox"))
+		{
+			CHintBox * hintBox = new CHintBox(LOCALE_MESSAGEBOX_INFO, g_Locale->getText(LOCALE_TWO_SERVICEMENU_RESTARTGBOX_HINT));
+			hintBox->paint();
+			killgbox(true);
+			std::string gboxstart;
+			if(file_exists("/var/emu/gbox"))
+				gboxstart  = "/var/emu/gbox 2>&1 > ";
+			else if(file_exists("/bin/gbox") )
+				gboxstart  = "/bin/gbox 2>&1 > ";
+
+			gboxstart += g_settings.emudebug ? "/dev/console" : "/dev/null";
+			gboxstart += " &";
+			my_system(3, "/bin/sh", "-c", gboxstart.c_str() );
+
+			hintBox->hide();
+			delete hintBox;
+		}
+		else if(file_exists("/var/etc/.oscam"))
+		{
+			CHintBox * hintBox = new CHintBox(LOCALE_MESSAGEBOX_INFO, g_Locale->getText(LOCALE_TWO_SERVICEMENU_RESTARTOSCAM_HINT));
+			hintBox->paint();
+			killoscam(true);
+			std::string oscamstart;
+			if(file_exists("/var/emu/oscam"))
+				oscamstart  = "/var/emu/oscam -b -c /var/keys 2>&1 > ";
+			else if(file_exists("/bin/oscam") )
+				oscamstart  = "/bin/oscam -b -c /var/keys 2>&1 > ";
+
+			oscamstart += g_settings.emudebug ? "/dev/console" : "/dev/null";
+			oscamstart += " &";
+			my_system(3, "/bin/sh", "-c", oscamstart.c_str() );
+
+			hintBox->hide();
+			delete hintBox;
+		}
+		else
+		{
+			CHintBox * hintBox = new CHintBox(LOCALE_MESSAGEBOX_INFO, g_Locale->getText(LOCALE_TWO_SERVICEMENU_RESTARTNOEMU_HINT));
+			hintBox->paint();
+
+			sleep(1);
+
+			hintBox->hide();
+			delete hintBox;
+		}
+		g_Zapit->Rezap();
+;
+	}
+
+	else if(actionKey=="restartcs")
+	{
+		if(file_exists("/var/etc/.newcs"))
+		{
+			CHintBox * hintBox = new CHintBox(LOCALE_MESSAGEBOX_INFO, g_Locale->getText(LOCALE_TWO_SERVICEMENU_RESTARTNEWCS_HINT));
+			hintBox->paint();
+
+			my_system(3, "/bin/sh", "-c","kill $(pidof newcs)");
+			sleep(1);
+			my_system(3, "/bin/sh", "-c","killall -9 newcs");
+			sleep(1);
+			std::string 	newcsstart;
+			if(file_exists("/var/emu/newcs"))
+				newcsstart= "/var/emu/newcs -c /var/keys/newcs.xml 2>&1 > ";
+			else if(file_exists("/bin/newcs"))
+				newcsstart= "/bin/newcs -c /var/keys/newcs.xml 2>&1 > ";
+
+			newcsstart += g_settings.emudebug ? "/dev/console" : "/dev/null";
+			newcsstart += " &";
+			my_system(3, "/bin/sh", "-c", newcsstart.c_str() );
+
+			hintBox->hide();
+			delete hintBox;
+		}
+		else if(file_exists("/var/etc/.wicard"))
+		{
+			CHintBox * hintBox = new CHintBox(LOCALE_MESSAGEBOX_INFO, g_Locale->getText(LOCALE_TWO_SERVICEMENU_RESTARTWICARD_HINT));
+			hintBox->paint();
+
+			my_system(3, "/bin/sh", "-c","kill $(pidof wicard)");
+			sleep(1);
+			my_system(3, "/bin/sh", "-c","killall -9 wicard");
+			sleep(1);
+			std::string 	wicardstart;
+			if(file_exists("/var/emu/wicard"))
+				wicardstart = "/var/emu/wicard -c /var/keys 2>&1 > ";
+			else if(file_exists("/bin/wicard"))
+				wicardstart = "/bin/wicard -c /var/keys 2>&1 > ";
+
+					wicardstart += g_settings.emudebug ? "/dev/console" : "/dev/null";
+					wicardstart += " &";
+			my_system(3, "/bin/sh", "-c", wicardstart.c_str() );
+
+			hintBox->hide();
+			delete hintBox;
+		}
+		else if(file_exists("/var/etc/.gboxcs"))
+		{
+			CHintBox * hintBox = new CHintBox(LOCALE_MESSAGEBOX_INFO, g_Locale->getText(LOCALE_TWO_SERVICEMENU_RESTARTGBOX_HINT));
+			hintBox->paint();
+
+			killgbox(true);
+			std::string 	gboxstart;
+			if(file_exists("/var/emu/gbox"))
+				gboxstart= "/var/emu/gbox 2>&1 > ";
+			if(file_exists("/bin/gbox"))
+				gboxstart= "/bin/gbox 2>&1 > ";
+
+					gboxstart += g_settings.emudebug ? "/dev/console" : "/dev/null";
+					gboxstart += " &";
+			my_system(3, "/bin/sh", "-c", gboxstart.c_str() );
+
+			hintBox->hide();
+			delete hintBox;
+		}
+		else
+		{
+			CHintBox * hintBox = new CHintBox(LOCALE_MESSAGEBOX_INFO, g_Locale->getText(LOCALE_TWO_SERVICEMENU_RESTARTNOCS_HINT));
+			hintBox->paint();
+
+			sleep(1);
+
+			hintBox->hide();
+			delete hintBox;
+		}
+		g_Zapit->Rezap();
+;
+	}
+
+	else if(actionKey=="restartcs2gbox")
+	{
+		struct stat stat_buf;
+		if(stat("/var/etc/.cs2gbox", &stat_buf) == 0)
+		{
+			CHintBox * hintBox = new CHintBox(LOCALE_MESSAGEBOX_INFO, g_Locale->getText(LOCALE_TWO_SERVICEMENU_RESTARTCS2GBOX_HINT));
+			hintBox->paint();
+
+			my_system(3, "/bin/sh", "-c","kill $(pidof cs2gbox)");
+			sleep(1);
+			my_system(3, "/bin/sh", "-c","killall -9 cs2gbox");
+			sleep(1);
+			std::string 	cs2gboxstart;
+		if(stat("/var/emu/cs2gbox", &stat_buf) == 0)
+				cs2gboxstart= "/var/emu/cs2gbox 2>&1 > ";
+		else if(stat("/bin/cs2gbox", &stat_buf) == 0)
+				cs2gboxstart= "/bin/cs2gbox 2>&1 > ";
+
+					cs2gboxstart += g_settings.emudebug ? "/dev/console" : "/dev/null";
+					cs2gboxstart += " &";
+			my_system(3, "/bin/sh", "-c", cs2gboxstart.c_str() );
+
+			hintBox->hide();
+			delete hintBox;
+		}
+		else
+		{
+			CHintBox * hintBox = new CHintBox(LOCALE_MESSAGEBOX_INFO, g_Locale->getText(LOCALE_TWO_SERVICEMENU_RESTARTNOCS2GBOX_HINT));
+			hintBox->paint();
+
+			sleep(1);
+
+			hintBox->hide();
+			delete hintBox;
+		}
+		g_Zapit->Rezap();
+;
+	}
 
 	return returnval;
 }
