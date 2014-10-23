@@ -317,10 +317,10 @@ struct SNeutrinoSettings
 		P_MAIN_SETTINGS,
 		P_MAIN_SERVICE,
 		P_MAIN_BLUEPANEL,
-		P_MAIN_INFOMENU,
 		P_MAIN_SLEEPTIMER,
 		P_MAIN_REBOOT,
 		P_MAIN_SHUTDOWN,
+		P_MAIN_INFOMENU,
 		P_MAIN_CISETTINGS,
 		
 		//settings menu
@@ -729,8 +729,6 @@ struct SNeutrinoSettings
 	// pictureviewer
 	int picviewer_slide_time;
 	int picviewer_scaling;
-	std::string picviewer_decode_server_ip;
-	char    picviewer_decode_server_port[6];
 
 	//audioplayer
 	int   audioplayer_display;
