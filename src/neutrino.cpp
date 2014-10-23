@@ -146,6 +146,7 @@
 #include <lib/libtuxtxt/teletext.h>
 #include <eitd/sectionsd.h>
 
+#include <system/luaserver.h>
 
 int old_b_id = -1;
 CHintBox * reloadhintBox = 0;
@@ -2453,8 +2454,13 @@ void CNeutrinoApp::RealRun(CMenuWidget &_mainMenu)
 
 	//cCA::GetInstance()->Ready(true);
 
+	CLuaServer *luaServer = CLuaServer::getInstance();
+
 	while( true ) {
+		luaServer->UnBlock();
 		g_RCInput->getMsg(&msg, &data, 100, ((g_settings.mode_left_right_key_tv == SNeutrinoSettings::VOLUME) && (g_RemoteControl->subChannels.size() < 1)) ? true : false);	// 10 secs..
+		if (luaServer->Block(msg, data))
+			continue;
 
 #if ENABLE_SHAIRPLAY
 		if (shairPlay && shairplay_enabled_cur && shairplay_active) {
