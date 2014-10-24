@@ -530,8 +530,10 @@ int CNeutrinoApp::loadSetup(const char * fname)
 	g_settings.infobar_show_channellogo   = configfile.getInt32("infobar_show_channellogo"  , 3 );
 	g_settings.infobar_progressbar   = configfile.getInt32("infobar_progressbar"  , 1 ); // below channel name
 	g_settings.casystem_display = configfile.getInt32("casystem_display", 1 );//discreet ca mode default
+	g_settings.dotmatrix = configfile.getInt32("infobar_dotmatrix", 0 );//default off
+	g_settings.infoviewer_ecm_info =  configfile.getInt32("infoviewer_ecm_info",2);
 	g_settings.scrambled_message = configfile.getBool("scrambled_message", true );
-	g_settings.volume_pos = configfile.getInt32("volume_pos", CVolumeBar::VOLUMEBAR_POS_TOP_RIGHT );
+	g_settings.volume_pos = configfile.getInt32("volume_pos", 4);//top_center
 	g_settings.volume_digits = configfile.getBool("volume_digits", true);
 	g_settings.volume_size = configfile.getInt32("volume_size", 26 );
 	g_settings.menu_pos = configfile.getInt32("menu_pos", CMenuWidget::MENU_POS_CENTER);
@@ -897,11 +899,6 @@ int CNeutrinoApp::loadSetup(const char * fname)
 	g_settings.filebrowser_multi_select = configfile.getBool("filebrowser_multi_select", true);
 	g_settings.filebrowser_multi_select_confirm_dir = configfile.getBool("filebrowser_multi_select_confirm_dir", false);
 
-
-	//two erweiterungen
-	g_settings.emudebug =  configfile.getInt32("emudebug",0);
-	g_settings.infoviewer_ecm_info =  configfile.getInt32("infoviewer_ecm_info",2);
-
 	//zapit setup
 	g_settings.StartChannelTV = configfile.getString("startchanneltv","");
 	g_settings.StartChannelRadio = configfile.getString("startchannelradio","");
@@ -1129,6 +1126,8 @@ void CNeutrinoApp::saveSetup(const char * fname)
 	configfile.setInt32("infobar_show_channellogo"  , g_settings.infobar_show_channellogo  );
 	configfile.setInt32("infobar_progressbar"  , g_settings.infobar_progressbar  );
 	configfile.setInt32("casystem_display"  , g_settings.casystem_display  );
+	configfile.setInt32("infobar_dotmatrix", g_settings.dotmatrix );
+	configfile.setInt32("infoviewer_ecm_info", g_settings.infoviewer_ecm_info);
 	configfile.setBool("scrambled_message"  , g_settings.scrambled_message  );
 	configfile.setInt32("volume_pos"  , g_settings.volume_pos  );
 	configfile.setBool("volume_digits", g_settings.volume_digits);
@@ -1399,10 +1398,6 @@ void CNeutrinoApp::saveSetup(const char * fname)
 	configfile.setBool("filebrowser_usefilter", g_settings.filebrowser_use_filter);
 	configfile.setBool("filebrowser_multi_select", g_settings.filebrowser_multi_select);
 	configfile.setBool("filebrowser_multi_select_confirm_dir", g_settings.filebrowser_multi_select_confirm_dir);
-
-	//two erweiterungen
-	configfile.setInt32("emudebug", g_settings.emudebug);
-	configfile.setInt32("infoviewer_ecm_info", g_settings.infoviewer_ecm_info);
 
 	//zapit setup
 	configfile.setString( "startchanneltv", g_settings.StartChannelTV );
@@ -4432,7 +4427,7 @@ int CNeutrinoApp::exec(CMenuTarget* parent, const std::string & actionKey)
 	else if(actionKey == "standby")
 		g_RCInput->postMsg(NeutrinoMessages::STANDBY_ON, 0);
 
-	else if(actionKey=="restartemu")
+	else if(actionKey=="restartcam")
 	{
 		if(file_exists("/var/etc/.mgcamd"))
 		{
@@ -4443,10 +4438,6 @@ int CNeutrinoApp::exec(CMenuTarget* parent, const std::string & actionKey)
 			std::string mgcamdstart;
 			if(file_exists("/var/emu/mgcamd"))
 				mgcamdstart  = "/var/emu/mgcamd 2>&1 > ";
-			else if(file_exists("/bin/mgcamd"))
-				mgcamdstart  = "/bin/mgcamd 2>&1 > ";
-
-			mgcamdstart += g_settings.emudebug ? "/dev/console" : "/dev/null";
 			mgcamdstart += " &";
 			my_system(3, "/bin/sh", "-c", mgcamdstart.c_str() );
 
@@ -4460,11 +4451,7 @@ int CNeutrinoApp::exec(CMenuTarget* parent, const std::string & actionKey)
 			killgbox(true);
 			std::string gboxstart;
 			if(file_exists("/var/emu/gbox"))
-				gboxstart  = "/var/emu/gbox 2>&1 > ";
-			else if(file_exists("/bin/gbox") )
-				gboxstart  = "/bin/gbox 2>&1 > ";
-
-			gboxstart += g_settings.emudebug ? "/dev/console" : "/dev/null";
+				gboxstart  = "/var/emu/gbox /var/keys 2>&1 > ";
 			gboxstart += " &";
 			my_system(3, "/bin/sh", "-c", gboxstart.c_str() );
 
@@ -4479,50 +4466,8 @@ int CNeutrinoApp::exec(CMenuTarget* parent, const std::string & actionKey)
 			std::string oscamstart;
 			if(file_exists("/var/emu/oscam"))
 				oscamstart  = "/var/emu/oscam -b -c /var/keys 2>&1 > ";
-			else if(file_exists("/bin/oscam") )
-				oscamstart  = "/bin/oscam -b -c /var/keys 2>&1 > ";
-
-			oscamstart += g_settings.emudebug ? "/dev/console" : "/dev/null";
 			oscamstart += " &";
 			my_system(3, "/bin/sh", "-c", oscamstart.c_str() );
-
-			hintBox->hide();
-			delete hintBox;
-		}
-		else
-		{
-			CHintBox * hintBox = new CHintBox(LOCALE_MESSAGEBOX_INFO, g_Locale->getText(LOCALE_TWO_SERVICEMENU_RESTARTNOEMU_HINT));
-			hintBox->paint();
-
-			sleep(1);
-
-			hintBox->hide();
-			delete hintBox;
-		}
-		g_Zapit->Rezap();
-;
-	}
-
-	else if(actionKey=="restartcs")
-	{
-		if(file_exists("/var/etc/.newcs"))
-		{
-			CHintBox * hintBox = new CHintBox(LOCALE_MESSAGEBOX_INFO, g_Locale->getText(LOCALE_TWO_SERVICEMENU_RESTARTNEWCS_HINT));
-			hintBox->paint();
-
-			my_system(3, "/bin/sh", "-c","kill $(pidof newcs)");
-			sleep(1);
-			my_system(3, "/bin/sh", "-c","killall -9 newcs");
-			sleep(1);
-			std::string 	newcsstart;
-			if(file_exists("/var/emu/newcs"))
-				newcsstart= "/var/emu/newcs -c /var/keys/newcs.xml 2>&1 > ";
-			else if(file_exists("/bin/newcs"))
-				newcsstart= "/bin/newcs -c /var/keys/newcs.xml 2>&1 > ";
-
-			newcsstart += g_settings.emudebug ? "/dev/console" : "/dev/null";
-			newcsstart += " &";
-			my_system(3, "/bin/sh", "-c", newcsstart.c_str() );
 
 			hintBox->hide();
 			delete hintBox;
@@ -4539,31 +4484,8 @@ int CNeutrinoApp::exec(CMenuTarget* parent, const std::string & actionKey)
 			std::string 	wicardstart;
 			if(file_exists("/var/emu/wicard"))
 				wicardstart = "/var/emu/wicard -c /var/keys 2>&1 > ";
-			else if(file_exists("/bin/wicard"))
-				wicardstart = "/bin/wicard -c /var/keys 2>&1 > ";
-
-					wicardstart += g_settings.emudebug ? "/dev/console" : "/dev/null";
 					wicardstart += " &";
 			my_system(3, "/bin/sh", "-c", wicardstart.c_str() );
-
-			hintBox->hide();
-			delete hintBox;
-		}
-		else if(file_exists("/var/etc/.gboxcs"))
-		{
-			CHintBox * hintBox = new CHintBox(LOCALE_MESSAGEBOX_INFO, g_Locale->getText(LOCALE_TWO_SERVICEMENU_RESTARTGBOX_HINT));
-			hintBox->paint();
-
-			killgbox(true);
-			std::string 	gboxstart;
-			if(file_exists("/var/emu/gbox"))
-				gboxstart= "/var/emu/gbox 2>&1 > ";
-			if(file_exists("/bin/gbox"))
-				gboxstart= "/bin/gbox 2>&1 > ";
-
-					gboxstart += g_settings.emudebug ? "/dev/console" : "/dev/null";
-					gboxstart += " &";
-			my_system(3, "/bin/sh", "-c", gboxstart.c_str() );
 
 			hintBox->hide();
 			delete hintBox;
@@ -4579,46 +4501,6 @@ int CNeutrinoApp::exec(CMenuTarget* parent, const std::string & actionKey)
 			delete hintBox;
 		}
 		g_Zapit->Rezap();
-;
-	}
-
-	else if(actionKey=="restartcs2gbox")
-	{
-		struct stat stat_buf;
-		if(stat("/var/etc/.cs2gbox", &stat_buf) == 0)
-		{
-			CHintBox * hintBox = new CHintBox(LOCALE_MESSAGEBOX_INFO, g_Locale->getText(LOCALE_TWO_SERVICEMENU_RESTARTCS2GBOX_HINT));
-			hintBox->paint();
-
-			my_system(3, "/bin/sh", "-c","kill $(pidof cs2gbox)");
-			sleep(1);
-			my_system(3, "/bin/sh", "-c","killall -9 cs2gbox");
-			sleep(1);
-			std::string 	cs2gboxstart;
-		if(stat("/var/emu/cs2gbox", &stat_buf) == 0)
-				cs2gboxstart= "/var/emu/cs2gbox 2>&1 > ";
-		else if(stat("/bin/cs2gbox", &stat_buf) == 0)
-				cs2gboxstart= "/bin/cs2gbox 2>&1 > ";
-
-					cs2gboxstart += g_settings.emudebug ? "/dev/console" : "/dev/null";
-					cs2gboxstart += " &";
-			my_system(3, "/bin/sh", "-c", cs2gboxstart.c_str() );
-
-			hintBox->hide();
-			delete hintBox;
-		}
-		else
-		{
-			CHintBox * hintBox = new CHintBox(LOCALE_MESSAGEBOX_INFO, g_Locale->getText(LOCALE_TWO_SERVICEMENU_RESTARTNOCS2GBOX_HINT));
-			hintBox->paint();
-
-			sleep(1);
-
-			hintBox->hide();
-			delete hintBox;
-		}
-		g_Zapit->Rezap();
-;
 	}
 
 	return returnval;
