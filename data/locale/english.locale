@@ -204,6 +204,28 @@ batchepg.run_at_shutdown Update at shutdown
 batchepg.save Save settings
 batchepg.settings Settings
 batchepg.standard_wait_time Wait time für standard EPG
+bluepanel.emu Cam Menue
+bluepanel.emu.none not aktiv
+bluepanel.emu.mgcamd MGCamd
+bluepanel.emu.incubus IncubusCamd
+bluepanel.emu.camd3 Camd3
+bluepanel.emu.mbox Mbox
+bluepanel.emu.oscam Oscam
+bluepanel.emu.osemu Osemu
+bluepanel.emu.wicard Wicard
+bluepanel.emu.select Cam Select
+bluepanel.emu.restart restart Cam
+bluepanel.emu.disable deactivate Cam
+bluepanel.swap Swap Menue
+bluepanel.swap.swapram SWAPRAM
+bluepanel.swap.swappart SWAPPART
+bluepanel.swap.swapfile SWAPFILE
+bluepanel.swap.select Swap Select
+bluepanel.swap.onoff SWAP
+bluepanel.fritzcall Fritzcall Menue
+bluepanel.fritzcall.select Fritzcallmonitor
+bluepanel.fritzcall.on On
+bluepanel.fritzcall.off Off
 bookmarkmanager.delete delete
 bookmarkmanager.name bookmarks
 bookmarkmanager.rename rename
@@ -1030,6 +1052,8 @@ menu.hint_infobar_back Change infobar background color
 menu.hint_infobar_casys On: display all with colored active, mini: single\nlocked icon, descreet: all active ca-sys
 menu.hint_infobar_colored_event Use different color for current or next event
 menu.hint_infobar_dd Show DD icon
+menu.hint_infobar_dotmatrix Show dotmatrix
+menu.hint_infobar_infoviewer_ecm_info Infoviewer ECM
 menu.hint_infobar_filesys Show flash and HDD used space levels
 menu.hint_infobar_fonts Change infobar font sizes
 menu.hint_infobar_logo Logo / signal options
@@ -1460,6 +1484,8 @@ miscsettings.infobar_disp_4 Logo+channel name/number
 miscsettings.infobar_disp_5 Logo+signal
 miscsettings.infobar_disp_6 Logo+channel number+signal
 miscsettings.infobar_disp_log Logo
+miscsettings.infobar_dotmatrix_display Dotmatrix show
+miscsettings.infobar_infoviewer_ecm_info Infoviewer ECM enable
 miscsettings.infobar_logo_hdd_dir Logo dir
 miscsettings.infobar_sat_display Satellite display on infobar
 miscsettings.infobar_show show Info on EPG change
@@ -1796,6 +1822,8 @@ nvod.starting (starting in %d min)
 nvodselector.directormode Direct-Mode
 nvodselector.head Select starting-time
 nvodselector.subservice Select Subservice
+onoff.on On
+onoff.off Off
 opkg.button.expert_off Standard mode
 opkg.button.expert_on Expert mode
 opkg.button.info Package information
@@ -2269,298 +2297,6 @@ timing.infobar_radio Infobar (radio mode)
 timing.menu Menu
 timing.numericzap Numeric Zap
 timing.volumebar Volume bar
-two.cs Cardserver-Selection
-two.cs1 Load:
-two.cs2gbox Cardserver2Gbox
-two.cs2gboxmenu Cardserver2Gbox-Selection
-two.cs2gboxmenu1 Load:
-two.cs2gboxstart Cardserver2Gbox will be started !
-two.cs2gboxstop Cardserver2Gbox will be stopped !
-two.cs2gboxstop1 Cardserver2Gbox N/A !
-two.emu Emu-Selection
-two.emuc Load:
-two.emuconf Emu-Settings
-two.emudebug Emu-Debug
-two.extras Extended-Settings
-two.gbox Gbox
-two.gboxA1 Auto-Update (A):
-two.gboxA1_options_0 Off
-two.gboxA1_options_1 On
-two.gboxA1_options_2 Auto (use this!!!)
-two.gboxC1 Display ECM on Konsole (C):
-two.gboxC1_options_0 Don't show ECM's
-two.gboxC1_options_1 Only valid ECM's
-two.gboxC1_options_2 Show all ECM's
-two.gboxG1 Gbox-Working-Mode (G):
-two.gboxG1_options_0 Pure Emu
-two.gboxG1_options_1 Pure SoftCam
-two.gboxG1_options_2 Pure Net-Client
-two.gboxG1_options_3 Mixed-Mode (use this!!!)
-two.gboxH1 Hash-Pids (H):
-two.gboxH1_options_0 All Pids (DON'T use!!!)
-two.gboxH1_options_1 Only valid Pids
-two.gboxJ1 CPU-Version (J):
-two.gboxJ1_options_0 Auto
-two.gboxJ1_options_1 80X86
-two.gboxJ1_options_2 MPC823
-two.gboxJ1_options_3 IBM STB04xxx
-two.gboxJ2 Api-Version (J):
-two.gboxJ2_options_0 Auto
-two.gboxJ2_options_1 IBM
-two.gboxJ2_options_2 Api2
-two.gboxJ2_options_3 Api3
-two.gboxJ3 CW Write Method (J):
-two.gboxJ3_options_0 Use Internal Routine
-two.gboxJ3_options_1 CA Set Descr Type1
-two.gboxJ3_options_2 CA Set Descr Type2
-two.gboxJ3_options_3 CA Set Descr Type3
-two.gboxJ3_options_4 16 Byte
-two.gboxJ3_options_5 4096 Byte
-two.gboxJ4 Write CW in 1st Device with (J):
-two.gboxJ5 Write CW in 2nd Device with (J):
-two.gboxL1 UDP/Net-Mode Logger (L):
-two.gboxL1_options_0 Off
-two.gboxL1_options_1 On
-two.gboxL2 Logger-IP (L):
-two.gboxL3 Logger-Port (L):
-two.gboxM1 Log any Tier-Change on PW-Nagra (M):
-two.gboxM1_options_0 Off
-two.gboxM1_options_1 On
-two.gboxM2 Display EMM on Konsole (M):
-two.gboxM2_options_0 Don't show EMM's
-two.gboxM2_options_1 Only valid EMM's
-two.gboxM2_options_2 Show all EMM's
-two.gboxO1 OSD for MC & GSMS (O):
-two.gboxO1_options_0 Off
-two.gboxO1_options_1 Neutrino
-two.gboxO1_options_2 Neutrino new nhttpd
-two.gboxO1_options_3 Enigma
-two.gboxO2 Dbox-IP (O):
-two.gboxO3 Dbox-User (O):
-two.gboxO4 Dbox-Pass (O):
-two.gboxR1 RS232 SSSP Debug Messages (R):
-two.gboxR1_options_0 Off
-two.gboxR1_options_1 On
-two.gboxR2 RS232 SSSP Com-Port (R):
-two.gboxR2_options_0 None
-two.gboxR2_options_1 Com1
-two.gboxR2_options_2 Com2
-two.gboxT1 Key-Files-Folder (T):
-two.gboxT1_options_0 /var/keys
-two.gboxT1_options_1 /var/tmp
-two.gboxU1 Key-Update (U):
-two.gboxU1_options_0 Only new Keys
-two.gboxU1_options_1 All Keys
-two.gboxV1 CW-Write-Operation (V):
-two.gboxV2 Multicam/Comport-Configuration (V):
-two.gboxW1 Task-Type (W):
-two.gboxW1_options_0 Normal-Gbox-Mode
-two.gboxW1_options_1 Season chid 0602 nonZ
-two.gboxW1_options_2 Season chid 1702 nonZ
-two.gboxW1_options_3 Season chid 1702 Z
-two.gboxW1_options_4 Season chid 1722 Z
-two.gboxW1_options_5 Season chid 1762 Z
-two.gboxW2 RST-Detection (W):
-two.gboxW2_options_0 CTS
-two.gboxW2_options_1 DCD
-two.gboxW3 Comport to use for Season (W):
-two.gboxW3_options_0 Off
-two.gboxW3_options_1 Com1
-two.gboxW4 Baudrate (W):
-two.gboxZ1 Trace-Output (Z):
-two.gboxZ1_options_0 Off
-two.gboxZ1_options_1 On
-two.gboxZ2 Debug-Output (Z):
-two.gboxZ2_options_0 On (DON'T use!!!)
-two.gboxZ2_options_1 Off
-two.gboxZ3 Trace/Debug Output to (Z):
-two.gboxZ3_options_0 Konsole
-two.gboxZ3_options_1 var/tmp/debug.txt
-two.gboxZ3_options_2 UDP
-two.gboxZ4 Trace/Debug IP (Z):
-two.gboxZ5 Trace/Debug Port (Z):
-two.gboxatackinfo Gbox-Atack-Info
-two.gboxbittewarten Please be patient.
-two.gboxecminfo Gbox-ECM-Info
-two.gboxgesamtstat Gbox-Share-Overview
-two.gboxinfocenter Gbox-Info-Center
-two.gboxmenu Gbox-Settings
-two.gboxpidinfo Gbox-Pid-Info
-two.gboxscinf Gbox-SC-Info
-two.gboxscinf1 Gbox-Cardreader-Intern
-two.gboxscinf2 Gbox-Cardreader-com1
-two.gboxscinf3 Gbox-Cardreader-com2
-two.gboxscinfo Gbox-SC-Info
-two.gboxscinfo01 Gbox-SC01-Info
-two.gboxscinfo02 Gbox-SC02-Info
-two.gboxscinfo03 Gbox-SC03-Info
-two.gboxscinfo04 Gbox-SC04-Info
-two.gboxscinfo05 Gbox-SC05-Info
-two.gboxscinfo06 Gbox-SC06-Info
-two.gboxscinfo07 Gbox-SC07-Info
-two.gboxscinfo08 Gbox-SC08-Info
-two.gboxscinfo09 Gbox-SC09-Info
-two.gboxscinfo10 Gbox-SC10-Info
-two.gboxscinfo11 Gbox-SC11-Info
-two.gboxscinfo12 Gbox-SC12-Info
-two.gboxscinfo13 Gbox-SC13-Info
-two.gboxscinfo14 Gbox-SC14-Info
-two.gboxscinfo15 Gbox-SC15-Info
-two.gboxscinfo16 Gbox-SC16-Info
-two.gboxscinfo17 Gbox-SC17-Info
-two.gboxscinfo18 Gbox-SC18-Info
-two.gboxshareinfo Gbox-Share-Info
-two.gboxshareonline Gbox-Share-Online
-two.gboxsharestats Gbox-Share-Stats
-two.gboxsms send GSMS to:
-two.gboxsms0 line10:
-two.gboxsms1 line 1:
-two.gboxsms2 line 2:
-two.gboxsms3 line 3:
-two.gboxsms4 line 4:
-two.gboxsms5 line 5:
-two.gboxsms6 line 6:
-two.gboxsms7 line 7:
-two.gboxsms8 line 8:
-two.gboxsms9 line 9:
-two.gboxsmsa Popup-Window:
-two.gboxsmsa_options_0 ...one fades in only briefly
-two.gboxsmsa_options_1 ...must be confirmed
-two.gboxsmsadress GSMS Adressbook
-two.gboxsmsausgang Gbox-SMS-Dispatched
-two.gboxsmscenter Gbox-SMS-Center
-two.gboxsmseingang Gbox-SMS-Entrance
-two.gboxsmseingang2 Gbox-SMS-Read
-two.gboxsmsmenu Gbox-SMS-Exit
-two.gboxsmssendnow send GSMS
-two.gboxstart Starting Gbox !
-two.gboxstop Stopping Gbox !
-two.gboxstop1 Gbox N/A !
-two.gboxversioninfo Gbox-Version-Info
-two.infoviewer_ecm_info Infoviewer-ECM-Info
-two.infoviewer_ecm_info_options_0 Off
-two.infoviewer_ecm_info_options_1 Small
-two.infoviewer_ecm_info_options_2 Big
-two.keincs No Cardserver
-two.keincs2gbox No Cardserver2Gbox
-two.keinemu No Emu
-two.lcd4linux LCD4Linux
-two.lcd4linux_options_0 Off
-two.lcd4linux_options_1 On
-two.mgcamd Mgcamd
-two.mgcamda1 Auto-Update (A):
-two.mgcamda1_options_0 Disable
-two.mgcamda1_options_1 Enable
-two.mgcamda1_options_2 Auto
-two.mgcamda1_options_3 03
-two.mgcamdb1 Box-Type (B):
-two.mgcamdb1_options_0 Autodetect
-two.mgcamdb1_options_1 Dbox2
-two.mgcamdb1_options_2 Dreambox
-two.mgcamdb1_options_3 Triple-Dragon
-two.mgcamdb1_options_4 Relook
-two.mgcamdb1_options_5 Openbox
-two.mgcamdb1_options_6 Dreambox/Mips
-two.mgcamdb1_options_8 Stapi/Kathrein
-two.mgcamdb1_options_9 Stapi/Ipbox
-two.mgcamdb1_options_11 Stapi/Openbox
-two.mgcamdc1 ECM-Messages (C):
-two.mgcamdc1_options_0 Disable
-two.mgcamdc1_options_1 Normal-Mode
-two.mgcamdc1_options_2 Verbose-Mode
-two.mgcamdd1 debug (D):
-two.mgcamde1 Keep ECM Cache (E) (sec):
-two.mgcamdecminfo_ecm ECM:
-two.mgcamdecminfo_head Mgcamd-ECM-Info
-two.mgcamdf1 Map all 180x to 1801 (F):
-two.mgcamdf1_options_0 Off
-two.mgcamdf1_options_1 On
-two.mgcamdg1 Network-Mode (G):
-two.mgcamdgboxshareinfo_head Mgcamd-Gbox-Share-Info
-two.mgcamdh1 Cache-Option (H):
-two.mgcamdinfocenter Mgcamd-Info-Center
-two.mgcamdk1 Network ECM Timeout (K) (sec):
-two.mgcamdl1 Log-Option (L):
-two.mgcamdl2 IP (L):
-two.mgcamdl3 UDP-Port (L):
-two.mgcamdl4 Log-File-Name (L):
-two.mgcamdm1 EMM-Messages (M):
-two.mgcamdm1_options_0 Disable
-two.mgcamdm1_options_1 Normal-Mode
-two.mgcamdm1_options_2 Verbose-Mode
-two.mgcamdmemoryinfo_head Mgcamd-Memory-Info
-two.mgcamdmemoryinfo_memory Memory:
-two.mgcamdmenu Mgcamd-Settings
-two.mgcamdn1 Network-Retry (N):
-two.mgcamdn2 XX Messages Number (N):
-two.mgcamdn3 YY Seconds to Reconnect (N):
-two.mgcamdnewcamdshareinfo_head Mgcamd-Newcamd-Share-Info
-two.mgcamdo1 On-Screen-Display-Type (O):
-two.mgcamdo1_options_0 No OSD
-two.mgcamdo1_options_1 Neutrino
-two.mgcamdo1_options_2 Enigma
-two.mgcamdo1_options_3 Relook
-two.mgcamdo2 User for http auth (O):
-two.mgcamdo3 Password for http auth (O):
-two.mgcamdp1 Net-Shares-Prio (P):
-two.mgcamdp1_options_0 gbox, newcamd, ccc, rg, camd3
-two.mgcamdp1_options_1 camd3, rg, ccc, gbox, newcamd
-two.mgcamdp1_options_2 ccc, newcamd, camd3, gbox, rg
-two.mgcamdpidinfo_head Mgcamd-Pid-Info
-two.mgcamdpidinfo_pid Pid:
-two.mgcamdq1 Newcamd Connect Retry (Q) (sec):
-two.mgcamdr1 Reread-Files (R):
-two.mgcamds1 On-Screen-Display-Options (S):
-two.mgcamds2 Web-Port to use for OSD (S):
-two.mgcamdstart Starting Mgcamd !
-two.mgcamdstop Stopping Mgcamd !
-two.mgcamdstop1 Mgcamd N/A !
-two.mgcamdt1 Config-Files-Folder (T):
-two.mgcamdt1_options_0 /var/keys
-two.mgcamdt1_options_1 /tmp
-two.mgcamdu1 Key-Update (U):
-two.mgcamdu2 tps SID, ...au pid (U):
-two.mgcamduptimeinfo_head Mgcamd-Uptime-Info
-two.mgcamduptimeinfo_uptime Uptime:
-two.mgcamdversioninfo_head Mgcamd-Version-Info
-two.mgcamdversioninfo_version Version:
-two.neutrino_debug_output Neutrino-Debug
-two.neutrino_debug_output_options_0 Off
-two.neutrino_debug_output_options_1 On
-two.newcs Newcs
-two.newcsstart Newcs will be started !
-two.newcsstop Newcs will be stopped !
-two.newcsstop1 Newcs N/A !
-two.oscam Oscam
-two.oscamstart Oscam will be started !
-two.oscamstop Oscam will be stopped !
-two.oscamstop1 Oscam N/A !
-two.servicemenu_restartcs Cardserver Restart
-two.servicemenu_restartcs2gbox Cardserver2Gbox Restart
-two.servicemenu_restartcs2gbox_hint Cardserver2Gbox will be restartet !
-two.servicemenu_restartemu Emu Restart
-two.servicemenu_restartgbox_hint Gbox will be restartet !
-two.servicemenu_restartmgcamd_hint Mgcamd will be restarted !
-two.servicemenu_restartnewcs_hint Newcs will be restarted !
-two.servicemenu_restartnoemu_hint No Emu will be restarted !
-two.servicemenu_restartnocs_hint No Cardserver will be restarted !
-two.servicemenu_restartnocs2gbox_hint No Cardserver2Gbox will be restarted !
-two.servicemenu_restartoscam_hint Oscam will be restarted !
-two.servicemenu_restartwicard_hint Wicard will be restartet !
-two.sonstiges Other-Settings
-two.sysinfo System-Info
-two.sysinfo_cpuinfo CPU
-two.sysinfo_processes Processes
-two.sysinfo_sysmessages Messages
-two.sysinfo_sysperformance Performance
-two.wicard Wicard
-two.wicardstart Wicard wird gestartet !
-two.wicardstop Wicard wird gestoppt !
-two.wicardstop1 Wicard N/A !
-two.zapitsetup_camci Cardslot-Settings
-two.zapitsetup_camci_options_0 0 CA_INIT_SC
-two.zapitsetup_camci_options_1 1 CA_INIT_CI
-two.zapitsetup_camci_options_2 2 CA_INIT_BOTH
 unicable.lnb Unicable Input
 unicable.qrg Unicable Frequency
 unicable.scr Unicable SCR
