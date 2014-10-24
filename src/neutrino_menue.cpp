@@ -46,6 +46,7 @@
 #include "gui/audio_setup.h"
 #include "gui/audio_select.h"
 #include "gui/bedit/bouqueteditor_bouquets.h"
+#include "gui/bluepanel.h"
 #include "gui/bouquetlist.h"
 #if !HAVE_SPARK_HARDWARE
 #include "gui/cam_menu.h"
@@ -74,7 +75,6 @@
 #include "gui/sleeptimer.h"
 #include "gui/update_menue.h"
 #include "gui/streaminfo2.h"
-#include "gui/bluepanel.h"
 #ifdef ENABLE_TEST_MENU
 #include "gui/test_menu.h"
 #endif
@@ -405,7 +405,6 @@ void CNeutrinoApp::InitMenuService()
 	//channel reset
 	CDataResetNotifier *resetNotifier = new CDataResetNotifier();
 	mf = new CMenuForwarder(LOCALE_RESET_CHANNELS    , true, NULL, resetNotifier, "channels");
-
 	mf->setHint(NEUTRINO_ICON_HINT_DELETE_CHANNELS, LOCALE_MENU_HINT_DELETE_CHANNELS);
 	personalize.addItem(MENU_SERVICE, mf, &g_settings.personalize[SNeutrinoSettings::P_MSER_RESET_CHANNELS]);
 
@@ -429,7 +428,7 @@ void CNeutrinoApp::InitMenuService()
 	personalize.addItem(MENU_SERVICE, mf, &g_settings.personalize[SNeutrinoSettings::P_MSER_RESTART_TUNER]);
 
 	//restart cam
-	if (!access("/etc/init.d/cam", X_OK)) {
+	if (!access("/etc/init.d/softcam", X_OK)) {
 		mf = new CMenuForwarder(LOCALE_SERVICEMENU_RESTART_CAM, true, NULL, this, "restartcam");
 		mf->setHint(NEUTRINO_ICON_HINT_RELOAD_CHANNELS, LOCALE_MENU_HINT_RESTART_CAM);
 		personalize.addItem(MENU_SERVICE, mf, &g_settings.personalize[SNeutrinoSettings::P_MSER_RESTART_CAM]);
