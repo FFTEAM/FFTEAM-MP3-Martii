@@ -77,60 +77,13 @@ int CBluePanel::exec(CMenuTarget* parent, const std::string &actionKey)
 		delete hintBox;
 		return res;
 	}
-	
-	if (actionKey == "restart_cam")
-	{
-		CHintBox * hintBox = new CHintBox(LOCALE_MESSAGEBOX_INFO, "Softcam wird neu gestartet...");
-		hintBox->paint();
-		RestartCam();
-		system("sleep 2");
-		delete hintBox;
-		system("sleep 1");
-		CHintBox * hintBox_rezap = new CHintBox(LOCALE_MESSAGEBOX_INFO, "Rezap...");
-		hintBox_rezap->paint();
-		system("sleep 2");
-		g_Zapit->Rezap();
-		hintBox_rezap->hide();
-		delete hintBox_rezap;
-		return res;
-	}
 
 	res = showBluePanel();
 	return res;
 }
 
-static int cam_filter(const struct dirent * dent)
-{
-	if(strstr(dent->d_name, "_cam.sh"))
-		return 1;
-	return 0;
-}
-
-void CBluePanel::RestartCam()
-{
-	system("/etc/init.d/softcam stop");
-	system("sleep 3");
-	system("/etc/init.d/softcam start");
-}
-
 void CBluePanel::LoadConfig()
 {
-	// Aktive Softcam
-	ifstream load_cam_cfg;
-	char delimiter[] = "=";
-	char *ptr;
-	char zeile[32];
-	ptr = none_cam;
-	load_cam_cfg.open("/var/tuxbox/config/softcam.conf",ios_base::in);
-	while(load_cam_cfg.getline(zeile,200)){
-		if(strstr(zeile, "camd=")){
-			ptr = strtok(zeile, delimiter);
-			ptr = strtok(NULL, delimiter);
-		}
-	}
-	load_cam_cfg.close();
-	active_cam = ptr;
-	old_cam = ptr;
 			
 	// Openvpn
 	openvpn = off;
@@ -152,45 +105,10 @@ void CBluePanel::LoadConfig()
 	if(FileTest_Inadyn_Autostart && FileTest_Inadyn)
 		inadyn = on;
 		
-	// Bootlogo
-	bootlogo = off;
-	std::ifstream FileTest_Bootlogo("/etc/touch/.bootlogo"); 
-	if(FileTest_Bootlogo) 
-		bootlogo = on;
 }
 
 void CBluePanel::SaveConfig()
 {
-	// Softcam
-	if (old_cam != active_cam){
-		old_cam = active_cam;
-		if (active_cam == none_cam){
-			system("/etc/init.d/softcam stop");
-			system("rm /etc/init.d/softcam");
-			system("rm /var/tuxbox/config/softcam.conf");
-		}else{
-			char run[64];
-			for(int i = 0; i < softcam_count; i++) {
-				if(softcams[i][2] == active_cam){
-						system("/etc/init.d/softcam stop");
-						system("rm /etc/init.d/softcam");
-						sprintf(run, "ln -s %s /etc/init.d/softcam", softcams[i][0]);
-						system(run);
-						sprintf(run, "echo camd=\"%s\" > /var/tuxbox/config/softcam.conf", softcams[i][2]);
-						system(run);
-						system("/etc/init.d/softcam start");
-				}
-			}
-		}
-	}
-		
-	// Bootlogo
-	std::ifstream FileTest_Bootlogo("/etc/touch/.bootlogo"); 
-	if((FileTest_Bootlogo) && (bootlogo == off)) 
-		system("rm /etc/touch/.bootlogo");
-	if((!FileTest_Bootlogo) && (bootlogo == on)) 
-		system("touch /etc/touch/.bootlogo");
-		
 	// OpenVPN
 	std::ifstream FileTest_Openvpn("/etc/init.d/S80openvpn"); 
 	if((FileTest_Openvpn) && (openvpn == off)) 
@@ -221,56 +139,9 @@ int CBluePanel::showBluePanel()
 	
 	// Save
 	CMenuForwarder *mf1 = new CMenuForwarder("Speichern", true, NULL, this, "save", CRCInput::RC_red);
-    mf1->setHint(NEUTRINO_ICON_HINT_SAVE_SETTINGS, "Einstellungen speichern und Softcam neustarten.");
+    mf1->setHint(NEUTRINO_ICON_HINT_SAVE_SETTINGS, "Einstellungen speichern.");
 	w_mf.addItem(mf1);
 	w_mf.addItem(new CMenuSeparator(CMenuSeparator::LINE | CMenuSeparator::STRING, "Softcam"));
-
-	// Softcam
-	struct dirent **namelist;
-	softcam_count = scandir("/var/script", &namelist, cam_filter, alphasort);
-	CMenuOptionStringChooser * Softcam = new CMenuOptionStringChooser("Softcam", &active_cam, softcam_count >= 1, this, CRCInput::RC_blue, "", true);
-    Softcam->setHint(NEUTRINO_ICON_LOCK, "Aktive Softcam auswählen");
-	
-	bool found = false;
-	ifstream datei;
-	char delimiter[] = "\"";
-	char *ptr;
-	char zeile[32];
-		
-	for(int i = 0; i < softcam_count; i++) {
-		char dir[] = "/var/script/";
-		strcat(dir, namelist[i]->d_name);
-		strcpy(softcams[i][0],dir);
-		strcpy(softcams[i][1],namelist[i]->d_name);
-		strcpy(softcams[i][2],namelist[i]->d_name);
-		datei.open(dir,ios_base::in);
-		while(datei.getline(zeile,200)){
-			if(strstr(zeile, "CAMD_NAME=")){
-				ptr = strtok(zeile, delimiter);
-				ptr = strtok(NULL, delimiter);
-				sprintf(softcams[i][2],"%s",ptr);
-			}
-		}
-		datei.close(); 
-		Softcam->addOption(softcams[i][2]);
-		if(active_cam == softcams[i][2])
-			found = true;
-		free(namelist[i]);
-	}
-
-	if (softcam_count >= 0)
-		free(namelist);
-		
-	if(!found)
-		active_cam = none_cam;
-		
-	Softcam->addOption(std::string(none_cam));
-    w_mf.addItem(Softcam);
-	
-	// Restart softcam
-    mf1 = new CMenuForwarder("Softcam Reset", true, NULL, this, "restart_cam", CRCInput::RC_green);
-    mf1->setHint(NEUTRINO_ICON_HINT_RELOAD_CHANNELS, "Startet die aktuelle Softcam neu.");
-    w_mf.addItem(mf1);
 	
 	// Dienste
 	w_mf.addItem(new CMenuSeparator(CMenuSeparator::LINE | CMenuSeparator::STRING, "Dienste"));
@@ -288,16 +159,6 @@ int CBluePanel::showBluePanel()
 	inadyn_sw->addOption(std::string(off));
 	inadyn_sw->setHint(NEUTRINO_ICON_HINT_NETWORK, "Inadyn DynDNS Dienst");
 	w_mf.addItem(inadyn_sw);
-	
-	// Sonstiges
-	w_mf.addItem(new CMenuSeparator(CMenuSeparator::LINE | CMenuSeparator::STRING, "Sonstiges"));
-	
-	// Bootlogo
-	CMenuOptionStringChooser * bootlogo_sw = new CMenuOptionStringChooser("Bootlogo", &bootlogo, true, this, CRCInput::RC_nokey, "", false);
-	bootlogo_sw->addOption(std::string(on));
-	bootlogo_sw->addOption(std::string(off));
-	bootlogo_sw->setHint(NEUTRINO_ICON_HINT_PICVIEW, "Logo beim Booten anzeigen.");
-	w_mf.addItem(bootlogo_sw);
 	
 	// Exit
 	return w_mf.exec(NULL, "");;
