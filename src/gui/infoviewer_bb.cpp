@@ -666,11 +666,11 @@ void CInfoViewerBB::showBarHdd(int percent)
 void CInfoViewerBB::paint_ca_icons(int caid, char * icon, int &icon_space_offset)
 {
 	char buf[20];
-	int endx = g_InfoViewer->BoxEndX - 10;
+	int endx = g_InfoViewer->BoxEndX -3;
 	int py = g_InfoViewer->BoxEndY + 2; /* hand-crafted, should be automatic */
 	int px = 0;
 	static map<int, std::pair<int,const char*> > icon_map;
-	const int icon_space = 10, icon_number = 10;
+	const int icon_space = 2, icon_number = 10;
 
 	static int icon_offset[icon_number] = {0,0,0,0,0,0,0,0,0,0};
 	static int icon_sizeW [icon_number] = {0,0,0,0,0,0,0,0,0,0};
@@ -713,7 +713,7 @@ void CInfoViewerBB::paint_ca_icons(int caid, char * icon, int &icon_space_offset
 	} else {
 		icon_space_offset += icon_sizeW[icon_map[caid].first];
 		px = endx - icon_space_offset;
-		icon_space_offset += 4;
+		icon_space_offset += 2;
 	}
 
 	if (px) {
@@ -783,6 +783,12 @@ void CInfoViewerBB::showIcon_CA_Status(int /*notfirst*/)
 		emu = 2;
 	else if(file_exists("/var/etc/.oscam"))
 		emu = 3;
+	if(file_exists("/var/etc/.osemu"))
+		emu = 4;
+	else if(file_exists("/var/etc/.wicard"))
+		emu = 5;
+	else if(file_exists("/var/etc/.camd3"))
+		emu = 6;
 
 	if ( (file_exists(ecm_info_f)) && ((g_settings.infoviewer_ecm_info == 1) || (g_settings.infoviewer_ecm_info == 2)) )
 		paintECM();
@@ -822,7 +828,7 @@ void CInfoViewerBB::showIcon_CA_Status(int /*notfirst*/)
 			  decMode = (card == NULL) ? 1 : 3; // net == 1, card == 3
 			else if ((strncasecmp(decode, "emu", 3) == 0) || (strncasecmp(decode, "int", 3) == 0) || (strncasecmp(decode, "cache", 5) == 0) || (strstr(decode, "/" ) != NULL))
 			  decMode = 2; //emu
-			else if ((strncasecmp(decode, "com", 3) == 0) || (strncasecmp(decode, "slot", 4) == 0) || (strncasecmp(decode, "local", 5) == 0))
+			else if ((strncasecmp(decode, "emu", 3) == 0) || (strncasecmp(decode, "slot", 4) == 0) || (strncasecmp(decode, "local", 5) == 0))
 			  decMode = 3; //card
 		}
 		if (mgcamd_emu && ((ecm_caid & 0xFF00) == 0x1700)){
@@ -852,7 +858,7 @@ void CInfoViewerBB::showIcon_CA_Status(int /*notfirst*/)
 				if(caid == 0x1800)
 					nagra_found = true;
 				if (caid == 0x1700)
-				      beta_found = true;
+					beta_found = true;
 			}
 			if(beta_found)
 				ecm_caid = 0x600;
@@ -886,6 +892,7 @@ void CInfoViewerBB::showIcon_CA_Status(int /*notfirst*/)
 	}
 }
 
+
 void CInfoViewerBB::paintCA_bar(int left, int right)
 {
 	int xcnt = (g_InfoViewer->BoxEndX - g_InfoViewer->ChanInfoX) / 4;
@@ -895,8 +902,9 @@ void CInfoViewerBB::paintCA_bar(int left, int right)
 	if (left)
 		left =  xcnt - ((left/4)-1);
 
-	frameBuffer->paintBox(g_InfoViewer->ChanInfoX + (right*4), g_InfoViewer->BoxEndY, g_InfoViewer->BoxEndX - (left*4), g_InfoViewer->BoxEndY + bottom_bar_offset, COL_BLACK);
+	frameBuffer->paintBox(g_InfoViewer->ChanInfoX + (right*4), g_InfoViewer->BoxEndY, g_InfoViewer->BoxEndX - (left*4), g_InfoViewer->BoxEndY + bottom_bar_offset, (g_settings.dotmatrix == 1) ? COL_BLACK : COL_INFOBAR_PLUS_0);
 
+	if (g_settings.dotmatrix == 1)
 	if (left)
 		left -= 1;
 
@@ -997,10 +1005,10 @@ void CInfoViewerBB::paintEmuIcons(int decMode)
 	const char emu_gray[] = "white";
 	const char emu_yellow[] = "yellow";
 	enum E{
-		GBOX,MGCAMD,OSCAM,NEWCS,CS2GBOX,NET,EMU,CARD,ATTACK,GSMS
+		GBOX,MGCAMD,OSCAM,OSEMU,WICARD,CAMD3,NEWCS,CS2GBOX,NET,EMU,CARD,ATTACK,GSMS
 	};
 	static int emus_icon_sizeW[GSMS+1] = {0};
-	const char *icon_emu[GSMS+1] = {"gbox", "mgcamd", "oscam", "newcs", "cs2gbox", "net", "emu", "card", "attack", "gsms"};
+	const char *icon_emu[GSMS+1] = {"gbox", "mgcamd", "oscam", "net", "emu", "card"};
 	int icon_sizeH = 0;
 	static int ga = g_InfoViewer->ChanInfoX+30+16;
 	if (emus_icon_sizeW[GBOX] == 0)
@@ -1031,6 +1039,9 @@ void CInfoViewerBB::paintEmuIcons(int decMode)
 			case GBOX:
 			case MGCAMD:
 			case OSCAM:
+			case OSEMU:
+			case CAMD3:
+			case WICARD:
 			case NEWCS:
 			case CS2GBOX:
 			snprintf(buf, sizeof(buf), "/var/etc/.%s", icon_emu[e]);
