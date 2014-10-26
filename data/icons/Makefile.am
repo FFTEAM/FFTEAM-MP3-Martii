@@ -58,8 +58,12 @@ install_DATA += \
 	9-green.png \
 	ats.png \
 	ats_gray.png \
+	attack_green.png \
+	attack_white.png \
+	attack_yellow.png \
 	audio.png \
 	audioplay.png \
+	bayrisch.png \
 	biss_green.png \
 	biss_white.png \
 	biss_yellow.png \
@@ -67,16 +71,26 @@ install_DATA += \
 	bookmarkmanager.png \
 	border_lr.png \
 	border_ul.png \
+	bosanski.png \
 	btn_backward.png \
 	btn_forward.png \
 	btn_pause.png \
 	btn_play.png \
 	btn_record_active.png \
+	btn_record_active_16x16.png \
 	btn_record_inactive.png \
+	btn_record_inactive_16x16.png \
 	btn_stop.png \
+	btn_stop_16x16.png \
 	ca.png \
 	ca2.png \
 	ca2_gray.png \
+	ca2_red.png \
+	card_green.png \
+	card_white.png \
+	card_yellow.png \
+	ch-baslerdeutsch.png \
+	ch-berndeutsch.png \
 	checkmark.png \
 	colors.png \
 	conax_green.png \
@@ -90,18 +104,31 @@ install_DATA += \
 	d_yellow.png \
 	dd.png \
 	dd_avail.png \
+	ddfill.png \
 	dd_gray.png \
+	deutsch.png \
 	down.png \
 	dummy.png \
 	dummy_small.png \
-	error.png \
+	emu_green.png \
+	emu_white.png \
+	emu_yellow.png \
+	english.png \
 	epg.png \
+	error.png \
 	features.png \
 	file.png \
 	folder.png \
+	francais.png \
 	games.png \
+	gbox_green.png \
+	gbox_white.png \
+	gbox_yellow.png \
 	gelb.png \
 	gruen.png \
+	gsms_green.png \
+	gsms_white.png \
+	gsms_yellow.png \
 	help.png \
 	help_small.png \
 	hidden.png \
@@ -164,11 +191,15 @@ install_DATA += \
 	icon_ytplay.png \
 	important.png \
 	info.png \
-	info_small.png \
 	information.png \
+	info_small.png \
+	int_green.png \
+	int_white.png \
+	int_yellow.png \
 	ird_green.png \
 	ird_white.png \
 	ird_yellow.png \
+	italiano.png \
 	keybinding.png \
 	language.png \
 	lcd.png \
@@ -177,6 +208,7 @@ install_DATA += \
 	lock.png \
 	lock_passive.png \
 	longpress.png \
+	_magyar.png \
 	mainmenue.png \
 	menu.png \
 	menu_small.png \
@@ -202,6 +234,7 @@ install_DATA += \
 	mute.png \
 	mute_small.png \
 	mute_zap_gray.png \
+	mute_zap_green.Alternative2.png \
 	mute_zap_green.png \
 	nagra_green.png \
 	nagra_white.png \
@@ -209,14 +242,26 @@ install_DATA += \
 	nds_green.png \
 	nds_white.png \
 	nds_yellow.png \
+	nederlands.png \
+	net_green.png \
+	net_white.png \
 	network.png \
+	net_yellow.png \
 	not_mounted.png \
 	notyet.png \
 	numericpad.png \
+	nw_green.png \
+	nw_white.png \
+	nw_yellow.png \
 	ok.png \
+	oscam_green.png \
+	oscam_white.png \
+	oscam_yellow.png \
 	personalize.png \
 	picture.png \
 	pip.png \
+	polski.png \
+	portugues.png \
 	power.png \
 	powervu_green.png \
 	powervu_white.png \
@@ -244,10 +289,6 @@ install_DATA += \
 	rec_gray.png \
 	recording.png \
 	res_000.png \
-	res_1080.png \
-	res_1280.png \
-	res_1440.png \
-	res_1920.png \
 	res_288.png \
 	res_352.png \
 	res_382.png \
@@ -257,10 +298,15 @@ install_DATA += \
 	res_576.png \
 	res_704.png \
 	res_720.png \
+	res_1080.png \
+	res_1280.png \
+	res_1440.png \
+	res_1920.png \
 	res_hd.png \
 	res_sd.png \
 	right.png \
 	rot.png \
+	russkij.png \
 	scan.jpg \
 	seca_green.png \
 	seca_white.png \
@@ -268,11 +314,20 @@ install_DATA += \
 	settings.png \
 	shell.png \
 	shutdown.jpg \
+	slovak.png \
+	sms.png \
+	sms_gelb.png \
+	sms_red.png \
+	sms_rot.png \
+	sms_white.png \
+	sms_yellow.png \
 	softupdate.png \
 	start.jpg \
 	streaming.png \
 	subt.png \
 	subt_gray.png \
+	suomi.png \
+	svenska.png \
 	timer.png \
 	tuner_1.png \
 	tuner_2.png \

@@ -828,7 +828,7 @@ void CInfoViewerBB::showIcon_CA_Status(int /*notfirst*/)
 			  decMode = (card == NULL) ? 1 : 3; // net == 1, card == 3
 			else if ((strncasecmp(decode, "emu", 3) == 0) || (strncasecmp(decode, "int", 3) == 0) || (strncasecmp(decode, "cache", 5) == 0) || (strstr(decode, "/" ) != NULL))
 			  decMode = 2; //emu
-			else if ((strncasecmp(decode, "emu", 3) == 0) || (strncasecmp(decode, "slot", 4) == 0) || (strncasecmp(decode, "local", 5) == 0))
+			else if ((strncasecmp(decode, "com", 3) == 0) || (strncasecmp(decode, "slot", 4) == 0) || (strncasecmp(decode, "local", 5) == 0))
 			  decMode = 3; //card
 		}
 		if (mgcamd_emu && ((ecm_caid & 0xFF00) == 0x1700)){
@@ -1010,12 +1010,12 @@ void CInfoViewerBB::paintEmuIcons(int decMode)
 		GBOX,MGCAMD,OSCAM,OSEMU,WICARD,CAMD3,NEWCS,CS2GBOX,NET,EMU,CARD,ATTACK,GSMS
 	};
 	static int emus_icon_sizeW[GSMS+1] = {0};
-	const char *icon_emu[GSMS+1] = {"gbox", "mgcamd", "oscam", "net", "emu", "card"};
+	const char *icon_emu[GSMS+1] = {"gbox", "mgcamd", "oscam", "osemu", "wicard", "camd3" "newcs", "cs2gbox", "net", "emu", "card", "attack", "gsms"};
 	int icon_sizeH = 0;
 	static int ga = g_InfoViewer->ChanInfoX+30+16;
 	if (emus_icon_sizeW[GBOX] == 0)
 	{
-		for (E e=GBOX; e <= GSMS; e = E(e+1))
+		for (E e=OSCAM; e <= GSMS; e = E(e+1))
 		{
 			snprintf(buf, sizeof(buf), "%s_%s", icon_emu[e], emu_green);
 			frameBuffer->getIconSize(buf, &emus_icon_sizeW[e], &icon_sizeH);
@@ -1034,7 +1034,7 @@ void CInfoViewerBB::paintEmuIcons(int decMode)
 		icon_offset = 0;
 	}
 	bool emuMG = (emu==1 || emu == 3 || file_exists("/var/etc/.no_attack_gsms_icon") ) ;
-	for (E e = GBOX; e <= GSMS; e = E(e+1))
+	for (E e = OSCAM; e <= GSMS; e = E(e+1))
 	{
 		switch (e)
 		{
@@ -1143,7 +1143,7 @@ void CInfoViewerBB::paintECM()
 		while ((read = getline(&buffer, &len, ecminfo)) != -1)
 		{
 			ecmInfoEmpty = false;
-			if(emu == 1 || emu == 2){
+			if(emu == 1 || emu == 2 || emu == 3){
 				sscanf(buffer, "%*s %*s ECM on CaID 0x%4s, pid 0x%4s", caid1, pid1);										// gbox, mgcamd
 				sscanf(buffer, "prov: %06[^',',(]", prov1);														// gbox, mgcamd
 			}
