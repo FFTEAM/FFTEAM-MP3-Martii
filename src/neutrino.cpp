@@ -2484,7 +2484,7 @@ void CNeutrinoApp::RealRun(CMenuWidget &_mainMenu)
 				InfoClock->enableInfoClock(true);
 				StartSubtitles();
 			}
-			else if( ( msg == (neutrino_msg_t) g_settings.key_quickzap_up ) || ( msg == (neutrino_msg_t) g_settings.key_quickzap_down ) || ( msg == CRCInput::RC_page_up ) || ( msg == CRCInput::RC_page_down ) )
+			else if( ( msg == (neutrino_msg_t) g_settings.key_quickzap_up ) || ( msg == (neutrino_msg_t) g_settings.key_quickzap_down ) )
 			{
 				//quickzap
 				quickZap(msg);
