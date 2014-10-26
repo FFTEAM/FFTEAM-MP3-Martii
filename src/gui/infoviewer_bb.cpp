@@ -1015,7 +1015,7 @@ void CInfoViewerBB::paintEmuIcons(int decMode)
 	static int ga = g_InfoViewer->ChanInfoX+30+16;
 	if (emus_icon_sizeW[GBOX] == 0)
 	{
-		for (E e=OSCAM; e <= GSMS; e = E(e+1))
+		for (E e=GBOX; e <= GSMS; e = E(e+1))
 		{
 			snprintf(buf, sizeof(buf), "%s_%s", icon_emu[e], emu_green);
 			frameBuffer->getIconSize(buf, &emus_icon_sizeW[e], &icon_sizeH);
@@ -1034,7 +1034,7 @@ void CInfoViewerBB::paintEmuIcons(int decMode)
 		icon_offset = 0;
 	}
 	bool emuMG = (emu==1 || emu == 3 || file_exists("/var/etc/.no_attack_gsms_icon") ) ;
-	for (E e = OSCAM; e <= GSMS; e = E(e+1))
+	for (E e = GBOX; e <= GSMS; e = E(e+1))
 	{
 		switch (e)
 		{
@@ -1143,7 +1143,7 @@ void CInfoViewerBB::paintECM()
 		while ((read = getline(&buffer, &len, ecminfo)) != -1)
 		{
 			ecmInfoEmpty = false;
-			if(emu == 1 || emu == 2 || emu == 3){
+			if(emu == 1 || emu == 2){
 				sscanf(buffer, "%*s %*s ECM on CaID 0x%4s, pid 0x%4s", caid1, pid1);										// gbox, mgcamd
 				sscanf(buffer, "prov: %06[^',',(]", prov1);														// gbox, mgcamd
 			}
@@ -1212,7 +1212,7 @@ void CInfoViewerBB::paintECM()
 	char share_at[32] = {0};
 	char share_card[5] = {0};
 	char share_id[5] = {0};
-	int share_net = 0;
+	int share_net = {0};
 
 	const char *share_info = "/tmp/share.info";
 	FILE* shareinfo = fopen (share_info, "r");

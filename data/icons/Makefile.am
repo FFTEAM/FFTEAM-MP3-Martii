@@ -86,6 +86,9 @@ install_DATA += \
 	ca2.png \
 	ca2_gray.png \
 	ca2_red.png \
+	camd3_green.png \
+	camd3_white.png \
+	camd3_yellow.png \
 	card_green.png \
 	card_white.png \
 	card_yellow.png \
@@ -212,6 +215,9 @@ install_DATA += \
 	mainmenue.png \
 	menu.png \
 	menu_small.png \
+	mgcamd_green.png \
+	mgcamd_white.png \
+	mgcamd_yellow.png \
 	mounted.png \
 	movie.png \
 	mp_b-skip.png \
@@ -257,6 +263,9 @@ install_DATA += \
 	oscam_green.png \
 	oscam_white.png \
 	oscam_yellow.png \
+	osemu_green.png \
+	osemu_white.png \
+	osemu_yellow.png \
 	personalize.png \
 	picture.png \
 	pip.png \
@@ -349,6 +358,9 @@ install_DATA += \
 	vtxt.png \
 	vtxt_gray.png \
 	warning.png \
+	wicard_green.png \
+	wicard_white.png \
+	wicard_yellow.png \
 	x_green.png \
 	x_white.png \
 	x_yellow.png \

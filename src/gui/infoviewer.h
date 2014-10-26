@@ -146,8 +146,8 @@ class CInfoViewer
 	bool	 virtual_zap_mode;
 	char     aspectRatio;
 	uint32_t sec_timer_id;
-	int            BoxStartY;
-	int            ChanHeight;
+	int      BoxStartY;
+	int      ChanHeight;
 
 	int      BoxEndX;
 	int      BoxEndY;
