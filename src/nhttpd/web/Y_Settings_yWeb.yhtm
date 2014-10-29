@@ -7,6 +7,7 @@ function do_submit(){
 	show_waitbox(true);
 	yhttpd_cache_clear("");
 	document.f.submit();
+	top.top_main.prim_menu.location.reload();
 }
 function do_init(){
 	val = "{=ini-get:/var/tuxbox/config/Y-Web.conf;fb;0~open=}";
