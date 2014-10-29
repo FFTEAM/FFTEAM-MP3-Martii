@@ -585,18 +585,6 @@ case "$1" in
 	mgecm)				msg=`cat /tmp/ecm.info`; y_format_message_html ;;
 	mgpid)				msg=`cat /tmp/pid.info`; y_format_message_html ;;
 
-	Karten)
-		/share/tuxbox/neutrino/httpd/scripts/Karten.sh
-		msg="Kartenausgaben OK."
-		y_format_message_html
-		;;
-
-	Status)
-		/share/tuxbox/neutrino/httpd/scripts/Status.sh
-		msg="Status Emu/Server OK."
-		y_format_message_html
-		;;
-
 	timer_get_tvinfo)
 		shift 1
 		rm -r /tmp/tvinfo.xml
