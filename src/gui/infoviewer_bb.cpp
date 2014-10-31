@@ -826,9 +826,9 @@ void CInfoViewerBB::showIcon_CA_Status(int /*notfirst*/)
 				free (buffer);
 			if (strncasecmp(decode, "net", 3) == 0)
 			  decMode = (card == NULL) ? 1 : 3; // net == 1, card == 3
-			else if ((strncasecmp(decode, "emu", 3) == 0) || (strncasecmp(decode, "int", 3) == 0) || (strncasecmp(decode, "cache", 5) == 0) || (strstr(decode, "/" ) != NULL))
+			else if ((strncasecmp(decode, "emu", 3) == 0) || (strncasecmp(decode, "int", 3) == 0) || (strncasecmp(decode, "local", 5) == 0) || (strstr(decode, "/" ) != NULL))
 			  decMode = 2; //emu
-			else if ((strncasecmp(decode, "com", 3) == 0) || (strncasecmp(decode, "slot", 4) == 0) || (strncasecmp(decode, "local", 5) == 0))
+			else if ((strncasecmp(decode, "com", 3) == 0) || (strncasecmp(decode, "slot", 4) == 0) || (strncasecmp(decode, "192.168.*", 5) == 0) || (strstr(decode, "/" ) != NULL))
 			  decMode = 3; //card
 		}
 		if (mgcamd_emu && ((ecm_caid & 0xFF00) == 0x1700)){
