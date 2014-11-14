@@ -783,7 +783,7 @@ void CInfoViewerBB::showIcon_CA_Status(int /*notfirst*/)
 		emu = 2;
 	else if(file_exists("/var/etc/.oscam"))
 		emu = 3;
-	if(file_exists("/var/etc/.osemu"))
+	else if(file_exists("/var/etc/.osemu"))
 		emu = 4;
 	else if(file_exists("/var/etc/.wicard"))
 		emu = 5;
@@ -826,9 +826,9 @@ void CInfoViewerBB::showIcon_CA_Status(int /*notfirst*/)
 				free (buffer);
 			if (strncasecmp(decode, "net", 3) == 0)
 			  decMode = (card == NULL) ? 1 : 3; // net == 1, card == 3
-			else if ((strncasecmp(decode, "emu", 3) == 0) || (strncasecmp(decode, "int", 3) == 0) || (strncasecmp(decode, "local", 5) == 0) || (strstr(decode, "/" ) != NULL))
+			else if ((strncasecmp(decode, "emu", 3) == 0) || (strncasecmp(decode, "int", 3) == 0) || (sscanf(decode, "protocol: char*", 3) == 0) || (sscanf(decode, "from: char*", 3) == 0) || (strncasecmp(decode, "cache", 5) == 0) || (strstr(decode, "/" ) != NULL))
 			  decMode = 2; //emu
-			else if ((strncasecmp(decode, "com", 3) == 0) || (strncasecmp(decode, "slot", 4) == 0) || (strncasecmp(decode, "192.168.*", 5) == 0) || (strstr(decode, "/" ) != NULL))
+			else if ((strncasecmp(decode, "com", 3) == 0) || (strncasecmp(decode, "slot", 4) == 0) || (strncasecmp(decode, "local", 5) == 0))
 			  decMode = 3; //card
 		}
 		if (mgcamd_emu && ((ecm_caid & 0xFF00) == 0x1700)){
@@ -895,8 +895,8 @@ void CInfoViewerBB::showIcon_CA_Status(int /*notfirst*/)
 
 void CInfoViewerBB::paintCA_bar(int left, int right)
 {
-	int xcnt = (g_InfoViewer->BoxEndX - g_InfoViewer->ChanInfoX) / 4;
-	int ycnt = bottom_bar_offset / 4;
+	int xcnt = (g_InfoViewer->BoxEndX - g_InfoViewer->ChanInfoX) / 11;
+	int ycnt = bottom_bar_offset / 11;
 	if (right)
 		right = xcnt - ((right/4)+1);
 	if (left)
@@ -1051,7 +1051,7 @@ void CInfoViewerBB::paintEmuIcons(int decMode)
 			break;
 			case NET:
 			if (g_settings.casystem_display == 0)
-				icon_emuX += 15 ;
+				icon_emuX += 11 ;
 
 			icon_flag = (decMode == 1) ? 2 : 0;
 			break;
@@ -1144,25 +1144,32 @@ void CInfoViewerBB::paintECM()
 		{
 			ecmInfoEmpty = false;
 			if(emu == 1 || emu == 2){
-				sscanf(buffer, "%*s %*s ECM on CaID 0x%4s, pid 0x%4s", caid1, pid1);										// gbox, mgcamd
-				sscanf(buffer, "prov: %06[^',',(]", prov1);														// gbox, mgcamd
+				sscanf(buffer, "%*s %*s ECM on CaID 0x%4s, pid 0x%4s", caid1, pid1);						// gbox, mgcamd
+				sscanf(buffer, "prov: %06[^',',(]", prov1);									// gbox, mgcamd
 			}
 			if(emu == 2){
-				sscanf(buffer, "decode:%8s", source1);														// gbox
-				sscanf(buffer, "response:%05s", response1);													// gbox
-				sscanf(buffer, "provider: %02s", prov1);													// gbox
+				sscanf(buffer, "decode:%8s", source1);										// gbox
+				sscanf(buffer, "response:%05s", response1);									// gbox
+				sscanf(buffer, "provider: %02s", prov1);									// gbox
 			}
 			if(emu == 1)
-				sscanf(buffer, "source: %08s", source1);													// mgcamd
+				sscanf(buffer, "source: %08s", source1);									// mgcamd
+				sscanf(buffer, "caid: 0x%4s", caid1);										// oscam
+				sscanf(buffer, "pid: 0x%4s", pid1);										// oscam
+				sscanf(buffer, "from: %29s", source1);										// oscam
+				sscanf(buffer, "prov: 0x%6s", prov1);										// oscam
+				sscanf(buffer, "ecm time: %9s",response1);									// oscam
+				sscanf(buffer, "reader: %18s", reader);										// oscam
+				sscanf(buffer, "protocol: %18s", protocol);									// oscam
 			if(emu == 3){
-				sscanf(buffer, "caid: 0x%4s", caid1);														// oscam
-				sscanf(buffer, "pid: 0x%4s", pid1);														// oscam
-				sscanf(buffer, "from: %29s", source1);														// oscam
-				sscanf(buffer, "prov: 0x%6s", prov1);														// oscam
-				sscanf(buffer, "ecm time: %9s",response1);													// oscam
-
-				sscanf(buffer, "reader: %18s", reader);													// oscam
-				sscanf(buffer, "protocol: %18s", protocol);													// oscam
+				sscanf(buffer, "source: %08s", source1);									// osca,
+				sscanf(buffer, "caid: 0x%4s", caid1);										// oscam
+				sscanf(buffer, "pid: 0x%4s", pid1);										// oscam
+				sscanf(buffer, "from: %29s", source1);										// oscam
+				sscanf(buffer, "prov: 0x%6s", prov1);										// oscam
+				sscanf(buffer, "ecm time: %9s",response1);									// oscam
+				sscanf(buffer, "reader: %18s", reader);										// oscam
+				sscanf(buffer, "protocol: %18s", protocol);									// oscam
 			}
 			sscanf(buffer, "%c%c0: %02s %02s %02s %02s %02s %02s %02s %02s",&tmp,&tmp, cw0_[0], cw0_[1], cw0_[2], cw0_[3], cw0_[4], cw0_[5], cw0_[6], cw0_[7]);	// gbox, mgcamd oscam
 			sscanf(buffer, "%c%c1: %02s %02s %02s %02s %02s %02s %02s %02s",&tmp,&tmp, cw1_[0], cw1_[1], cw1_[2], cw1_[3], cw1_[4], cw1_[5], cw1_[6], cw1_[7]);	// gbox, mgcamd oscam
@@ -1212,7 +1219,7 @@ void CInfoViewerBB::paintECM()
 	char share_at[32] = {0};
 	char share_card[5] = {0};
 	char share_id[5] = {0};
-	int share_net = {0};
+	int share_net = 0;
 
 	const char *share_info = "/tmp/share.info";
 	FILE* shareinfo = fopen (share_info, "r");
