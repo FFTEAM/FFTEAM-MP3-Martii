@@ -1,0 +1,10 @@
+#!/bin/sh
+#echo "Aufnahme gestartet..." >> /tmp/test.txt
+# Festplatte wecken
+ls /media/sda1> /dev/null
+# RAM-Cleaner stoppen
+sync
+echo "3" > /proc/sys/vm/drop_caches
+touch /tmp/.ram_cleaner_pause
+/usr/local/bin/sectionsdcontrol --pause
+exit 0
