@@ -666,11 +666,11 @@ void CInfoViewerBB::showBarHdd(int percent)
 void CInfoViewerBB::paint_ca_icons(int caid, char * icon, int &icon_space_offset)
 {
 	char buf[20];
-	int endx = g_InfoViewer->BoxEndX -3;
+	int endx = g_InfoViewer->BoxEndX - 10;
 	int py = g_InfoViewer->BoxEndY + 2; /* hand-crafted, should be automatic */
 	int px = 0;
 	static map<int, std::pair<int,const char*> > icon_map;
-	const int icon_space = 2, icon_number = 10;
+	const int icon_space = 10, icon_number = 10;
 
 	static int icon_offset[icon_number] = {0,0,0,0,0,0,0,0,0,0};
 	static int icon_sizeW [icon_number] = {0,0,0,0,0,0,0,0,0,0};
@@ -713,7 +713,7 @@ void CInfoViewerBB::paint_ca_icons(int caid, char * icon, int &icon_space_offset
 	} else {
 		icon_space_offset += icon_sizeW[icon_map[caid].first];
 		px = endx - icon_space_offset;
-		icon_space_offset += 2;
+		icon_space_offset += 4;
 	}
 
 	if (px) {
@@ -892,11 +892,10 @@ void CInfoViewerBB::showIcon_CA_Status(int /*notfirst*/)
 	}
 }
 
-
 void CInfoViewerBB::paintCA_bar(int left, int right)
 {
-	int xcnt = (g_InfoViewer->BoxEndX - g_InfoViewer->ChanInfoX) / 11;
-	int ycnt = bottom_bar_offset / 11;
+	int xcnt = (g_InfoViewer->BoxEndX - g_InfoViewer->ChanInfoX) / 4;
+	int ycnt = bottom_bar_offset / 4;
 	if (right)
 		right = xcnt - ((right/4)+1);
 	if (left)

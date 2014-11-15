@@ -2697,7 +2697,8 @@ void CNeutrinoApp::RealRun(CMenuWidget &_mainMenu)
 #endif
 			}
 			else if (msg == CRCInput::RC_aux)
-				scartMode(true);
+//				scartMode(true);
+				saveEpg(false);
 			else if (!usermenu.showUserMenu(msg)) {
 				if (msg == CRCInput::RC_home) {
 					CVFD::getInstance()->setMode(CVFD::MODE_TVRADIO);
