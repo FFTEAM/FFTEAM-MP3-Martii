@@ -403,6 +403,9 @@ bool CUserMenu::showUserMenu(neutrino_msg_t msg)
 				const char *pname = g_PluginList->getFileName(count);
 				if (pname && (std::string(pname) == *it)) {
 					keyhelper.get(&key,&icon);
+					if (g_PluginList->getType(count) == CPlugins::P_TYPE_LUA)
+					menu_item = new CMenuForwarder(g_PluginList->getName(count), true, NULL, &StreamFeaturesChanger, pname, key, icon);
+					else
 					menu_item = new CMenuForwarder(g_PluginList->getName(count), true, NULL, this, pname, key, icon);
 					const std::string hint = g_PluginList->getDescription(count);
 					if (hint != "") {

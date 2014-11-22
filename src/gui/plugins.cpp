@@ -483,6 +483,7 @@ CPlugins::p_type_t CPlugins::getPluginType(int type)
 		break;
 	case PLUGIN_TYPE_LUA:
 		return P_TYPE_LUA;
+		break;
 	default:
 		return P_TYPE_DISABLED;
 	}
