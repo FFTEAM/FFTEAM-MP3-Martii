@@ -1569,7 +1569,7 @@ moviebrowser.ask_rec_to_delete Das Löschen des Films beendet auch die laufende 
 moviebrowser.book_add Lesezeichen setzen
 moviebrowser.book_clear_all Lösche alle
 moviebrowser.book_head Markierungen
-moviebrowser.book_lastmoviestop letzter Wiedergabestopp:
+moviebrowser.book_lastmoviestop von zuletzt gesehener Position:
 moviebrowser.book_movieend Filmende:
 moviebrowser.book_moviestart Filmstart:
 moviebrowser.book_name Name:
@@ -1687,7 +1687,7 @@ moviebrowser.short_serie Serie
 moviebrowser.short_size Größe
 moviebrowser.short_title Titel
 moviebrowser.start_head Film starten von Position:
-moviebrowser.start_record_start Aufnahmestart
+moviebrowser.start_record_start von Anfang an abspielen 
 moviebrowser.ts_only Nur Aufnahmen zeigen
 moviebrowser.unlimited unbegrenzt
 moviebrowser.update_if_dest_empty_only Übernehmen nur wenn Ziel leer

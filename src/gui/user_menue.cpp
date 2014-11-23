@@ -402,11 +402,19 @@ bool CUserMenu::showUserMenu(neutrino_msg_t msg)
 			for(; count < number_of_plugins; count++) {
 				const char *pname = g_PluginList->getFileName(count);
 				if (pname && (std::string(pname) == *it)) {
+					if (g_PluginList->getType(count) == CPlugins::P_TYPE_LUA) {
+					char id[5];
+					sprintf(id, "%d", count);
+					neutrino_msg_t d_key = g_PluginList->getKey(count);
+					keyhelper.get(&key,&icon, d_key);
+					menu_item = new CMenuForwarder(g_PluginList->getName(count), true, NULL, &StreamFeaturesChanger, id, key, icon);
+					printf("[neutrino usermenu] lua-plugin %s #%d, set key %d...\n", g_PluginList->getFileName(count), count, g_PluginList->getKey(count));
+					}
+					else {
 					keyhelper.get(&key,&icon);
-					if (g_PluginList->getType(count) == CPlugins::P_TYPE_LUA)
-					menu_item = new CMenuForwarder(g_PluginList->getName(count), true, NULL, &StreamFeaturesChanger, pname, key, icon);
-					else
 					menu_item = new CMenuForwarder(g_PluginList->getName(count), true, NULL, this, pname, key, icon);
+					printf("[neutrino usermenu] std-plugin %s #%d, set key %d...\n", g_PluginList->getFileName(count), count, g_PluginList->getKey(count));
+					}
 					const std::string hint = g_PluginList->getDescription(count);
 					if (hint != "") {
 						const char *hint_icon = NULL;
