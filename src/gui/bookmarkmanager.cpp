@@ -41,6 +41,7 @@
 #include <gui/widget/messagebox.h>
 #include <gui/widget/hintbox.h>
 #include <gui/widget/stringinput.h>
+#include <gui/widget/keyboard_input.h>
 #include <gui/widget/icons.h>
 #include <gui/widget/buttons.h>
 #include <system/helpers.h>
@@ -84,7 +85,7 @@ inline int CBookmarkManager::createBookmark (const std::string & name, const std
 
 int CBookmarkManager::createBookmark (const std::string & url, const std::string & time) {
 	std::string bookmarkname;
-	CStringInputSMS bookmarkname_input(LOCALE_MOVIEPLAYER_BOOKMARKNAME, &bookmarkname, 25, LOCALE_MOVIEPLAYER_BOOKMARKNAME_HINT1, LOCALE_MOVIEPLAYER_BOOKMARKNAME_HINT2, "abcdefghijklmnopqrstuvwxyz0123456789-_");
+	CKeyboardInput bookmarkname_input(LOCALE_MOVIEPLAYER_BOOKMARKNAME, &bookmarkname, 0, NULL, NULL, LOCALE_MOVIEPLAYER_BOOKMARKNAME_HINT1, LOCALE_MOVIEPLAYER_BOOKMARKNAME_HINT2);
 	bookmarkname_input.exec(NULL, "");
 	// TODO: return -1 if no name was entered
 	if (bookmarkname.empty()) return -1;
@@ -109,7 +110,7 @@ void CBookmarkManager::renameBookmark (unsigned int index) {
 	CBookmark & theBookmark = bookmarks[index];
 	char bookmarkname[26];
 	strncpy (bookmarkname, theBookmark.getName(), 25);
-	CStringInputSMS bookmarkname_input(LOCALE_MOVIEPLAYER_BOOKMARKNAME, bookmarkname, 25, LOCALE_MOVIEPLAYER_BOOKMARKNAME_HINT1, LOCALE_MOVIEPLAYER_BOOKMARKNAME_HINT2, "abcdefghijklmnopqrstuvwxyz0123456789-_");
+	CKeyboardInput bookmarkname_input(LOCALE_MOVIEPLAYER_BOOKMARKNAME, bookmarkname, 0, NULL, NULL, LOCALE_MOVIEPLAYER_BOOKMARKNAME_HINT1, LOCALE_MOVIEPLAYER_BOOKMARKNAME_HINT2);
 	bookmarkname_input.exec(NULL, "");
 
 	if (strcmp(theBookmark.getName(), bookmarkname) != 0)

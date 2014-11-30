@@ -46,6 +46,7 @@
 #include "widget/buttons.h"
 #include "bouquetlist.h"
 #include <gui/widget/stringinput.h>
+#include <gui/widget/keyboard_input.h>
 
 #include <driver/screen_max.h>
 #include <driver/fade.h>
@@ -1320,7 +1321,7 @@ int CEventFinderMenu::showMenu(void)
 
 	int shortcut = 1;
 
-	CStringInputSMS stringInput(LOCALE_EVENTFINDER_KEYWORD,m_search_keyword, 20, NONEXISTANT_LOCALE, NONEXISTANT_LOCALE, "abcdefghijklmnopqrstuvwxyz0123456789 -_/()<>=+.,:!?\\'");
+	CKeyboardInput stringInput(LOCALE_EVENTFINDER_KEYWORD,m_search_keyword);
 
 	CMenuForwarder* mf0 	= new CMenuForwarder(LOCALE_EVENTFINDER_KEYWORD, true, NULL, &stringInput, NULL, CRCInput::RC_red);
 	CMenuOptionChooser* mo0 = new CMenuOptionChooser(LOCALE_EVENTFINDER_SEARCH_WITHIN_LIST, m_search_list, SEARCH_LIST_OPTIONS, SEARCH_LIST_OPTION_COUNT, true, this, CRCInput::convertDigitToKey(shortcut++));
