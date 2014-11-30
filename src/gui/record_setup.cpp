@@ -46,6 +46,7 @@
 #include <gui/widget/messagebox.h>
 #include <gui/widget/stringinput.h>
 #include <gui/widget/stringinput_ext.h>
+#include <gui/widget/keyboard_input.h>
 
 #include <timerdclient/timerdclient.h>
 
@@ -190,7 +191,7 @@ int CRecordSetup::showRecordSetup()
 	recordingSettings->addItem(fRecDir);
 
 	//filename template
-	CStringInputSMS* filename_template = new CStringInputSMS(LOCALE_RECORDINGMENU_FILENAME_TEMPLATE, &g_settings.recording_filename_template, 21, LOCALE_RECORDINGMENU_FILENAME_TEMPLATE_HINT, LOCALE_RECORDINGMENU_FILENAME_TEMPLATE_HINT2, "%/-_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ");
+	CKeyboardInput* filename_template = new CKeyboardInput(LOCALE_RECORDINGMENU_FILENAME_TEMPLATE, &g_settings.recording_filename_template, 0, NULL, NULL, LOCALE_RECORDINGMENU_FILENAME_TEMPLATE_HINT, LOCALE_RECORDINGMENU_FILENAME_TEMPLATE_HINT2);
 	CMenuForwarder* ft = new CMenuDForwarder(LOCALE_RECORDINGMENU_FILENAME_TEMPLATE, true, g_settings.recording_filename_template, filename_template);
 	ft->setHint("", LOCALE_MENU_HINT_RECORD_FILENAME_TEMPLATE);
 	recordingSettings->addItem(ft);

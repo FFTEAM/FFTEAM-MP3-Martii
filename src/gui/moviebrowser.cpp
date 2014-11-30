@@ -52,6 +52,7 @@
 #include <gui/widget/messagebox.h>
 #include <gui/widget/stringinput.h>
 #include <gui/widget/stringinput_ext.h>
+#include <gui/widget/keyboard_input.h>
 #include <dirent.h>
 #include <sys/stat.h>
 #include <gui/nfs.h>
@@ -3103,7 +3104,7 @@ int CMovieBrowser::showMovieInfoMenu(MI_MOVIE_INFO* movie_info)
 
     /********************************************************************/
     /**  bookmark ******************************************************/
-    CStringInputSMS*       pBookNameInput[MAX_NUMBER_OF_BOOKMARK_ITEMS];
+    CKeyboardInput*     pBookNameInput[MAX_NUMBER_OF_BOOKMARK_ITEMS];
     CIntInput*          pBookPosIntInput[MAX_NUMBER_OF_BOOKMARK_ITEMS];
     CIntInput*          pBookTypeIntInput[MAX_NUMBER_OF_BOOKMARK_ITEMS];
     CMenuWidget*        pBookItemMenu[MAX_NUMBER_OF_BOOKMARK_ITEMS];
@@ -3117,33 +3118,33 @@ int CMovieBrowser::showMovieInfoMenu(MI_MOVIE_INFO* movie_info)
     bookmarkMenu.addIntroItems(LOCALE_MOVIEBROWSER_BOOK_HEAD);
     bookmarkMenu.addItem( new CMenuForwarder(LOCALE_MOVIEBROWSER_BOOK_CLEAR_ALL, true, NULL, this, "book_clear_all",CRCInput::RC_blue));
     bookmarkMenu.addItem(GenericMenuSeparatorLine);
-    bookmarkMenu.addItem( new CMenuForwarder(LOCALE_MOVIEBROWSER_BOOK_MOVIESTART,    true, bookStartIntInput.getValue(), &bookStartIntInput));
-    bookmarkMenu.addItem( new CMenuForwarder(LOCALE_MOVIEBROWSER_BOOK_MOVIEEND,      true, bookEndIntInput.getValue(),  &bookLastIntInput));
-    bookmarkMenu.addItem( new CMenuForwarder(LOCALE_MOVIEBROWSER_BOOK_LASTMOVIESTOP, true, bookLastIntInput.getValue(),   &bookEndIntInput));
+    bookmarkMenu.addItem( new CMenuForwarder(LOCALE_MOVIEBROWSER_BOOK_MOVIESTART,    true, NULL, &bookStartIntInput));
+    bookmarkMenu.addItem( new CMenuForwarder(LOCALE_MOVIEBROWSER_BOOK_MOVIEEND,      true, NULL,  &bookLastIntInput));
+    bookmarkMenu.addItem( new CMenuForwarder(LOCALE_MOVIEBROWSER_BOOK_LASTMOVIESTOP, true, NULL,   &bookEndIntInput));
     bookmarkMenu.addItem(GenericMenuSeparatorLine);
 
     for(int li =0 ; li < MI_MOVIE_BOOK_USER_MAX && li < MAX_NUMBER_OF_BOOKMARK_ITEMS; li++ )
     {
-        pBookNameInput[li] =    new CStringInputSMS (LOCALE_MOVIEBROWSER_EDIT_BOOK, &movie_info->bookmarks.user[li].name, 20, LOCALE_MOVIEBROWSER_EDIT_BOOK_NAME_INFO1, LOCALE_MOVIEBROWSER_EDIT_BOOK_NAME_INFO2, "abcdefghijklmnopqrstuvwxyz0123456789-.: ");
-        pBookPosIntInput[li] =  new CIntInput (LOCALE_MOVIEBROWSER_EDIT_BOOK, (int *)&movie_info->bookmarks.user[li].pos, 20, LOCALE_MOVIEBROWSER_EDIT_BOOK_POS_INFO1, LOCALE_MOVIEBROWSER_EDIT_BOOK_POS_INFO2);
-        pBookTypeIntInput[li] = new CIntInput (LOCALE_MOVIEBROWSER_EDIT_BOOK, (int *)&movie_info->bookmarks.user[li].length, 20, LOCALE_MOVIEBROWSER_EDIT_BOOK_TYPE_INFO1, LOCALE_MOVIEBROWSER_EDIT_BOOK_TYPE_INFO2);
+        pBookNameInput[li] = new CKeyboardInput (LOCALE_MOVIEBROWSER_EDIT_BOOK, &movie_info->bookmarks.user[li].name, 0, NULL, NULL, LOCALE_MOVIEBROWSER_EDIT_BOOK_POS_INFO1, LOCALE_MOVIEBROWSER_EDIT_BOOK_POS_INFO2);
+        pBookPosIntInput[li] =  new CIntInput (LOCALE_MOVIEBROWSER_EDIT_BOOK, (int *) &movie_info->bookmarks.user[li].pos, 20, LOCALE_MOVIEBROWSER_EDIT_BOOK_POS_INFO1, LOCALE_MOVIEBROWSER_EDIT_BOOK_POS_INFO2);
+        pBookTypeIntInput[li] = new CIntInput (LOCALE_MOVIEBROWSER_EDIT_BOOK, (int *) &movie_info->bookmarks.user[li].length, 20, LOCALE_MOVIEBROWSER_EDIT_BOOK_TYPE_INFO1, LOCALE_MOVIEBROWSER_EDIT_BOOK_TYPE_INFO2);
 
         pBookItemMenu[li] = new CMenuWidget(LOCALE_MOVIEBROWSER_BOOK_HEAD, NEUTRINO_ICON_MOVIEPLAYER);
         pBookItemMenu[li]->addItem(GenericMenuSeparator);
-        pBookItemMenu[li]->addItem( new CMenuForwarder(LOCALE_MOVIEBROWSER_BOOK_NAME,     true,  movie_info->bookmarks.user[li].name,pBookNameInput[li]));
-        pBookItemMenu[li]->addItem( new CMenuForwarder(LOCALE_MOVIEBROWSER_BOOK_POSITION, true,  pBookPosIntInput[li]->getValue(), pBookPosIntInput[li]));
-        pBookItemMenu[li]->addItem( new CMenuForwarder(LOCALE_MOVIEBROWSER_BOOK_TYPE,     true,  pBookTypeIntInput[li]->getValue(),pBookTypeIntInput[li]));
+        pBookItemMenu[li]->addItem( new CMenuForwarder(LOCALE_MOVIEBROWSER_BOOK_NAME,     true, NULL, pBookNameInput[li]));
+        pBookItemMenu[li]->addItem( new CMenuForwarder(LOCALE_MOVIEBROWSER_BOOK_POSITION, true, NULL, pBookPosIntInput[li]));
+        pBookItemMenu[li]->addItem( new CMenuForwarder(LOCALE_MOVIEBROWSER_BOOK_TYPE,     true, NULL, pBookTypeIntInput[li]));
 
-        bookmarkMenu.addItem( new CMenuForwarder (movie_info->bookmarks.user[li].name,   true, pBookPosIntInput[li]->getValue(),pBookItemMenu[li]));
+        bookmarkMenu.addItem( new CMenuForwarder (movie_info->bookmarks.user[li].name,   true, NULL,pBookItemMenu[li]));
     }
 
 /********************************************************************/
 /**  serie******************************************************/
-    CStringInputSMS serieUserInput(LOCALE_MOVIEBROWSER_EDIT_SERIE, &movie_info->serieName, 20, NONEXISTANT_LOCALE, NONEXISTANT_LOCALE, "abcdefghijklmnopqrstuvwxyz0123456789-.: ");
+    CKeyboardInput serieUserInput(LOCALE_MOVIEBROWSER_EDIT_SERIE, &movie_info->serieName, 20);
 
     CMenuWidget serieMenu (LOCALE_MOVIEBROWSER_HEAD, NEUTRINO_ICON_MOVIEPLAYER);
     serieMenu.addIntroItems(LOCALE_MOVIEBROWSER_SERIE_HEAD);
-    serieMenu.addItem( new CMenuForwarder(LOCALE_MOVIEBROWSER_SERIE_NAME, true, movie_info->serieName,&serieUserInput));
+    serieMenu.addItem( new CMenuForwarder(LOCALE_MOVIEBROWSER_SERIE_NAME, true, NULL, &serieUserInput));
     serieMenu.addItem(GenericMenuSeparatorLine);
     for(unsigned int li=0; li < m_vHandleSerienames.size(); li++)
        serieMenu.addItem( new CMenuSelector(m_vHandleSerienames[li]->serieName.c_str(), true,  movie_info->serieName));
@@ -3182,15 +3183,14 @@ int CMovieBrowser::showMovieInfoMenu(MI_MOVIE_INFO* movie_info)
         snprintf(size,BUFFER_SIZE,"%5" PRIu64 "",movie_info->file.Size>>20);
     }
 
-    CStringInputSMS titelUserInput(LOCALE_MOVIEBROWSER_INFO_TITLE,            &movie_info->epgTitle, (movie_info->epgTitle.empty() || (movie_info->epgTitle.size() < MAX_STRING)) ? MAX_STRING:movie_info->epgTitle.size(), NONEXISTANT_LOCALE, NONEXISTANT_LOCALE, "abcdefghijklmnopqrstuvwxyz0123456789-.: ");
-    //CStringInputSMS titelUserInput(LOCALE_MOVIEBROWSER_INFO_TITLE,            &movie_info->epgTitle, MAX_STRING, NONEXISTANT_LOCALE, NONEXISTANT_LOCALE, "abcdefghijklmnopqrstuvwxyz0123456789-.: ");
-    CStringInputSMS channelUserInput(LOCALE_MOVIEBROWSER_INFO_CHANNEL,        &movie_info->epgChannel, MAX_STRING, NONEXISTANT_LOCALE, NONEXISTANT_LOCALE, "abcdefghijklmnopqrstuvwxyz0123456789-.: ");
-    CStringInputSMS epgUserInput(LOCALE_MOVIEBROWSER_INFO_INFO1,              &movie_info->epgInfo1, 20, NONEXISTANT_LOCALE, NONEXISTANT_LOCALE, "abcdefghijklmnopqrstuvwxyz0123456789-.: ");
+    CKeyboardInput titelUserInput(LOCALE_MOVIEBROWSER_INFO_TITLE,            &movie_info->epgTitle, (movie_info->epgTitle.empty() || (movie_info->epgTitle.size() < MAX_STRING)) ? MAX_STRING:movie_info->epgTitle.size());
+    CKeyboardInput channelUserInput(LOCALE_MOVIEBROWSER_INFO_CHANNEL,        &movie_info->epgChannel, MAX_STRING);
+    CKeyboardInput epgUserInput(LOCALE_MOVIEBROWSER_INFO_INFO1,              &movie_info->epgInfo1, 20);
+    CKeyboardInput countryUserInput(LOCALE_MOVIEBROWSER_INFO_PRODCOUNTRY,    &movie_info->productionCountry, 11);
     CDateInput   dateUserDateInput(LOCALE_MOVIEBROWSER_INFO_LENGTH,        &movie_info->dateOfLastPlay, NONEXISTANT_LOCALE, NONEXISTANT_LOCALE);
     CDateInput   recUserDateInput(LOCALE_MOVIEBROWSER_INFO_LENGTH,         &movie_info->file.Time, NONEXISTANT_LOCALE, NONEXISTANT_LOCALE);
-    CIntInput    lengthUserIntInput(LOCALE_MOVIEBROWSER_INFO_LENGTH,       (int *)&movie_info->length, 3, NONEXISTANT_LOCALE, NONEXISTANT_LOCALE);
-    CStringInputSMS countryUserInput(LOCALE_MOVIEBROWSER_INFO_PRODCOUNTRY,    &movie_info->productionCountry, 11, NONEXISTANT_LOCALE, NONEXISTANT_LOCALE, "ABCDEFGHIJKLMNOPQRSTUVWXYZ ");
-    CIntInput    yearUserIntInput(LOCALE_MOVIEBROWSER_INFO_PRODYEAR,       (int *)&movie_info->productionDate, 4, NONEXISTANT_LOCALE, NONEXISTANT_LOCALE);
+    CIntInput    lengthUserIntInput(LOCALE_MOVIEBROWSER_INFO_LENGTH,       (int *) &movie_info->length, 3, NONEXISTANT_LOCALE, NONEXISTANT_LOCALE);
+    CIntInput    yearUserIntInput(LOCALE_MOVIEBROWSER_INFO_PRODYEAR,       (int *) &movie_info->productionDate, 4, NONEXISTANT_LOCALE, NONEXISTANT_LOCALE);
 
     CMenuWidget movieInfoMenu(LOCALE_MOVIEBROWSER_HEAD, NEUTRINO_ICON_MOVIEPLAYER /*,m_cBoxFrame.iWidth*/); //TODO: check
 
@@ -3199,17 +3199,17 @@ int CMovieBrowser::showMovieInfoMenu(MI_MOVIE_INFO* movie_info)
     movieInfoMenu.addItem( new CMenuForwarder(LOCALE_MOVIEBROWSER_INFO_HEAD_UPDATE, true, NULL,      &movieInfoMenuUpdate, NULL,                                CRCInput::RC_green));
     movieInfoMenu.addItem( new CMenuForwarder(LOCALE_MOVIEBROWSER_BOOK_HEAD,           true, NULL,      &bookmarkMenu, NULL,                                    CRCInput::RC_blue));
     movieInfoMenu.addItem(GenericMenuSeparatorLine);
-    movieInfoMenu.addItem( new CMenuForwarder(LOCALE_MOVIEBROWSER_INFO_TITLE,          true, movie_info->epgTitle,  &titelUserInput,NULL,                       CRCInput::RC_1));
+    movieInfoMenu.addItem( new CMenuForwarder(LOCALE_MOVIEBROWSER_INFO_TITLE,          true, NULL,  &titelUserInput,NULL,                       CRCInput::RC_1));
     movieInfoMenu.addItem( new CMenuForwarder(LOCALE_MOVIEBROWSER_INFO_SERIE,          true, movie_info->serieName, &serieMenu,NULL,                            CRCInput::RC_2));
-    movieInfoMenu.addItem( new CMenuForwarder(LOCALE_MOVIEBROWSER_INFO_INFO1,          (movie_info->epgInfo1.size() <= MAX_STRING) /*true*/,movie_info->epgInfo1, &epgUserInput, NULL, CRCInput::RC_3));
+    movieInfoMenu.addItem( new CMenuForwarder(LOCALE_MOVIEBROWSER_INFO_INFO1,          (movie_info->epgInfo1.size() <= MAX_STRING) /*true*/,NULL, &epgUserInput, NULL, CRCInput::RC_3));
     movieInfoMenu.addItem( new CMenuOptionChooser(LOCALE_MOVIEBROWSER_INFO_GENRE_MAJOR, &movie_info->genreMajor, GENRE_ALL, GENRE_ALL_COUNT, true,NULL,         CRCInput::RC_4));
     movieInfoMenu.addItem(GenericMenuSeparatorLine);
     movieInfoMenu.addItem( new CMenuOptionNumberChooser(LOCALE_MOVIEBROWSER_INFO_QUALITY,&movie_info->quality,true,0,3, NULL));
     movieInfoMenu.addItem( new CMenuOptionChooser(LOCALE_MOVIEBROWSER_INFO_PARENTAL_LOCKAGE, &movie_info->parentalLockAge, MESSAGEBOX_PARENTAL_LOCKAGE_OPTIONS, MESSAGEBOX_PARENTAL_LOCKAGE_OPTION_COUNT, true,NULL,         CRCInput::RC_6));
-    movieInfoMenu.addItem( new CMenuForwarder(LOCALE_MOVIEBROWSER_INFO_PRODYEAR,       true, yearUserIntInput.getValue(), &yearUserIntInput,NULL,   CRCInput::RC_7));
-    movieInfoMenu.addItem( new CMenuForwarder(LOCALE_MOVIEBROWSER_INFO_PRODCOUNTRY,    true, movie_info->productionCountry, &countryUserInput,NULL,   CRCInput::RC_8));
-    movieInfoMenu.addItem( new CMenuForwarder(LOCALE_MOVIEBROWSER_INFO_LENGTH,         true, lengthUserIntInput.getValue(), &lengthUserIntInput,NULL, CRCInput::RC_9));
-    movieInfoMenu.addItem( new CMenuForwarder(LOCALE_MOVIEBROWSER_INFO_CHANNEL,        true, movie_info->epgChannel, &channelUserInput,NULL,   CRCInput::RC_0));//LOCALE_TIMERLIST_CHANNEL
+    movieInfoMenu.addItem( new CMenuForwarder(LOCALE_MOVIEBROWSER_INFO_PRODYEAR,       true, NULL, &yearUserIntInput,NULL,   CRCInput::RC_7));
+    movieInfoMenu.addItem( new CMenuForwarder(LOCALE_MOVIEBROWSER_INFO_PRODCOUNTRY,    true, NULL, &countryUserInput,NULL,   CRCInput::RC_8));
+    movieInfoMenu.addItem( new CMenuForwarder(LOCALE_MOVIEBROWSER_INFO_LENGTH,         true, NULL, &lengthUserIntInput,NULL, CRCInput::RC_9));
+    movieInfoMenu.addItem( new CMenuForwarder(LOCALE_MOVIEBROWSER_INFO_CHANNEL,        true, NULL, &channelUserInput,NULL,   CRCInput::RC_0));//LOCALE_TIMERLIST_CHANNEL
     movieInfoMenu.addItem(GenericMenuSeparatorLine);
     movieInfoMenu.addItem( new CMenuForwarder(LOCALE_MOVIEBROWSER_INFO_PATH,           false, dirItNr)); //LOCALE_TIMERLIST_RECORDING_DIR
     movieInfoMenu.addItem( new CMenuForwarder(LOCALE_MOVIEBROWSER_INFO_PREVPLAYDATE,   false, dateUserDateInput.getValue().c_str()));//LOCALE_FLASHUPDATE_CURRENTVERSIONDATE
@@ -3291,16 +3291,16 @@ bool CMovieBrowser::showMenu(MI_MOVIE_INFO* movie_info)
 
     CMenuWidget optionsMenuBrowser(LOCALE_MOVIEBROWSER_HEAD, NEUTRINO_ICON_MOVIEPLAYER);
     optionsMenuBrowser.addIntroItems(LOCALE_MOVIEBROWSER_OPTION_BROWSER);
-    optionsMenuBrowser.addItem( new CMenuForwarder(LOCALE_MOVIEBROWSER_LAST_PLAY_MAX_ITEMS,    true, playMaxUserIntInput.getValue(),   &playMaxUserIntInput));
-    optionsMenuBrowser.addItem( new CMenuForwarder(LOCALE_MOVIEBROWSER_LAST_RECORD_MAX_ITEMS,  true, recMaxUserIntInput.getValue(), &recMaxUserIntInput));
-    optionsMenuBrowser.addItem( new CMenuForwarder(LOCALE_MOVIEBROWSER_BROWSER_FRAME_HIGH,     true, browserFrameUserIntInput.getValue(), &browserFrameUserIntInput));
+    optionsMenuBrowser.addItem( new CMenuForwarder(LOCALE_MOVIEBROWSER_LAST_PLAY_MAX_ITEMS,    true, NULL, &playMaxUserIntInput));
+    optionsMenuBrowser.addItem( new CMenuForwarder(LOCALE_MOVIEBROWSER_LAST_RECORD_MAX_ITEMS,  true, NULL, &recMaxUserIntInput));
+    optionsMenuBrowser.addItem( new CMenuForwarder(LOCALE_MOVIEBROWSER_BROWSER_FRAME_HIGH,     true, NULL, &browserFrameUserIntInput));
     optionsMenuBrowser.addItem( new CMenuSeparator(CMenuSeparator::LINE | CMenuSeparator::STRING, LOCALE_MOVIEBROWSER_BROWSER_ROW_HEAD));
-    optionsMenuBrowser.addItem( new CMenuForwarder(LOCALE_MOVIEBROWSER_BROWSER_ROW_NR,     true, browserRowNrIntInput.getValue(), &browserRowNrIntInput));
+    optionsMenuBrowser.addItem( new CMenuForwarder(LOCALE_MOVIEBROWSER_BROWSER_ROW_NR,         true, NULL, &browserRowNrIntInput));
     optionsMenuBrowser.addItem(GenericMenuSeparator);
     for(i=0; i<MB_MAX_ROWS; i++)
     {
         optionsMenuBrowser.addItem( new CMenuOptionChooser(LOCALE_MOVIEBROWSER_BROWSER_ROW_ITEM, (int*)(&m_settings.browserRowItem[i]), MESSAGEBOX_BROWSER_ROW_ITEM, MESSAGEBOX_BROWSER_ROW_ITEM_COUNT, true ));
-        optionsMenuBrowser.addItem( new CMenuForwarder(LOCALE_MOVIEBROWSER_BROWSER_ROW_WIDTH,    true, browserRowWidthIntInput[i]->getValue(),      browserRowWidthIntInput[i]));
+        optionsMenuBrowser.addItem( new CMenuForwarder(LOCALE_MOVIEBROWSER_BROWSER_ROW_WIDTH,  true, NULL,      browserRowWidthIntInput[i]));
         if(i<MB_MAX_ROWS-1)
             optionsMenuBrowser.addItem(GenericMenuSeparator);
     }
@@ -4086,7 +4086,7 @@ bool CMovieBrowser::showNKMenu(bool calledExternally)
 	}
 
 	std::string search = m_settings.nksearch;
-	CStringInputSMS stringInput(LOCALE_MOVIEBROWSER_YT_SEARCH, &search, 20, NONEXISTANT_LOCALE, NONEXISTANT_LOCALE, "abcdefghijklmnopqrstuvwxyz0123456789 -_/()<>=+.,:!?\\'");
+	CKeyboardInput stringInput(LOCALE_MOVIEBROWSER_YT_SEARCH, &search);
 	if (!calledExternally) {
 		mainMenu.addItem(new CMenuForwarder(LOCALE_MOVIEBROWSER_YT_SEARCH, true, search, &stringInput, NULL, CRCInput::RC_nokey, ""));
 		mainMenu.addItem(new CMenuForwarder(LOCALE_EVENTFINDER_START_SEARCH, true, NULL, selector, to_string(cNKFeedParser::SEARCH).c_str(), CRCInput::RC_green));
@@ -4208,7 +4208,7 @@ bool CMovieBrowser::showYTMenu(bool calledExternally)
 	}
 
 	std::string search = m_settings.ytsearch;
-	CStringInputSMS stringInput(LOCALE_MOVIEBROWSER_YT_SEARCH, &search, 20, NONEXISTANT_LOCALE, NONEXISTANT_LOCALE, "abcdefghijklmnopqrstuvwxyz0123456789 -_/()<>=+.,:!?\\'");
+	CKeyboardInput stringInput(LOCALE_MOVIEBROWSER_YT_SEARCH, &search);
 	if (!calledExternally) {
 		mainMenu.addItem(new CMenuForwarder(LOCALE_MOVIEBROWSER_YT_SEARCH, true, search, &stringInput, NULL, CRCInput::RC_nokey, ""));
 		mainMenu.addItem(new CMenuOptionChooser(LOCALE_MOVIEBROWSER_YT_ORDERBY, &m_settings.ytorderby, YT_ORDERBY_OPTIONS, YT_ORDERBY_OPTION_COUNT, true, NULL, CRCInput::RC_nokey, "", true));

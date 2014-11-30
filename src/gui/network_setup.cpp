@@ -41,6 +41,7 @@
 #include <gui/widget/icons.h>
 #include <gui/widget/stringinput.h>
 #include <gui/widget/stringinput_ext.h>
+#include <gui/widget/keyboard_input.h>
 #include <gui/widget/hintbox.h>
 #include <gui/widget/messagebox.h>
 #include <gui/network_service.h>
@@ -259,12 +260,13 @@ int CNetworkSetup::showNetworkSetup()
 
 	//prepare input entries
 	CIPInput networkSettings_NetworkIP(LOCALE_NETWORKMENU_IPADDRESS  , &network_address   , LOCALE_IPSETUP_HINT_1, LOCALE_IPSETUP_HINT_2, this);
-	CIPInput networkSettings_NetMask  (LOCALE_NETWORKMENU_NETMASK    , &network_netmask   , LOCALE_IPSETUP_HINT_1, LOCALE_IPSETUP_HINT_2, this);
+	CIPInput networkSettings_NetMask  (LOCALE_NETWORKMENU_NETMASK    , &network_netmask   , LOCALE_IPSETUP_HINT_1, LOCALE_IPSETUP_HINT_2);
+	CIPInput networkSettings_Broadcast(LOCALE_NETWORKMENU_BROADCAST  , &network_broadcast , LOCALE_IPSETUP_HINT_1, LOCALE_IPSETUP_HINT_2);
 	CIPInput networkSettings_Gateway  (LOCALE_NETWORKMENU_GATEWAY    , &network_gateway   , LOCALE_IPSETUP_HINT_1, LOCALE_IPSETUP_HINT_2);
 	CIPInput networkSettings_NameServer(LOCALE_NETWORKMENU_NAMESERVER, &network_nameserver, LOCALE_IPSETUP_HINT_1, LOCALE_IPSETUP_HINT_2);
 
 	//hostname
-	CStringInputSMS networkSettings_Hostname(LOCALE_NETWORKMENU_HOSTNAME, &network_hostname, 30, LOCALE_NETWORKMENU_HOSTNAME_HINT1, LOCALE_NETWORKMENU_HOSTNAME_HINT2, "abcdefghijklmnopqrstuvwxyz0123456789-. ");
+	CKeyboardInput networkSettings_Hostname(LOCALE_NETWORKMENU_HOSTNAME, &network_hostname, 0, NULL, NULL, LOCALE_NETWORKMENU_HOSTNAME_HINT1, LOCALE_NETWORKMENU_HOSTNAME_HINT2);
 
 	//auto start
 	CMenuOptionChooser* o1 = new CMenuOptionChooser(LOCALE_NETWORKMENU_SETUPONSTARTUP, &network_automatic_start, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true);
@@ -273,13 +275,12 @@ int CNetworkSetup::showNetworkSetup()
 	//dhcp
 	network_dhcp 	= networkConfig->inet_static ? NETWORK_DHCP_OFF : NETWORK_DHCP_ON;
 
-	CMenuForwarder *m1 = new CMenuForwarder(LOCALE_NETWORKMENU_IPADDRESS , networkConfig->inet_static, NULL, &networkSettings_NetworkIP );
-	CMenuForwarder *m2 = new CMenuForwarder(LOCALE_NETWORKMENU_NETMASK   , networkConfig->inet_static, NULL, &networkSettings_NetMask   );
-	setBroadcast();
-	CMenuForwarder *m3 = new CMenuForwarder(LOCALE_NETWORKMENU_BROADCAST , false,			   network_broadcast);
-	CMenuForwarder *m4 = new CMenuForwarder(LOCALE_NETWORKMENU_GATEWAY   , networkConfig->inet_static, NULL, &networkSettings_Gateway   );
-	CMenuForwarder *m5 = new CMenuForwarder(LOCALE_NETWORKMENU_NAMESERVER, networkConfig->inet_static, NULL, &networkSettings_NameServer);
-	CMenuForwarder *m8 = new CMenuForwarder(LOCALE_NETWORKMENU_HOSTNAME  , true,			   NULL, &networkSettings_Hostname  );
+	CMenuForwarder *m1 = new CMenuForwarder(LOCALE_NETWORKMENU_IPADDRESS , networkConfig->inet_static, network_address   , &networkSettings_NetworkIP );
+	CMenuForwarder *m2 = new CMenuForwarder(LOCALE_NETWORKMENU_NETMASK   , networkConfig->inet_static, network_netmask   , &networkSettings_NetMask   );
+	CMenuForwarder *m3 = new CMenuForwarder(LOCALE_NETWORKMENU_BROADCAST , networkConfig->inet_static, network_broadcast , &networkSettings_Broadcast );
+	CMenuForwarder *m4 = new CMenuForwarder(LOCALE_NETWORKMENU_GATEWAY   , networkConfig->inet_static, network_gateway   , &networkSettings_Gateway   );
+	CMenuForwarder *m5 = new CMenuForwarder(LOCALE_NETWORKMENU_NAMESERVER, networkConfig->inet_static, network_nameserver, &networkSettings_NameServer);
+	CMenuForwarder *m8 = new CMenuForwarder(LOCALE_NETWORKMENU_HOSTNAME  , true , network_hostname , &networkSettings_Hostname  );
 
 	m1->setHint("", LOCALE_MENU_HINT_NET_IPADDRESS);
 	m2->setHint("", LOCALE_MENU_HINT_NET_NETMASK);
@@ -338,9 +339,9 @@ int CNetworkSetup::showNetworkSetup()
 	if(ifcount > 1) // if there is only one, its probably wired
 	{
 		//ssid
-		CStringInputSMS * networkSettings_ssid = new CStringInputSMS(LOCALE_NETWORKMENU_SSID, &network_ssid, 30, NONEXISTANT_LOCALE, NONEXISTANT_LOCALE, "abcdefghijklmnopqrstuvwxyz0123456789 -_/()<>=+.,:!?\\'");
+		CKeyboardInput * networkSettings_ssid = new CKeyboardInput(LOCALE_NETWORKMENU_SSID, &network_ssid);
 		//key
-		CStringInputSMS * networkSettings_key = new CStringInputSMS(LOCALE_NETWORKMENU_PASSWORD, &network_key, 30, NONEXISTANT_LOCALE, NONEXISTANT_LOCALE, "abcdefghijklmnopqrstuvwxyz0123456789-.! ");
+		CKeyboardInput * networkSettings_key = new CKeyboardInput(LOCALE_NETWORKMENU_PASSWORD, &network_key);
 		CMenuForwarder *m9 = new CMenuDForwarder(LOCALE_NETWORKMENU_SSID      , networkConfig->wireless, NULL, networkSettings_ssid );
 		CMenuForwarder *m10 = new CMenuDForwarder(LOCALE_NETWORKMENU_PASSWORD , networkConfig->wireless, NULL, networkSettings_key );
 		CMenuForwarder *m11 = new CMenuForwarder(LOCALE_NETWORKMENU_SSID_SCAN , networkConfig->wireless, NULL, this, "scanssid");
@@ -420,13 +421,13 @@ int CNetworkSetup::showNetworkSetup()
 void CNetworkSetup::showNetworkNTPSetup(CMenuWidget *menu_ntp)
 {
 	//prepare ntp input
-	CStringInputSMS * networkSettings_NtpServer = new CStringInputSMS(LOCALE_NETWORKMENU_NTPSERVER, &g_settings.network_ntpserver, 30, LOCALE_NETWORKMENU_NTPSERVER_HINT1, LOCALE_NETWORKMENU_NTPSERVER_HINT2, "abcdefghijklmnopqrstuvwxyz0123456789-. ", sectionsdConfigNotifier);
+	CKeyboardInput * networkSettings_NtpServer = new CKeyboardInput(LOCALE_NETWORKMENU_NTPSERVER, &g_settings.network_ntpserver, 0, sectionsdConfigNotifier, NULL, LOCALE_NETWORKMENU_NTPSERVER_HINT1, LOCALE_NETWORKMENU_NTPSERVER_HINT2);
 
 	CStringInput * networkSettings_NtpRefresh = new CStringInput(LOCALE_NETWORKMENU_NTPREFRESH, &g_settings.network_ntprefresh, 3,LOCALE_NETWORKMENU_NTPREFRESH_HINT1, LOCALE_NETWORKMENU_NTPREFRESH_HINT2 , "0123456789 ", sectionsdConfigNotifier);
 
 	CMenuOptionChooser *ntp1 = new CMenuOptionChooser(LOCALE_NETWORKMENU_NTPENABLE, &g_settings.network_ntpenable, OPTIONS_NTPENABLE_OPTIONS, OPTIONS_NTPENABLE_OPTION_COUNT, true, sectionsdConfigNotifier);
-	CMenuForwarder *ntp2 = new CMenuDForwarder( LOCALE_NETWORKMENU_NTPSERVER, true , NULL, networkSettings_NtpServer );
-	CMenuForwarder *ntp3 = new CMenuDForwarder( LOCALE_NETWORKMENU_NTPREFRESH, true , NULL, networkSettings_NtpRefresh );
+	CMenuForwarder *ntp2 = new CMenuDForwarder( LOCALE_NETWORKMENU_NTPSERVER, true , g_settings.network_ntpserver, networkSettings_NtpServer );
+	CMenuForwarder *ntp3 = new CMenuDForwarder( LOCALE_NETWORKMENU_NTPREFRESH, true , g_settings.network_ntprefresh, networkSettings_NtpRefresh );
 
 	ntp1->setHint("", LOCALE_MENU_HINT_NET_NTPENABLE);
 	ntp2->setHint("", LOCALE_MENU_HINT_NET_NTPSERVER);
@@ -641,7 +642,7 @@ void CNetworkSetup::restoreNetworkSettings()
 	network_dhcp			= old_network_dhcp;
 	network_address			= old_network_address;
 	network_netmask			= old_network_netmask;
-	setBroadcast();
+	network_broadcast		= old_network_broadcast;
 	network_nameserver		= old_network_nameserver;
 	network_gateway			= old_network_gateway;
 	network_hostname		= old_network_hostname;

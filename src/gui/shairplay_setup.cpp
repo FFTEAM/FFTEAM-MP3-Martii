@@ -27,6 +27,7 @@
 #include <global.h>
 #include <libgen.h>
 #include <neutrino.h>
+#include <gui/widget/keyboard_input.h>
 #include <driver/screen_max.h>
 #include <driver/shairplay.h>
 #include "mymenu.h"
@@ -60,10 +61,8 @@ void CShairPlaySetup::Show()
 	std::string shairplay_apname_old = g_settings.shairplay_apname;
 	std::string shairplay_password_old = g_settings.shairplay_password;
 
-	CStringInputSMS si_apname(LOCALE_SHAIRPLAY_APNAME, &g_settings.shairplay_apname, 20,
-		NONEXISTANT_LOCALE, NONEXISTANT_LOCALE, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.-");
-	CStringInputSMS si_password(LOCALE_SHAIRPLAY_PASSWORD, &g_settings.shairplay_password, 20,
-		NONEXISTANT_LOCALE, NONEXISTANT_LOCALE, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 -_/()<>=+.,:!?\\'");
+	CKeyboardInput si_apname(LOCALE_SHAIRPLAY_APNAME, &g_settings.shairplay_apname);
+	CKeyboardInput si_password(LOCALE_SHAIRPLAY_PASSWORD, &g_settings.shairplay_password);
 
 	CMenuWidget m(LOCALE_SHAIRPLAY_HEAD, NEUTRINO_ICON_AUDIO, width);
 	m.addIntroItems(NONEXISTANT_LOCALE);

@@ -41,6 +41,7 @@
 #include <gui/update_ext.h>
 #include <gui/update_settings.h>
 #include <gui/widget/icons.h>
+#include <gui/widget/keyboard_input.h>
 #include <driver/screen_max.h>
 #include <system/debug.h>
 
@@ -50,7 +51,7 @@ CUpdateSettings::CUpdateSettings(CMenuForwarder * update_item)
 	width = w_max (40, 10);
 	updateItem = update_item;
 #ifdef USE_SMS_INPUT
-	input_url_file = new CStringInputSMS(LOCALE_FLASHUPDATE_URL_FILE, g_settings.softupdate_url_file, 30, NONEXISTANT_LOCALE, NONEXISTANT_LOCALE, "abcdefghijklmnopqrstuvwxyz0123456789!""$%&/()=?-. ");
+	input_url_file = new CKeyboardInput(LOCALE_FLASHUPDATE_URL_FILE, g_settings.softupdate_url_file);
 #endif
 }
 
