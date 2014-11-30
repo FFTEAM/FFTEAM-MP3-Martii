@@ -1009,7 +1009,7 @@ void CInfoViewerBB::paintEmuIcons(int decMode)
 		GBOX,MGCAMD,OSCAM,OSEMU,WICARD,CAMD3,NEWCS,CS2GBOX,NET,EMU,CARD,ATTACK,GSMS
 	};
 	static int emus_icon_sizeW[GSMS+1] = {0};
-	const char *icon_emu[GSMS+1] = {"gbox", "mgcamd", "oscam", "osemu", "wicard", "camd3" "newcs", "cs2gbox", "net", "emu", "card", "attack", "gsms"};
+	const char *icon_emu[GSMS+1] = {"gbox", "mgcamd", "oscam", "osemu", "wicard", "camd3", "newcs", "cs2gbox", "net", "emu", "card", "attack", "gsms"};
 	int icon_sizeH = 0;
 	static int ga = g_InfoViewer->ChanInfoX+30+16;
 	if (emus_icon_sizeW[GBOX] == 0)
