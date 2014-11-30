@@ -38,13 +38,17 @@
 #include <sys/vfs.h>
 #include <dirent.h>
 #include <dlfcn.h>
+#include <mntent.h>
 #include <sys/mount.h>
+#include <blkid/blkid.h>
 
 #include <global.h>
 #include <neutrino.h>
 #include <neutrino_menue.h>
 #include "hdd_menu.h"
 
+#include <driver/display.h>
+#include <gui/filebrowser.h>
 #include <gui/widget/icons.h>
 #include <gui/widget/stringinput.h>
 #include <gui/widget/messagebox.h>
@@ -61,8 +65,12 @@
 #define e2fsckBinary   "/sbin/e2fsck"
 #define ext3FsckBinary "/sbin/fsck.ext3"
 #define ext4FsckBinary "/sbin/fsck.ext4"
+#define ext2FsckBinary "/sbin/fsck.ext2"
+#define jfsFsckBinary  "/sbin/fsck.jfs"
 #define ext3MkfsBinary "/sbin/mkfs.ext3"
 #define ext4MkfsBinary "/sbin/mkfs.ext4"
+#define ext2MkfsBinary "/sbin/mkfs.ext2"
+#define jfsMkfsBinary  "/sbin/mkfs.jfs"
 #define blkidBinary    "/sbin/blkid"
 
 #define HDD_NOISE_OPTION_COUNT 4
@@ -74,12 +82,15 @@ const CMenuOptionChooser::keyval HDD_NOISE_OPTIONS[HDD_NOISE_OPTION_COUNT] =
 	{ 254, LOCALE_HDD_FAST }
 };
 
-#define HDD_FILESYS_OPTION_COUNT 2
+#define HDD_FILESYS_OPTION_COUNT 4
 const CMenuOptionChooser::keyval_ext HDD_FILESYS_OPTIONS[HDD_FILESYS_OPTION_COUNT] =
 {
 	{ fs_ext3, NONEXISTANT_LOCALE, "ext3" },
-	{ fs_ext4, NONEXISTANT_LOCALE, "ext4" }
+	{ fs_ext4, NONEXISTANT_LOCALE, "ext4" },
+	{ fs_ext2, NONEXISTANT_LOCALE, "ext2" },
+	{ fs_jfs, NONEXISTANT_LOCALE, "jfs" }
 };
+
 #define HDD_SLEEP_OPTION_COUNT 6
 const CMenuOptionChooser::keyval HDD_SLEEP_OPTIONS[HDD_SLEEP_OPTION_COUNT] =
 {
@@ -318,11 +329,13 @@ int CHDDMenuHandler::doMenu ()
 			g_settings.hdd_fs = fs_ext3;
 		else if (fmt_type == "ext4")
 			g_settings.hdd_fs = fs_ext4;
+		else if (fmt_type == "ext2")
+			g_settings.hdd_fs = fs_ext2;
+		else if (fmt_type == "jfs")
+			g_settings.hdd_fs = fs_jfs;
 		else
 			g_settings.hdd_fs = fs_ext3;
-		if (!ext4MkfsBinaryExist)
-			g_settings.hdd_fs = fs_ext3;
-		mc = new CMenuOptionChooser(LOCALE_HDD_FS, &g_settings.hdd_fs, HDD_FILESYS_OPTIONS, HDD_FILESYS_OPTION_COUNT, ext4MkfsBinaryExist);
+		mc = new CMenuOptionChooser(LOCALE_HDD_FS, &g_settings.hdd_fs, HDD_FILESYS_OPTIONS, HDD_FILESYS_OPTION_COUNT, true);
 		mc->setHint("", LOCALE_MENU_HINT_HDD_FMT);
 		tempMenu[i]->addItem(mc);
 
@@ -617,7 +630,6 @@ int CHDDFmtExec::exec(CMenuTarget* /*parent*/, const std::string& key)
 	bool srun = my_system(3, "killall", "-9", "smbd");
 
 	//res = check_and_umount(dst);
-	//res = check_and_umount(src, dst);
 	res = umount_all(key.c_str());
 	printf("CHDDFmtExec: umount res %d\n", res);
 
@@ -685,18 +697,16 @@ int CHDDFmtExec::exec(CMenuTarget* /*parent*/, const std::string& key)
 
 	switch(g_settings.hdd_fs) {
 		case fs_ext3:
-			if (mke3fs.empty()) {
-				fprintf(stderr, "CHDDFmtExec: ext3 requested, but mkfs.ext3 not found!\n");
-				mke3fs = "/bin/false"; /* returns failure */
-			}
-			snprintf(cmd, sizeof(cmd), "%s -T largefile -m0 %s", mke3fs.c_str(), src);
+			snprintf(cmd, sizeof(cmd), "%s -L RECORD -T largefile -m0 %s", ext3MkfsBinary, src);
 			break;
 		case fs_ext4:
-			if (mke4fs.empty()) {
-				fprintf(stderr, "CHDDFmtExec: ext4 requested, but mkfs.ext4 not found!\n");
-				mke4fs = "/bin/false";
-			}
-			snprintf(cmd, sizeof(cmd), "%s -T largefile -m0 %s", mke4fs.c_str(), src);
+			snprintf(cmd, sizeof(cmd), "%s -L RECORD -T largefile -m0 %s", ext4MkfsBinary, src);
+			break;
+		case fs_ext2:
+			snprintf(cmd, sizeof(cmd), "%s -L RECORD -T largefile -m0 %s", ext2MkfsBinary, src);
+			break;
+		case fs_jfs:
+			snprintf(cmd, sizeof(cmd), "%s -L RECORD -q %s", jfsMkfsBinary, src);
 			break;
 		default:
 			return 0;
@@ -796,29 +806,46 @@ _remount:
 	if ((res = mount_all(key.c_str())))
 	{
         switch(g_settings.hdd_fs) {
-                case fs_ext3:
-			safe_mkdir(dst);
-			res = mount(src, dst, "ext3", 0, NULL);
-                        break;
-                case fs_ext4:
-			safe_mkdir(dst);
-			res = mount(src, dst, "ext4", 0, NULL);
-                        break;
-		default:
-                        break;
-		}
+			case fs_ext3:
+				safe_mkdir(dst);
+				res = mount(src, dst, "ext3", 0, NULL);
+				break;
+			case fs_ext4:
+				safe_mkdir(dst);
+				res = mount(src, dst, "ext4", 0, NULL);
+				break;
+			case fs_ext2:
+				safe_mkdir(dst);
+				res = mount(src, dst, "ext2", 0, NULL);
+				break;
+			case fs_jfs:
+				safe_mkdir(dst);
+				res = mount(src, dst, "jfs", 0, NULL);
+				break;
+			default:
+				break;
+        }
 	}
 #ifndef ASSUME_MDEV
 	f = fopen("/proc/sys/kernel/hotplug", "w");
 	if(f) {
+#ifdef ASSUME_MDEV
+		fprintf(f, "/sbin/mdev\n");
+#else
 		fprintf(f, "/sbin/hotplug\n");
+#endif
 		fclose(f);
 	}
 #else
 	/* mounting is asynchronous via mdev, so wait for the directory to appear */
 	for (int i = 0; i < 20; i++) {
-		if (check_dir(dst))
-			break;
+		struct statfs s;
+		if (::statfs(dst, &s) == 0) {
+			if (s.f_type == 0xEF53)		/* EXT3_SUPER_MAGIC */
+				break;
+			if (s.f_type == 0x52654973)	/* REISERFS_SUPER_MAGIC */
+				break;
+		}
 		if (i == 0)
 			printf("CHDDFmtExec: waiting for %s to be mounted\n", dst);
 		sleep(1);
@@ -826,8 +853,15 @@ _remount:
 #endif
 
 	if(!res) {
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
+		snprintf(cmd, sizeof(cmd), "%s/movie", dst);
+		safe_mkdir((char *) cmd);
+		snprintf(cmd, sizeof(cmd), "%s/timeshift", dst);
+		safe_mkdir((char *) cmd);
+#else
 		snprintf(cmd, sizeof(cmd), "%s/movies", dst);
 		safe_mkdir(cmd);
+#endif
 		snprintf(cmd, sizeof(cmd), "%s/pictures", dst);
 		safe_mkdir(cmd);
 		snprintf(cmd, sizeof(cmd), "%s/epg", dst);
@@ -889,13 +923,11 @@ int CHDDChkExec::exec(CMenuTarget* /*parent*/, const std::string& key)
 	int oldpass = 0, pass, step, total;
 	int percent = 0, opercent = 0;
 
-	std::string e2fsck = find_executable("e2fsck");
-	std::string fscke3 = find_executable("fsck.ext3");
-	std::string fscke4 = find_executable("fsck.ext4");
-	/* this is quite bogus since the same binary can check ext2,3,4... */
-	bool ext4FsckBinaryExist = !fscke4.empty();
-	bool e2fsckBinaryExist   = !e2fsck.empty();
-	bool blkidBinaryExist    = !find_executable("blkid").empty();
+	bool ext4FsckBinaryExist = (!access(ext4FsckBinary, X_OK));
+	bool ext2FsckBinaryExist = (!access(ext2FsckBinary, X_OK));
+	bool jfsFsckBinaryExist = (!access(jfsFsckBinary, X_OK));
+	bool e2fsckBinaryExist   = (!access(e2fsckBinary, X_OK));
+	bool blkidBinaryExist    = (!access(blkidBinary, X_OK));
 
 	if (blkidBinaryExist) {
 		std::string fmt_type = getFmtType(key.c_str(), 1);
@@ -923,7 +955,6 @@ printf("CHDDChkExec: key %s\n", key.c_str());
 	bool srun = my_system(3, "killall", "-9", "smbd");
 
 	//res = check_and_umount(dst);
-	//res = check_and_umount(src, dst);
 	res = umount_all(key.c_str());
 	printf("CHDDChkExec: umount res %d\n", res);
 	if(res) {
@@ -935,23 +966,33 @@ printf("CHDDChkExec: key %s\n", key.c_str());
 	}
 
 	if (e2fsckBinaryExist) {
-		snprintf(cmd, sizeof(cmd), "%s -C 1 -f -y %s", e2fsck.c_str(), src);
+		snprintf(cmd, sizeof(cmd), "%s -C 1 -f -y %s", e2fsckBinary, src);
 	} else {
-		snprintf(cmd, sizeof(cmd), "%s -C 1 -f -y %s", fscke3.c_str(), src);
+		snprintf(cmd, sizeof(cmd), "%s -C 1 -f -y %s", ext3FsckBinary, src);
 		if ((ext4FsckBinaryExist) && (g_settings.hdd_fs == fs_ext4))
-			snprintf(cmd, sizeof(cmd), "%s -C 1 -f -y %s", fscke4.c_str(), src);
+			snprintf(cmd, sizeof(cmd), "%s -C 1 -f -y %s", ext4FsckBinary, src);
+		else if ((ext2FsckBinaryExist) && (g_settings.hdd_fs == fs_ext2))
+			snprintf(cmd, sizeof(cmd), "%s -C 1 -f -y %s", ext2FsckBinary, src);
+		else if ((jfsFsckBinaryExist) && (g_settings.hdd_fs == fs_jfs))
+			snprintf(cmd, sizeof(cmd), "%s -a -f -p %s", jfsFsckBinary, src);
 
 #if 0
-		switch(g_settings.hdd_fs) {
+	switch(g_settings.hdd_fs) {
 			case fs_ext3:
 				snprintf(cmd, sizeof(cmd), "%s -C 1 -f -y %s", ext3FsckBinary, src);
-				break;
+			break;
 			case fs_ext4:
 				snprintf(cmd, sizeof(cmd), "%s -C 1 -f -y %s", ext4FsckBinary, src);
-				break;
-			default:
-				return 0;
-		}
+			break;
+			case fs_ext2:
+				snprintf(cmd, sizeof(cmd), "%s -C 1 -f -y %s", ext2FsckBinary, src);
+			break;
+			case fs_jfs:
+				snprintf(cmd, sizeof(cmd), "%s -a -f -p %s", jfsFsckBinary, src);
+			break;
+		default:
+			return 0;
+	}
 #endif
 	}
 
@@ -987,11 +1028,13 @@ printf("CHDDChkExec: key %s\n", key.c_str());
 				progress->showLocalStatus(percent);
 			}
 		}
-		else if(!strncmp(buf, "Pass", 4)) {
+		else {
 			char *t = strrchr(buf, '\n');
 			if (t)
 				*t = 0;
-			progress->showStatusMessageUTF(buf);
+			if(!strncmp(buf, "Pass", 4)) {
+				progress->showStatusMessageUTF(buf);
+			}
 		}
 	}
 //printf("CHDDChkExec: %s\n", buf);
@@ -1006,19 +1049,27 @@ ret1:
 
 	if ((res = mount_all(key.c_str())))
 	{
-		switch(g_settings.hdd_fs) {
-		case fs_ext3:
+        switch(g_settings.hdd_fs) {
+                case fs_ext3:
 			safe_mkdir(dst);
 			res = mount(src, dst, "ext3", 0, NULL);
-			break;
-		case fs_ext4:
+                        break;
+                case fs_ext4:
 			safe_mkdir(dst);
 			res = mount(src, dst, "ext4", 0, NULL);
+				break;
+			case fs_ext2:
+				safe_mkdir(dst);
+				res = mount(src, dst, "ext2", 0, NULL);
+                        break;
+		case fs_jfs:
+			safe_mkdir(dst);
+			res = mount(src, dst, "jfs", 0, NULL);
 			break;
 		default:
-			break;
+                        break;
 		}
-	}
+        }
 	printf("CHDDChkExec: mount res %d\n", res);
 
 	if (!srun) my_system(1, "smbd");

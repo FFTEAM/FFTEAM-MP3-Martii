@@ -25,14 +25,18 @@
 
 
 #include "widget/menue.h"
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 #include <string>
 #include <vector>
+#endif
 
 using namespace std;
 
 enum {
 	fs_ext3,
 	fs_ext4,
+	fs_ext2,
+	fs_jfs,
 
 	fs_max
 };
@@ -57,12 +61,18 @@ class CHDDMenuHandler : public CMenuTarget
 {
 	private:
 		int width;
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 		struct hdd_s {
 			std::string devname;
+			std::string name;
+			const char *label;
+			const char *type;
+			std::string mountpoint;
 			CMenuForwarder *cmf;
 			bool mounted;
 		};
 		std::vector<hdd_s> hdd_list;
+#endif
 	public:
 		CHDDMenuHandler();
 		~CHDDMenuHandler();
