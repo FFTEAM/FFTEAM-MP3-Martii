@@ -740,7 +740,7 @@ hdd_middle Mittel
 hdd_mount einhängen
 hdd_mount_umount Laufwerke ein-/aushängen
 hdd_noise Akustikkontrolle (AAM)
-hdd_not_found Keine Festplatte
+hdd_not_found Keine Festplatte gefunden
 hdd_removable_device Wechseldatenträger
 hdd_settings Laufwerke
 hdd_sleep Ausschalten nach...
@@ -1602,7 +1602,7 @@ moviebrowser.foot_options Optionen
 moviebrowser.foot_play Film starten
 moviebrowser.foot_refresh Liste neu laden
 moviebrowser.foot_sort Sortieren:
-moviebrowser.head Movie-Browser
+moviebrowser.head Movie-Browser Meine Aufnahmen
 moviebrowser.head_filter Filme nach Kategorie filtern:
 moviebrowser.head_playlist Zuletzt gesehen:
 moviebrowser.head_recordlist Zuletzt aufgenommen:
@@ -2129,7 +2129,7 @@ screenshot.please_wait_cover Erzeuge Video-Cover, bitte warten ...
 screenshot.png_compression PNG-Komprimierungsstärke
 screenshot.res Auflösung
 screenshot.scale Skalierung
-screenshot.tv Video
+screenshot.tv TV-Auflösung
 screenshot.video Video im Hintergrund
 screenshot.web yWeb
 servicemenu.boot_params_ask Soll wirklich SPARK gebootet werden?
