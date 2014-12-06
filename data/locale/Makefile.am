@@ -2,6 +2,16 @@ installdir = $(DATADIR)/neutrino/locale
 
 locale = \
 	deutsch.locale \
+	czech.locale \
+	francais.locale \
+	italiano.locale \
+	nederlands.locale \
+	polski.locale \
+	portugues.locale \
+	russkij.locale \
+	slovak.locale \
+	suomi.locale \
+	svenska.locale \
 	english.locale
 
 locale_unmaintained = \
@@ -15,7 +25,6 @@ locale_unmaintained = \
 	unmaintained/nederlands.locale \
 	unmaintained/polski.locale \
 	unmaintained/portugues.locale \
-	unmaintained/russkij.locale \
 	unmaintained/slovak.locale \
 	unmaintained/suomi.locale \
 	unmaintained/svenska.locale
