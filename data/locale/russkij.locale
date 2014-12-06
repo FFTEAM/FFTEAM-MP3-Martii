@@ -1,3 +1,102 @@
+AUDIOSelectMenue.head Выбор языка
+AUDIOSelectMenue.volume Коррекция уровня громкости
+EPGMenu.epgplus Телегид всех каналов
+EPGMenu.eventinfo Описание передач
+EPGMenu.eventlist Телегид канала
+EPGMenu.head Телегид
+EPGMenu.streaminfo Информация о потоке
+EPGPlus.actions Действия 
+EPGPlus.bybouquet_mode по пакетам 
+EPGPlus.bypage_mode по страницам 
+EPGPlus.head Программа передач для всех каналов
+EPGPlus.next_bouquet Следующий пакет 
+EPGPlus.options Параметры
+EPGPlus.page_down страница вверх
+EPGPlus.page_up страница вниз
+EPGPlus.prev_bouquet Предыдущий пакет
+EPGPlus.record Планирование записи
+EPGPlus.refresh_epg Обновить список событий
+EPGPlus.remind Запланировать напоминание
+EPGPlus.scroll_mode режим листания
+EPGPlus.stretch_mode режим протяжки
+EPGPlus.swap_mode режим обмена
+EPGPlus.view_mode Просмотр телегида -
+GENRE.ARTS.0 искусство и культура
+GENRE.ARTS.1 исполнительное искусство
+GENRE.ARTS.10 искусство, культура
+GENRE.ARTS.11 мода
+GENRE.ARTS.2 изобразительное искусство
+GENRE.ARTS.3 религия
+GENRE.ARTS.4 популярная культура и традиционные искусства
+GENRE.ARTS.5 литература
+GENRE.ARTS.6 кинофильмы
+GENRE.ARTS.7 экспериментальное кино и видео
+GENRE.ARTS.8 трансляции и пресса
+GENRE.ARTS.9 новые течения
+GENRE.CHILDRENs_PROGRAMMES.0 передачи для детей
+GENRE.CHILDRENs_PROGRAMMES.1 программы для дошкольников
+GENRE.CHILDRENs_PROGRAMMES.2 развлекательные программы от 6 до 14 лет
+GENRE.CHILDRENs_PROGRAMMES.3 развлекательные программы от 10 до 16 лет
+GENRE.CHILDRENs_PROGRAMMES.4 информационно-образовательные или школьные программы
+GENRE.CHILDRENs_PROGRAMMES.5 мультфильмы
+GENRE.DOCUS_MAGAZINES.0 документальное кино или тележурналы
+GENRE.DOCUS_MAGAZINES.1 природа, животные, окружающая среда
+GENRE.DOCUS_MAGAZINES.2 технологии и естественные науки
+GENRE.DOCUS_MAGAZINES.3 медицина, психология, физиология
+GENRE.DOCUS_MAGAZINES.4 зарубежные страны и экспедиции
+GENRE.DOCUS_MAGAZINES.5 обществои и духовные науки
+GENRE.DOCUS_MAGAZINES.6 дополнительное образование
+GENRE.DOCUS_MAGAZINES.7 языки
+GENRE.MOVIE.0 кино, драма
+GENRE.MOVIE.1 детектив, триллер
+GENRE.MOVIE.2 приключения, вестерн, война
+GENRE.MOVIE.3 научная фантастика, фэнтези, ужасы
+GENRE.MOVIE.4 комедия
+GENRE.MOVIE.5 мыльная опера, мелодрама, фольклор
+GENRE.MOVIE.6 романтика
+GENRE.MOVIE.7 серьезный, классический или исторический фильм, драма
+GENRE.MOVIE.8 кино для взрослых, драма
+GENRE.MUSIC_DANCE.0 музыка, балет, танцы
+GENRE.MUSIC_DANCE.1 рок, поп
+GENRE.MUSIC_DANCE.2 классическая музыка
+GENRE.MUSIC_DANCE.3 фолк, традиционная музыка
+GENRE.MUSIC_DANCE.4 джаз
+GENRE.MUSIC_DANCE.5 опера
+GENRE.MUSIC_DANCE.6 балет
+GENRE.NEWS.0 новости, новости культуры и искусства
+GENRE.NEWS.1 новости и погода
+GENRE.NEWS.2 лента новостей
+GENRE.NEWS.3 документальные фильмы
+GENRE.NEWS.4 дискуссии, интервью, дебаты
+GENRE.SHOW.0 шоу, сериал
+GENRE.SHOW.1 игровое шоу, викторины и конкурсы
+GENRE.SHOW.2 варьете
+GENRE.SHOW.3 разговорное шоу
+GENRE.SOCIAL_POLITICAL.0 социальные и политические события, бизнес аналитика
+GENRE.SOCIAL_POLITICAL.1 журналы, отчеты и документалистика
+GENRE.SOCIAL_POLITICAL.2 экономика и общественные консультации
+GENRE.SOCIAL_POLITICAL.3 замечательные люди
+GENRE.SPORTS.0 спорт
+GENRE.SPORTS.1 Олимпийские игры, мировые чемпионаты
+GENRE.SPORTS.10 конный спорт 
+GENRE.SPORTS.11 военный спорт
+GENRE.SPORTS.2 спортивные журналы
+GENRE.SPORTS.3 футбол
+GENRE.SPORTS.4 теннис, сквош
+GENRE.SPORTS.5 командный спорт
+GENRE.SPORTS.6 легкая атлетика
+GENRE.SPORTS.7 мотоспорт
+GENRE.SPORTS.8 водный спорт
+GENRE.SPORTS.9 зимний спорт
+GENRE.TRAVEL_HOBBIES.0 путешествия и отдых
+GENRE.TRAVEL_HOBBIES.1 туризм и путешествия
+GENRE.TRAVEL_HOBBIES.2 ремесло
+GENRE.TRAVEL_HOBBIES.3 автомобильный спорт
+GENRE.TRAVEL_HOBBIES.4 здоровье
+GENRE.TRAVEL_HOBBIES.5 кухня
+GENRE.TRAVEL_HOBBIES.6 реклама и покупки
+GENRE.TRAVEL_HOBBIES.7 садоводство
+GENRE.UNKNOWN неизвестен
 adzap Автопереключение
 adzap.announce Возврат к  
 adzap.cancel Таймер отменен
@@ -14,6 +113,7 @@ audio.srs_algo_normal Нормальный
 audio.srs_iq SRS Выравнивание 
 audio.srs_nmgr Менеджер шума
 audio.srs_volume Стандартная громкость
+audiomenu.PCMOffset Lautstärkeabsenkung PCM
 audiomenu.analog_mode Аналоговый режим
 audiomenu.analog_out Аналоговый выход
 audiomenu.auto_lang Автоматический выбор
@@ -34,7 +134,6 @@ audiomenu.mixer_volume_hdmi HDMI выход
 audiomenu.mixer_volume_spdif SPDIF выход
 audiomenu.monoleft левый канал
 audiomenu.monoright правый канал
-audiomenu.PCMOffset Уменьшение громкости PCM
 audiomenu.pref_lang Предпочтительный язык
 audiomenu.pref_lang_head Приоритет языка для аудио и телегида
 audiomenu.pref_languages Язык аудио и субтитров
@@ -94,8 +193,6 @@ audioplayer.spectrum Спектр на цифровом дисплее
 audioplayer.stop Остановить
 audioplayer.title_artist альбом, артист
 audioplayerpicsettings.general Аудио проигрыватель
-AUDIOSelectMenue.head Выбор языка
-AUDIOSelectMenue.volume Коррекция уровня громкости
 batchepg.epg.mhw1 MHW1
 batchepg.epg.mhw2 MHW2
 batchepg.epg.off нет
@@ -107,6 +204,28 @@ batchepg.run_at_shutdown Обновить перед выключением
 batchepg.save Сохранить
 batchepg.settings Настройки
 batchepg.standard_wait_time Тайм-аут телегида
+bluepanel.emu Cam Menue
+bluepanel.emu.none Nicht aktiv
+bluepanel.emu.mgcamd MGCamd
+bluepanel.emu.incubus IncubusCamd
+bluepanel.emu.camd3 Camd3
+bluepanel.emu.mbox Mbox
+bluepanel.emu.oscam Oscam
+bluepanel.emu.osemu Osemu
+bluepanel.emu.wicard Wicard
+bluepanel.emu.select Cam Auswahl
+bluepanel.emu.restart Cam neu starten
+bluepanel.emu.disable Cam deaktivieren
+bluepanel.swap Swap Menue
+bluepanel.swap.swapram SWAPRAM
+bluepanel.swap.swappart SWAPPART
+bluepanel.swap.swapfile SWAPFILE
+bluepanel.swap.select Swap Auswahl
+bluepanel.swap.onoff SWAP
+bluepanel.fritzcall Fritzcall Menue
+bluepanel.fritzcall.select Fritzcallmonitor
+bluepanel.fritzcall.on Ein
+bluepanel.fritzcall.off Aus
 bookmarkmanager.delete Удалить
 bookmarkmanager.name Закладки
 bookmarkmanager.rename Переименовать
@@ -221,6 +340,7 @@ colormenusetup.menucontent_inactive Содержимое окна неактив
 colormenusetup.menucontent_selected Содержимое окна выбранное
 colormenusetup.menuhead Заголовок меню
 colorstatusbar.text Инфопанель
+colorthememenu.head Theme auswählen
 colorthememenu.head2 Выбор темы
 colorthememenu.name Названиие темы
 colorthememenu.neutrino_theme Neutrino
@@ -264,33 +384,12 @@ epgextended.original_title Оригинальное название
 epgextended.presenter Вещатель
 epgextended.year_of_production Год выпуска
 epglist.noevents Программа передач отсутствует
-EPGMenu.epgplus Телегид всех каналов
-EPGMenu.eventinfo Описание передач
-EPGMenu.eventlist Телегид канала
-EPGMenu.head Телегид
-EPGMenu.streaminfo Информация о потоке
-EPGPlus.actions Действия 
-EPGPlus.bybouquet_mode по пакетам 
-EPGPlus.bypage_mode по страницам 
-EPGPlus.head Программа передач для всех каналов
-EPGPlus.next_bouquet Следующий пакет 
-EPGPlus.options Параметры
-EPGPlus.page_down страница вверх
-EPGPlus.page_up страница вниз
-EPGPlus.prev_bouquet Предыдущий пакет
-EPGPlus.record Планирование записи
-EPGPlus.refresh_epg Обновить список событий
-EPGPlus.remind Запланировать напоминание
-EPGPlus.scroll_mode режим листания
-EPGPlus.stretch_mode режим протяжки
-EPGPlus.swap_mode режим обмена
-EPGPlus.view_mode Просмотр телегида -
+epgviewer.More_Screenings Дата и время повтора этой передачи
+epgviewer.More_Screenings_short Список повторов
 epgviewer.age_rating Возрастной рейтинг
 epgviewer.audio Язык
 epgviewer.genre Жанр
 epgviewer.length Продолжительность, в минутах
-epgviewer.More_Screenings Дата и время повтора этой передачи
-epgviewer.More_Screenings_short Список повторов
 epgviewer.nodetailed Подробная информация отсутствует
 epgviewer.notfound Телегид отсутствует
 epgviewer.select_screening Выбор передачи
@@ -318,8 +417,9 @@ extra.chadded Канал добавлен в выбранный пакет....\n
 extra.chalreadyinbq Канал уже существует в выбранном пакете....\n
 extra.dboxinfo Информация о системе
 extra.dboxinfo_available Свободно
-extra.dboxinfo_frontend Установленные тюнеры:
+extra.dboxinfo_boottime ОС загружена в
 extra.dboxinfo_filesystem Подключенные ФС
+extra.dboxinfo_frontend Установленные тюнеры:
 extra.dboxinfo_load Загрузка ЦП
 extra.dboxinfo_memory Память
 extra.dboxinfo_ram ОЗУ
@@ -327,7 +427,6 @@ extra.dboxinfo_size Всего
 extra.dboxinfo_swap Файл подкачки
 extra.dboxinfo_time Текущее  время
 extra.dboxinfo_timeformat %R %d.%m.%y
-extra.dboxinfo_boottime ОС загружена в
 extra.dboxinfo_use Занято, %
 extra.dboxinfo_used Занято
 extra.east Восток
@@ -589,82 +688,6 @@ fontsize.menu_hint Подсказки меню
 fontsize.menu_info Информация меню
 fontsize.menu_title Заголовок меню
 fontsize.subtitles Текст субтитров
-GENRE.ARTS.0 искусство и культура
-GENRE.ARTS.1 исполнительное искусство
-GENRE.ARTS.10 искусство, культура
-GENRE.ARTS.11 мода
-GENRE.ARTS.2 изобразительное искусство
-GENRE.ARTS.3 религия
-GENRE.ARTS.4 популярная культура и традиционные искусства
-GENRE.ARTS.5 литература
-GENRE.ARTS.6 кинофильмы
-GENRE.ARTS.7 экспериментальное кино и видео
-GENRE.ARTS.8 трансляции и пресса
-GENRE.ARTS.9 новые течения
-GENRE.CHILDRENs_PROGRAMMES.0 передачи для детей
-GENRE.CHILDRENs_PROGRAMMES.1 программы для дошкольников
-GENRE.CHILDRENs_PROGRAMMES.2 развлекательные программы от 6 до 14 лет
-GENRE.CHILDRENs_PROGRAMMES.3 развлекательные программы от 10 до 16 лет
-GENRE.CHILDRENs_PROGRAMMES.4 информационно-образовательные или школьные программы
-GENRE.CHILDRENs_PROGRAMMES.5 мультфильмы
-GENRE.DOCUS_MAGAZINES.0 документальное кино или тележурналы
-GENRE.DOCUS_MAGAZINES.1 природа, животные, окружающая среда
-GENRE.DOCUS_MAGAZINES.2 технологии и естественные науки
-GENRE.DOCUS_MAGAZINES.3 медицина, психология, физиология
-GENRE.DOCUS_MAGAZINES.4 зарубежные страны и экспедиции
-GENRE.DOCUS_MAGAZINES.5 обществои и духовные науки
-GENRE.DOCUS_MAGAZINES.6 дополнительное образование
-GENRE.DOCUS_MAGAZINES.7 языки
-GENRE.MOVIE.0 кино, драма
-GENRE.MOVIE.1 детектив, триллер
-GENRE.MOVIE.2 приключения, вестерн, война
-GENRE.MOVIE.3 научная фантастика, фэнтези, ужасы
-GENRE.MOVIE.4 комедия
-GENRE.MOVIE.5 мыльная опера, мелодрама, фольклор
-GENRE.MOVIE.6 романтика
-GENRE.MOVIE.7 серьезный, классический или исторический фильм, драма
-GENRE.MOVIE.8 кино для взрослых, драма
-GENRE.MUSIC_DANCE.0 музыка, балет, танцы
-GENRE.MUSIC_DANCE.1 рок, поп
-GENRE.MUSIC_DANCE.2 классическая музыка
-GENRE.MUSIC_DANCE.3 фолк, традиционная музыка
-GENRE.MUSIC_DANCE.4 джаз
-GENRE.MUSIC_DANCE.5 опера
-GENRE.MUSIC_DANCE.6 балет
-GENRE.NEWS.0 новости, новости культуры и искусства
-GENRE.NEWS.1 новости и погода
-GENRE.NEWS.2 лента новостей
-GENRE.NEWS.3 документальные фильмы
-GENRE.NEWS.4 дискуссии, интервью, дебаты
-GENRE.SHOW.0 шоу, сериал
-GENRE.SHOW.1 игровое шоу, викторины и конкурсы
-GENRE.SHOW.2 варьете
-GENRE.SHOW.3 разговорное шоу
-GENRE.SOCIAL_POLITICAL.0 социальные и политические события, бизнес аналитика
-GENRE.SOCIAL_POLITICAL.1 журналы, отчеты и документалистика
-GENRE.SOCIAL_POLITICAL.2 экономика и общественные консультации
-GENRE.SOCIAL_POLITICAL.3 замечательные люди
-GENRE.SPORTS.0 спорт
-GENRE.SPORTS.1 Олимпийские игры, мировые чемпионаты
-GENRE.SPORTS.10 конный спорт 
-GENRE.SPORTS.11 военный спорт
-GENRE.SPORTS.2 спортивные журналы
-GENRE.SPORTS.3 футбол
-GENRE.SPORTS.4 теннис, сквош
-GENRE.SPORTS.5 командный спорт
-GENRE.SPORTS.6 легкая атлетика
-GENRE.SPORTS.7 мотоспорт
-GENRE.SPORTS.8 водный спорт
-GENRE.SPORTS.9 зимний спорт
-GENRE.TRAVEL_HOBBIES.0 путешествия и отдых
-GENRE.TRAVEL_HOBBIES.1 туризм и путешествия
-GENRE.TRAVEL_HOBBIES.2 ремесло
-GENRE.TRAVEL_HOBBIES.3 автомобильный спорт
-GENRE.TRAVEL_HOBBIES.4 здоровье
-GENRE.TRAVEL_HOBBIES.5 кухня
-GENRE.TRAVEL_HOBBIES.6 реклама и покупки
-GENRE.TRAVEL_HOBBIES.7 садоводство
-GENRE.UNKNOWN неизвестен
 glcd.brightness Яркость
 glcd.brightness_standby Яркость в дежурном режиме
 glcd.color.black Черный
@@ -686,6 +709,7 @@ glcd.select.bar Цвет индикатора
 glcd.select.bg Цвет фона 
 glcd.select.fg Цвет шрифта
 glcd.show_logo Логотип канала
+glcd.show_numbers Kanalnummern anzeigen
 glcd.size_bar Размер индикатора
 glcd.size_channel Размер шрифта канала 
 glcd.size_epg Размер шрифта телегида
@@ -764,6 +788,7 @@ kerneloptions.hint.enabled_loaded Модуль загружен и готов к
 kerneloptions.hint.enabled_not_loaded Примените изменения для загрузки модулей.
 kerneloptions.modules Модули ядра
 kerneloptions.reset Сброс
+keybindingmenu.RC ПДУ
 keybindingmenu.accept_other_remotes Принимать сигнал с других ПДУ
 keybindingmenu.addrecord Добавить таймер записи
 keybindingmenu.addremind Добавить таймер переключения
@@ -794,7 +819,6 @@ keybindingmenu.pagedown Страница вниз
 keybindingmenu.pageup Страница вверх
 keybindingmenu.poweroff Выключение
 keybindingmenu.quickzap Быстрый перебор каналов
-keybindingmenu.RC ПДУ
 keybindingmenu.remotecontrol_hardware Устройство
 keybindingmenu.remotecontrol_hardware_coolstream Coolstream
 keybindingmenu.remotecontrol_hardware_dbox d-box Nokia
@@ -866,10 +890,14 @@ ledcontroller.on.both красный и зеленый
 ledcontroller.on.green зеленый
 ledcontroller.on.red красный
 ledcontroller.title Светодиоды передней панели
+lua.boolparam_deprecated1 Achtung!
+lua.boolparam_deprecated2 Die Verwendung von Zahl oder String
+lua.boolparam_deprecated3 für einen Boolean Parameter ist veraltet.\n                      Bitte nutzen Sie native Bool Werte zB:
 lua.function_deprecated1 Внимание!
 lua.function_deprecated2 Функция
 lua.function_deprecated3 устарела,\n                      используйте
 mainmenu.audioplayer Аудио проигрыватель
+mainmenu.bluepanel FFTeam Bluepanel
 mainmenu.channels Каналы
 mainmenu.clearsectionsd Очистить кеш телегида
 mainmenu.games Игры
@@ -941,6 +969,7 @@ menu.hint_back_brief Возврат к предыдущему меню
 menu.hint_backlight Настройка кнопок подсветки
 menu.hint_backup Резервное копирование конфигурации и каналов
 menu.hint_bedit Редактирование фаворитных списков и пакетов каналов
+menu.hint_bluepanel FFTeam Bluepanel
 menu.hint_boot_spark Перезагрузка ресивера в SPARK режим
 menu.hint_buildinfo Техническая информация о компиляторе и его опциях, ядре системы
 menu.hint_cache_txt Кеширование телетекста
@@ -1024,6 +1053,8 @@ menu.hint_infobar_back Изменение цвета фона инфопанел
 menu.hint_infobar_casys Мини: иконка "ключ". Вкл: отображение букв всех кодировок, активная подсвечена. Отдельно: отображение одной буквы активной кодировки
 menu.hint_infobar_colored_event Выбор режима подсветки для текущего и следующего событий телегида
 menu.hint_infobar_dd Отображение иконки Dolby Digital, при воспроизведении соответствующего аудиопотока
+menu.hint_infobar_dotmatrix Punktmatrix anzeigen
+menu.hint_infobar_infoviewerecm Infoviewer-ECM-Info
 menu.hint_infobar_filesys Отображение уровня заполненности HDD и внутренней памяти
 menu.hint_infobar_fonts Изменение размера шрифта инфопанели
 menu.hint_infobar_logo Выбор режима отображения логотипа/уровня сигнала/имени спутника
@@ -1433,7 +1464,6 @@ miscsettings.epg_save_standby Сохранение данных телегида
 miscsettings.epg_saving Сохранение данных телегида...
 miscsettings.epg_scan Поиск данных телегида
 miscsettings.epg_scan_always всегда
-miscsettings.epg_scan_bouquets Искать данные телегида 
 miscsettings.epg_scan_bq в пакете
 miscsettings.epg_scan_fav в избранном
 miscsettings.epg_scan_live в текущем
@@ -1454,6 +1484,10 @@ miscsettings.infobar_disp_4 лого/имя канала/номер канала
 miscsettings.infobar_disp_5 лого/уровень сигнала
 miscsettings.infobar_disp_6 лого/номер канала/уровень сигнала
 miscsettings.infobar_disp_log Стиль логотипа канала:
+miscsettings.infobar_dotmatrix_display Punktmatrix anzeigen
+miscsettings.infobar_infoviewerecm_display Infoviewer
+miscsettings.infobar_infoviewerecm_option1 ECM Anzeige 1
+miscsettings.infobar_infoviewerecm_option2 ECM Anzeige 2
 miscsettings.infobar_logo_hdd_dir Каталог с логотипами:
 miscsettings.infobar_sat_display Название спутника в инфопанели
 miscsettings.infobar_show Показывать инфопанель при смене события
@@ -1790,6 +1824,8 @@ nvod.starting (Старт через %d минут)
 nvodselector.directormode Прямой режим
 nvodselector.head Выбор начального времени 
 nvodselector.subservice Выбор субканала
+onoff.on Ein
+onoff.off Aus
 opkg.button.expert_off Стандартный режим
 opkg.button.expert_on Экспертный режим
 opkg.button.info Информация о пакете
@@ -1981,14 +2017,14 @@ satsetup.cable Сканировать DVB-C
 satsetup.cable_nid ID сети
 satsetup.comm_input Commited вход
 satsetup.diseqc Тип DiSEqC-коммутатора
+satsetup.diseqc10 DiSEqC 1.0
+satsetup.diseqc11 DiSEqC 1.1
+satsetup.diseqc12 DiSEqC 1.2
 satsetup.diseqc_advanced Расширенный
 satsetup.diseqc_com_uncom Commited/Uncommited
 satsetup.diseqc_input Diseqc вход
 satsetup.diseqc_order Порядок команд DiSEqC 
 satsetup.diseqc_uncom_com Uncommited/Commited
-satsetup.diseqc10 DiSEqC 1.0
-satsetup.diseqc11 DiSEqC 1.1
-satsetup.diseqc12 DiSEqC 1.2
 satsetup.diseqcrepeat DiSEqC-повторы
 satsetup.extended Настройки DiSEqC
 satsetup.extended_motor Параметры USALS
@@ -2167,8 +2203,12 @@ streaming.dir_not_writable Нет доступа в папку для запис
 streaming.overflow Переполнение буфера записи, файл может быть поврежден.
 streaming.slow Скорость HDD недостаточна, файл может быть поврежден.
 streaming.write_error Запись прервана,\n ошибка в процессе записи.
+stringinput.backspace Zurück
 stringinput.caps Прописные/строчные буквы
 stringinput.clear Удалить
+stringinput.insert Einfügen
+stringinput.layout Belegung
+stringinput.save Speichern
 subtitles.charset Кодировка субтитров
 subtitles.head Субтитры
 subtitles.stop Убрать субтитры
