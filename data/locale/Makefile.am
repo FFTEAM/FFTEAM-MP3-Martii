@@ -1,8 +1,9 @@
 installdir = $(DATADIR)/neutrino/locale
 
 locale = \
-	deutsch.locale \
 	czech.locale \
+	deutsch.locale \
+	english.locale \
 	francais.locale \
 	italiano.locale \
 	nederlands.locale \
@@ -11,26 +12,16 @@ locale = \
 	russkij.locale \
 	slovak.locale \
 	suomi.locale \
-	svenska.locale \
-	english.locale
+	svenska.locale
 
 locale_unmaintained = \
 	unmaintained/bayrisch.locale \
 	unmaintained/bosanski.locale \
 	unmaintained/ch-baslerdeutsch.locale \
-	unmaintained/ch-berndeutsch.locale \
-	unmaintained/czech.locale \
-	unmaintained/francais.locale \
-	unmaintained/italiano.locale \
-	unmaintained/nederlands.locale \
-	unmaintained/polski.locale \
-	unmaintained/portugues.locale \
-	unmaintained/slovak.locale \
-	unmaintained/suomi.locale \
-	unmaintained/svenska.locale
+	unmaintained/ch-berndeutsch.locale
 
 install_DATA  = $(locale)
-# install_DATA += $(locale_unmaintained)
+install_DATA += $(locale_unmaintained)
 
 
 if MAINTAINER_MODE
@@ -51,8 +42,8 @@ work-locals: $(master.locale)
 	done
 
 ordercheck: $(master.locale)
-	cut -d' ' -f1 $(top_srcdir)/data/locale/$(master.locale) | LC_ALL=C sort | uniq > /tmp/log
-	cut -d' ' -f1 $(top_srcdir)/data/locale/$(master.locale) | uniq  | diff - /tmp/log || \
+	cut -d' ' -f1 $(master.locale) | LC_ALL=C sort | uniq > /tmp/log
+	cut -d' ' -f1 $(master.locale) | uniq  | diff - /tmp/log || \
 		(echo "ERROR: $(master.locale) not ordered or contains empty lines" && false)
 
 locals.h: ordercheck
@@ -70,8 +61,8 @@ check: locals.h locals_intern.h
 install-locals: $(locale) locals.h locals_intern.h
 	cp locals.h locals_intern.h $(top_srcdir)/src/system
 	@echo "Consider committing src/system/[locals.h locals_intern.h]"
-	## ??? cp -f $(locale) $(top_srcdir)/data/locale
-	## @echo "Consider committing data/locale/[$(locale)]"
+	cp -f $(locale) $(top_srcdir)/data/locale
+	@echo "Consider committing data/locale/[$(locale)]"
 
 locals-clean:
 	rm -f locals.h locals_intern.h $(locale)
