@@ -1137,7 +1137,6 @@ menu.hint_leds_standby LEDs state in soft-standby mode
 menu.hint_leds_tv Working LEDs state
 menu.hint_load Load Neutrino GUI settings from file
 menu.hint_longkeypress_duration A key press will be considered as "long key press" if it's pressed longer than the specified time.
-menu.hint_lua Run Lua Plugins
 menu.hint_make_hdlist Auto-create HD channel list based on\nchannel type and name
 menu.hint_make_newlist Create list of recently added channels
 menu.hint_make_removedlist Create list of recently removed channels
@@ -1380,7 +1379,6 @@ menu.hint_theme Select pre-defined color theme\nSave or load theme from files
 menu.hint_timeouts Configure time to hide GUI windows\nin seconds
 menu.hint_timers Add/Remove/Edit scheduled\nrecording, reminders etc.
 menu.hint_timezone Select your timezone
-menu.hint_tools Run tools
 menu.hint_tvmode Switch box to TV mode
 menu.hint_tvradio_switch Switches between TV and Radio mode
 menu.hint_upnp Access UPNP servers available in your local network
@@ -2327,7 +2325,6 @@ usermenu.item_adzap Adzap
 usermenu.item_bar ---- Border ----
 usermenu.item_epg_misc EPG functions
 usermenu.item_none (empty)
-usermenu.item_plugin_types Plugin types
 usermenu.item_vtxt Videotext
 usermenu.items Menu items
 usermenu.key Key

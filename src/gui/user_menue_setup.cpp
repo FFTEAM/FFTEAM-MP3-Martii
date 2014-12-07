@@ -104,6 +104,7 @@ static keyvals usermenu_items[] =
 	{ SNeutrinoSettings::ITEM_NETZKINO,		LOCALE_MOVIEPLAYER_NKPLAYBACK,		usermenu_show },
 	{ SNeutrinoSettings::ITEM_RECORD,		LOCALE_TIMERLIST_TYPE_RECORD,		usermenu_show },
 	{ SNeutrinoSettings::ITEM_HDDMENU,		LOCALE_HDD_SETTINGS,			usermenu_show },
+	{ SNeutrinoSettings::ITEM_TOOLS,		LOCALE_MAINMENU_TOOLS,			usermenu_show },
 	{ SNeutrinoSettings::ITEM_MAX,			NONEXISTANT_LOCALE,			usermenu_show }
 };
 
