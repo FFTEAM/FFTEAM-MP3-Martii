@@ -122,7 +122,6 @@ void CPlugins::scanDir(const char *dir)
 			fname += '/';
 			new_plugin.cfgfile = fname.append(new_plugin.filename);
 			new_plugin.cfgfile.append(".cfg");
-			new_plugin.plugindir = dir;
 			bool plugin_ok = parseCfg(&new_plugin);
 			if (plugin_ok)
 			{
@@ -208,7 +207,6 @@ bool CPlugins::parseCfg(plugin *plugin_data)
 	plugin_data->needoffset = false;
 	plugin_data->hide = false;
 	plugin_data->type = CPlugins::P_TYPE_DISABLED;
-	std::string _hintIcon = plugin_data->filename + "_hint";
 
 	for (int i = 0; i < linecount; i++)
 	{
@@ -238,10 +236,6 @@ bool CPlugins::parseCfg(plugin *plugin_data)
 		else if (cmd == "depend")
 		{
 			plugin_data->depend = parm;
-		}
-		else if (cmd == "hinticon")
-		{
-			_hintIcon = parm;
 		}
 		else if (cmd == "type")
 		{
@@ -289,23 +283,6 @@ bool CPlugins::parseCfg(plugin *plugin_data)
 	overrideType(plugin_data, g_settings.plugins_tool, P_TYPE_TOOL) ||
 	overrideType(plugin_data, g_settings.plugins_script, P_TYPE_SCRIPT) ||
 	overrideType(plugin_data, g_settings.plugins_lua, P_TYPE_LUA);
-
-	plugin_data->hinticon = plugin_data->plugindir + "/" + _hintIcon + ".png";
-	if (access(plugin_data->hinticon.c_str(), F_OK) != 0)
-	    switch(plugin_data->type) {
-		    case P_TYPE_GAME:
-			plugin_data->hinticon = NEUTRINO_ICON_HINT_GAMES;
-			break;
-		    case P_TYPE_TOOL:
-			plugin_data->hinticon = NEUTRINO_ICON_HINT_TOOLS;
-			break;
-		    case P_TYPE_SCRIPT:
-			plugin_data->hinticon = NEUTRINO_ICON_HINT_SCRIPTS;
-			break;
-		    default:
-			plugin_data->hinticon = NEUTRINO_ICON_HINT_PLUGINS;
-			break;
-	    };
 
 	return !reject;
 }
