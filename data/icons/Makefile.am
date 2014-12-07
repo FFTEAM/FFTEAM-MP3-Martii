@@ -3,22 +3,22 @@ installdir = $(DATADIR)/neutrino/icons
 locale = \
 	locale/deutsch.png \
 	locale/english.png
+	locale/czech.png \
+	locale/francais.png \
+	locale/italiano.png \
+	locale/nederlands.png \
+	locale/polski.png \
+	locale/portugues.png \
+	locale/russkij.png \
+	locale/slovak.png \
+	locale/suomi.png \
+	locale/svenska.png
 
 locale_unmaintained = \
 	locale/unmaintained/bayrisch.png \
 	locale/unmaintained/bosanski.png \
 	locale/unmaintained/ch-baslerdeutsch.png \
-	locale/unmaintained/ch-berndeutsch.png \
-	locale/unmaintained/czech.png \
-	locale/unmaintained/francais.png \
-	locale/unmaintained/italiano.png \
-	locale/unmaintained/nederlands.png \
-	locale/unmaintained/polski.png \
-	locale/unmaintained/portugues.png \
-	locale/unmaintained/russkij.png \
-	locale/unmaintained/slovak.png \
-	locale/unmaintained/suomi.png \
-	locale/unmaintained/svenska.png
+	locale/unmaintained/ch-berndeutsch.png
 
 install_DATA  = $(locale)
 install_DATA += $(locale_unmaintained)
@@ -161,6 +161,7 @@ install_DATA += \
 	hint_osd.png \
 	hint_personalize.png \
 	hint_picview.png \
+	hint_plugins.png \
 	hint_protection.png \
 	hint_radiomode.png \
 	hint_rass.png \
@@ -179,6 +180,7 @@ install_DATA += \
 	hint_streaminfo.png \
 	hint_swupdate.png \
 	hint_timers.png \
+	hint_tools.png \
 	hint_tvmode.png \
 	hint_tvradio_switch.png \
 	hint_vfd.png \
