@@ -96,9 +96,13 @@ int CPluginList::exec(CMenuTarget* parent, const std::string &actionKey)
 
 	const char *icon = "";
 	if (pluginlisttype == CPlugins::P_TYPE_GAME)
-		icon = NEUTRINO_ICON_GAMES;
+		icon = NEUTRINO_ICON_HINT_GAMES;
 	else if (pluginlisttype == CPlugins::P_TYPE_SCRIPT)
-		icon = NEUTRINO_ICON_SHELL;
+		icon = NEUTRINO_ICON_HINT_SCRIPTS;
+	else if (pluginlisttype == CPlugins::P_TYPE_TOOL)
+		icon = NEUTRINO_ICON_HINT_TOOLS;
+	else if (pluginlisttype == CPlugins::P_TYPE_LUA)
+		icon = NEUTRINO_ICON_HINT_PLUGINS;
 
 	CMenuWidget m(title, icon, width);
 	m.setSelected(selected);
@@ -111,7 +115,7 @@ int CPluginList::exec(CMenuTarget* parent, const std::string &actionKey)
 	for(int count = 0; count < nop; count++) {
 		if ((g_PluginList->getType(count) & pluginlisttype) && !g_PluginList->isHidden(count)) {
 			CMenuForwarder *f = new CMenuForwarder(std::string(g_PluginList->getName(count)), true, "", this, to_string(count).c_str(), CRCInput::convertDigitToKey(shortcut++));
-			f->setDescription(g_PluginList->getDescription(count));
+			f->setHint(g_PluginList->getHintIcon(count), g_PluginList->getDescription(count));
 			m.addItem(f);
 		}
 	}
