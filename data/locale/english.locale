@@ -709,6 +709,7 @@ glcd.select.bar Progress bar color
 glcd.select.bg Background color
 glcd.select.fg Foreground color
 glcd.show_logo Show channel logo
+glcd.show_numbers Kanalnummern anzeigen
 glcd.size_bar Progress bar height
 glcd.size_channel Channel height
 glcd.size_epg EPG height
