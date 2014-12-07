@@ -919,7 +919,7 @@ mainmenu.shutdown Ausschalten
 mainmenu.shutdown_menu Ausschalt-Optionen
 mainmenu.sleeptimer SleepTimer
 mainmenu.standby Standby
-mainmenu.tools Werkzeuge
+mainmenu.tools Tools-Werkzeuge
 mainmenu.tvmode TV-Modus
 mainmenu.tvradio_switch TV-Radio Umschaltung
 mainsettings.audio Audio
@@ -1140,7 +1140,7 @@ menu.hint_leds_standby Definiert den Status der Power-LEDs im Standby
 menu.hint_leds_tv Definiert den Status der Power-LEDs im TV-Modus
 menu.hint_load Laden der Neutrino-Einstellungen aus einer Datei
 menu.hint_longkeypress_duration Tasten, die länger als die angegebene Zeit betätigt werden, werden als "langer Tastendruck" behandelt.
-menu.hint_lua Plugins ausführen
+menu.hint_lua Lua Plugins ausführen
 menu.hint_make_hdlist Bei aktiver Option wird ein Bouquet namens 'HD' erzeugt, in dem alle HD-Sender zusammengefasst sind
 menu.hint_make_newlist Nach einer Kanalsuche wird ein Bouquet namens 'neue Kanäle' erzeugt
 menu.hint_make_removedlist Nach einer Kanalsuche wird ein Bouquet namens 'gelöschte Kanäle' erzeugt
@@ -1383,7 +1383,7 @@ menu.hint_theme Wählen Sie ein vordefiniertes Farbschema, speichern oder laden 
 menu.hint_timeouts Gibt an, nach welcher Zeit in Sekunden die Menüs oder Infofenster sich automatisch schließen (0 deaktiviert)
 menu.hint_timers Hinzufügen, entfernen und bearbeiten geplanter Aufnahmen oder anderer Timer
 menu.hint_timezone Wählen Sie ihre Zeitzone aus
-menu.hint_tools Werkzeuge ausführen
+menu.hint_tools Tools Werkzeuge ausführen
 menu.hint_tvmode Schaltet zum TV-Modus
 menu.hint_tvradio_switch Schaltet zwischen TV- und Radio-Modus um
 menu.hint_upnp Zugriff auf UPNP-Server in Ihrem lokalen Netz
@@ -1468,6 +1468,7 @@ miscsettings.epg_save_standby EPG speichern in Standby-Modus
 miscsettings.epg_saving EPG-Daten werden gespeichert ...
 miscsettings.epg_scan Hintergrundscan EPG
 miscsettings.epg_scan_always Immer
+miscsettings.epg_scan_bouquets EPG scan bouquets
 miscsettings.epg_scan_bq Aktuelles Bouquet
 miscsettings.epg_scan_fav Alle Favoriten
 miscsettings.epg_scan_live Bei eingeschaltener Box
@@ -1799,7 +1800,7 @@ networkmenu.ssid_scan_error Keine WLAN-Netzwerke gefunden.
 networkmenu.ssid_scan_wait WLAN-Netzwerke werden gesucht...
 networkmenu.test Netzwerk testen
 networkmenu.wlan_security Sicherheit
-neutrino_starting Neutrino wird gestartet...
+neutrino_starting FFTEAM-Neutrino wird gestartet...
 nfs.alreadymounted Verzeichnis bereits gemountet.
 nfs.automount Beim Start mounten
 nfs.dir Verzeichnis/Freigabe
@@ -1953,9 +1954,9 @@ plugins.hdd_dir Externes Plugin-Verz.
 plugins.result Pluginausgabe
 plugintype.disabled Deaktiviert
 plugintype.game Spiel
-plugintype.lua LUA Skript
+plugintype.lua Lua plugin
 plugintype.script Skript
-plugintype.tool Werkzeug
+plugintype.tool Tool-Werkzeug
 progressbar.color.full farbig
 progressbar.color.horizontal farbige horizontale Linien
 progressbar.color.matrix farbige Punkte
