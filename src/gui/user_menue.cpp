@@ -272,11 +272,22 @@ bool CUserMenu::showUserMenu(neutrino_msg_t msg)
 			menu_item = new CMenuDForwarder(LOCALE_MAINMENU_GAMES, g_PluginList->hasPlugin(CPlugins::P_TYPE_GAME), NULL, new CPluginList(LOCALE_MAINMENU_GAMES,CPlugins::P_TYPE_GAME), "-1", key, icon );
 			menu_item->setHint(NEUTRINO_ICON_HINT_GAMES, LOCALE_MENU_HINT_GAMES);
 			break;
+		case SNeutrinoSettings::ITEM_TOOLS:
+			keyhelper.get(&key,&icon);
+			menu_item = new CMenuDForwarder(LOCALE_MAINMENU_TOOLS, g_PluginList->hasPlugin(CPlugins::P_TYPE_SCRIPT), NULL, new CPluginList(LOCALE_MAINMENU_TOOLS,CPlugins::P_TYPE_TOOL), "-1", key, icon );
+			menu_item->setHint(NEUTRINO_ICON_HINT_TOOLS, LOCALE_MENU_HINT_TOOLS);
+			break;
 		case SNeutrinoSettings::ITEM_SCRIPTS:
 			keyhelper.get(&key,&icon);
 			menu_item = new CMenuDForwarder(LOCALE_MAINMENU_SCRIPTS, g_PluginList->hasPlugin(CPlugins::P_TYPE_SCRIPT), NULL, new CPluginList(LOCALE_MAINMENU_SCRIPTS,CPlugins::P_TYPE_SCRIPT), "-1", key, icon );
 			menu_item->setHint(NEUTRINO_ICON_HINT_SCRIPTS, LOCALE_MENU_HINT_SCRIPTS);
 			break;
+		case SNeutrinoSettings::ITEM_PLUGIN:
+			keyhelper.get(&key,&icon);
+			menu_item = new CMenuDForwarder(LOCALE_MAINMENU_PLUGINS, g_PluginList->hasPlugin(CPlugins::P_TYPE_SCRIPT), NULL, new CPluginList(LOCALE_MAINMENU_PLUGINS,CPlugins::P_TYPE_LUA), "-1", key, icon );
+			menu_item->setHint(NEUTRINO_ICON_HINT_PLUGINS, LOCALE_MENU_HINT_LUA);
+			break;
+#if 0
 		case SNeutrinoSettings::ITEM_PLUGIN:
 		{
 			unsigned int number_of_plugins = (unsigned int) g_PluginList->getNumberOfPlugins();
@@ -305,6 +316,7 @@ bool CUserMenu::showUserMenu(neutrino_msg_t msg)
 			menu_item = NULL;
 			break;
 		}
+#endif
 		case SNeutrinoSettings::ITEM_VTXT:
 			keyhelper.get(&key,&icon, feat_key[g_settings.personalize[SNeutrinoSettings::P_FEAT_KEY_VTXT]].key); //CRCInput::RC_blue
 			menu_item = new CMenuForwarder(LOCALE_USERMENU_ITEM_VTXT, true, NULL, &StreamFeaturesChanger, "teletext", key, icon);
@@ -415,19 +427,7 @@ bool CUserMenu::showUserMenu(neutrino_msg_t msg)
 					menu_item = new CMenuForwarder(g_PluginList->getName(count), true, NULL, this, pname, key, icon);
 					printf("[neutrino usermenu] std-plugin %s #%d, set key %d...\n", g_PluginList->getFileName(count), count, g_PluginList->getKey(count));
 					}
-					const std::string hint = g_PluginList->getDescription(count);
-					if (hint != "") {
-						const char *hint_icon = NULL;
-						switch(g_PluginList->getType(count)) {
-							case CPlugins::P_TYPE_GAME:
-								hint_icon = NEUTRINO_ICON_HINT_GAMES;
-							break;
-							case CPlugins::P_TYPE_SCRIPT:
-								hint_icon = NEUTRINO_ICON_HINT_SCRIPTS;
-							break;
-						}
-						menu_item->setHint(hint_icon, hint);
-					}
+					menu_item->setHint(g_PluginList->getHintIcon(count), g_PluginList->getDescription(count));
 					break;
 				}
 			}
