@@ -900,26 +900,26 @@ mainmenu.audioplayer Audioplayer
 mainmenu.bluepanel FFTeam Bluepanel
 mainmenu.channels Kanalliste
 mainmenu.clearsectionsd Lösche EPG Cache
-mainmenu.games Spiele
+mainmenu.games Spiele >
 mainmenu.head Hauptmenü
 mainmenu.media Multimedia
 mainmenu.movieplayer Movieplayer
 mainmenu.pausesectionsd EPG auslesen
 mainmenu.pictureviewer Bildbetrachter
-mainmenu.plugins Plugins
+mainmenu.plugins Lua-Plugins >
 mainmenu.radiomode Radio-Modus
 mainmenu.reboot Neustart
 mainmenu.recording Aufnehmen
 mainmenu.recording_start Start
 mainmenu.recording_stop Stopp
-mainmenu.scripts Skripte
+mainmenu.scripts Skripte >
 mainmenu.service Service
 mainmenu.settings Einstellungen
 mainmenu.shutdown Ausschalten
 mainmenu.shutdown_menu Ausschalt-Optionen
 mainmenu.sleeptimer SleepTimer
 mainmenu.standby Standby
-mainmenu.tools Tools-Werkzeuge
+mainmenu.tools Tools-Plugins >
 mainmenu.tvmode TV-Modus
 mainmenu.tvradio_switch TV-Radio Umschaltung
 mainsettings.audio Audio
@@ -1140,7 +1140,7 @@ menu.hint_leds_standby Definiert den Status der Power-LEDs im Standby
 menu.hint_leds_tv Definiert den Status der Power-LEDs im TV-Modus
 menu.hint_load Laden der Neutrino-Einstellungen aus einer Datei
 menu.hint_longkeypress_duration Tasten, die länger als die angegebene Zeit betätigt werden, werden als "langer Tastendruck" behandelt.
-menu.hint_lua Lua Plugins ausführen
+menu.hint_lua Zeige Liste der installierten Lua Plugins
 menu.hint_make_hdlist Bei aktiver Option wird ein Bouquet namens 'HD' erzeugt, in dem alle HD-Sender zusammengefasst sind
 menu.hint_make_newlist Nach einer Kanalsuche wird ein Bouquet namens 'neue Kanäle' erzeugt
 menu.hint_make_removedlist Nach einer Kanalsuche wird ein Bouquet namens 'gelöschte Kanäle' erzeugt
@@ -1350,7 +1350,7 @@ menu.hint_screenshot_res Screenshot Größe: aktuelle TV-Auflösung oder OSD-Auf
 menu.hint_screenshot_scale Skalierung auf TV-Auflösung, wenn OSD aktiviert ist
 menu.hint_screenshot_setup Konfigurieren Sie die Optionen zum Erstellen von Screenshots
 menu.hint_screenshot_video Diese Funktion übernimmt das TV-Bild als Hintergrund in den Screenshot
-menu.hint_scripts Shell-Skripte ausführen
+menu.hint_scripts Zeige Liste der installierten Skripte
 menu.hint_selected_back Ändern Sie die Hintergrundfarbe für ausgewählte Fensterinhalte
 menu.hint_selected_text Ändern Sie die Textfarbe für ausgewählte Fensterinhalte
 menu.hint_service Sendersuchlauf, Bouquet-Verwaltung, Software-Aktualisierung und mehr
@@ -1383,7 +1383,7 @@ menu.hint_theme Wählen Sie ein vordefiniertes Farbschema, speichern oder laden 
 menu.hint_timeouts Gibt an, nach welcher Zeit in Sekunden die Menüs oder Infofenster sich automatisch schließen (0 deaktiviert)
 menu.hint_timers Hinzufügen, entfernen und bearbeiten geplanter Aufnahmen oder anderer Timer
 menu.hint_timezone Wählen Sie ihre Zeitzone aus
-menu.hint_tools Tools Werkzeuge ausführen
+menu.hint_tools Zeige Liste der installierten Tools-Plugins
 menu.hint_tvmode Schaltet zum TV-Modus
 menu.hint_tvradio_switch Schaltet zwischen TV- und Radio-Modus um
 menu.hint_upnp Zugriff auf UPNP-Server in Ihrem lokalen Netz

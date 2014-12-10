@@ -405,21 +405,61 @@ lcdmenu.statusline Ligne d'état
 lcdmenu.statusline.both Volume / temps écoulé
 lcdmenu.statusline.playtime Temps écoulé
 lcdmenu.statusline.volume Volume
+ledcontroler.backlight Hintergrundbeleuchtung Buttons
+ledcontroler.backlight.tv TV Modus
+ledcontroler.blink Blinke im Deep-Standby, wenn Timer aktiv
+ledcontroler.menu Power Button LEDs
+ledcontroler.mode.deepstandby Deep-Standby
+ledcontroler.mode.record Blinke bei Aufnahme
+ledcontroler.mode.standby Standby
+ledcontroler.mode.tv TV Betrieb
+ledcontroler.off LED1 & LED2 aus
+ledcontroler.on.all LED1 & LED2 an
+ledcontroler.on.led1 LED1 an
+ledcontroler.on.led2 LED2 an
+ledcontroller.mode.deepstandby Im Deep-Standby
+ledcontroller.mode.deepstandby_timer Im Deep-Standby mit Timer
+ledcontroller.mode.playback Beim Abspielen
+ledcontroller.mode.record Beim Aufnehmen
+ledcontroller.mode.standby Im Standby
+ledcontroller.mode.tv Im TV-Betrieb
+ledcontroller.off Aus
+ledcontroller.on.both Grün und rot
+ledcontroller.on.green Grün
+ledcontroller.on.red Rot
+ledcontroller.title LEDs
+lua.boolparam_deprecated1 Achtung!
+lua.boolparam_deprecated2 Die Verwendung von Zahl oder String
+lua.boolparam_deprecated3 für einen Boolean Parameter ist veraltet.\n                      Bitte nutzen Sie native Bool Werte zB:
+lua.function_deprecated1 Achtung!
+lua.function_deprecated2 Die Funktion
+lua.function_deprecated3 ist veraltet,\n                      bitte nutzen Sie
 mainmenu.audioplayer Lecteur Audio
+mainmenu.bluepanel FFTeam Bluepanel
+mainmenu.channels Kanalliste
+mainmenu.clearsectionsd Lösche EPG Cache
 mainmenu.games Jeux
 mainmenu.head MENU PRINCIPAL
+mainmenu.media Multimedia
 mainmenu.movieplayer Lecteur Vidéo
 mainmenu.pausesectionsd Lire EPG
 mainmenu.pictureviewer Visionneur de photos
+mainmenu.plugins Lua-Plugins >
 mainmenu.radiomode Mode Radio
+mainmenu.reboot Neustart
 mainmenu.recording Enregistrement
 mainmenu.recording_start Début
 mainmenu.recording_stop stop
+mainmenu.scripts Skripte >
 mainmenu.service Service
 mainmenu.settings Réglages
 mainmenu.shutdown Eteindre
+mainmenu.shutdown_menu Ausschalt-Optionen
 mainmenu.sleeptimer Veille
+mainmenu.standby Standby
+mainmenu.tools Tools-Plugins >
 mainmenu.tvmode Mode TV
+mainmenu.tvradio_switch TV-Radio Umschaltung
 mainsettings.audio Audio
 mainsettings.colors Coleurs / thèmes / Caractères
 mainsettings.head Réglages

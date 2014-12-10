@@ -460,6 +460,16 @@ flashupdate.cantopenfile Otevření souboru nemožné
 flashupdate.cantopenmtd Otevření MTD-zařízení nemožné
 flashupdate.checkupdate_internet Zkontrolovat aktualizace on-line
 flashupdate.checkupdate_local Lokální aktualizace
+flashupdate.createimage Image speichern
+flashupdate.createimage_add_env 'env' hinzufügen
+flashupdate.createimage_add_kernel 'kernel' hinzufügen
+flashupdate.createimage_add_spare 'spare' hinzufügen
+flashupdate.createimage_add_u_boot 'u-boot' hinzufügen
+flashupdate.createimage_add_uldr 'uldr' hinzufügen
+flashupdate.createimage_menu Aktuelle Software sichern
+flashupdate.createimage_options Einstellungen
+flashupdate.createimage_other Image für %s STB erstellen
+flashupdate.createimage_warning Nachfolgend wird ein Image für die %s STB erstellt.\nDieses Image wird auch nur auf einer %s STB lauffähig sein!\n \nTrotzdem fortsetzten?
 flashupdate.currentversion_sep Aktuální verze
 flashupdate.currentversiondate Datum
 flashupdate.currentversiontime Hodina
@@ -496,6 +506,9 @@ flashupdate.proxyserver_sep Server proxy
 flashupdate.proxyusername Uživatel
 flashupdate.proxyusername_hint1 Vložení jména uživatele serveru proxy
 flashupdate.proxyusername_hint2 Prázdné pole znamená nepoužití autorizace
+flashupdate.read_directory_not_exist Das Backupverzeichnis %s \nexistiert nicht!
+flashupdate.read_no_available_space Der maximal verfügbare Platz in %s \nbeträgt %s KB, es werden aber %s KB benötigt.\n \nDer Vorgang wird abgebrochen, wählen sie bitte einen anderen Datenträger!
+flashupdate.read_volume_error Die Größe des Datenträgers %s \nkann nicht ermittelt werden!
 flashupdate.readflash Načtení celého IMAGE z paměti FLASH
 flashupdate.readflashmtd Uložení jedné oddílu
 flashupdate.ready Hotovo.
@@ -503,7 +516,6 @@ flashupdate.reallyflashmtd Opravdu provést programování? \ n \ V případě v
 flashupdate.savesuccess IMAGE byl úspěšně uložen \ nako% s.
 flashupdate.selectimage Dostupné soubory
 flashupdate.settings Aktualizace nastavení
-flashupdate.squashfs.noversion Kontrola SquashFS verze je podporována pouze během aktualizace přes internet. \ skutečně nainstalovat tento soubor?
 flashupdate.titlereadflash Načtení paměti FLASH
 flashupdate.titlewriteflash Zapsání paměti FLASH
 flashupdate.update_with_settings_del_skipped Adresář [% s] nebyl vymazán. Zadání je přeskočeno.
@@ -523,15 +535,14 @@ flashupdate.wrongbase Vaše verze je odlišná. \ Pokračovat?
 fontmenu.channellist Seznam kanálů
 fontmenu.epg EPG
 fontmenu.eventlist Programový průvodce
-fontmenu.gamelist Seznam her
+fontmenu.fonts Schriftarten
 fontmenu.head Nastavení písma
 fontmenu.infobar Informační lišta
 fontmenu.menu Menu
+fontmenu.other Andere
 fontmenu.scaling Faktor zoomu globálního fontu
 fontmenu.scaling_x Vodorovně (v%)
-fontmenu.scaling_x_hint2 Vodorovně (v%) min 50 / max 200
 fontmenu.scaling_y Svisle (v%)
-fontmenu.scaling_y_hint2 Svisle (v%) min 50 / max 200
 fontmenu.sizes Velikosti písma
 fontsize.channel_num_zap přímý výběr
 fontsize.channellist Seznam kanálů
@@ -548,8 +559,6 @@ fontsize.eventlist_itemlarge Velké EPG
 fontsize.eventlist_itemsmall Malé EPG
 fontsize.eventlist_title Titul EPG
 fontsize.filebrowser_item Položka prohlížeče souborů
-fontsize.gamelist_itemlarge Velký seznam her
-fontsize.gamelist_itemsmall Malý seznam her
 fontsize.hint Inicializace písma, \ Prosím čekej ...
 fontsize.infobar_channame Název kanálu
 fontsize.infobar_info Informace na informační liště
@@ -559,6 +568,37 @@ fontsize.menu Text menu
 fontsize.menu_hint Popis menu
 fontsize.menu_info Informační menu
 fontsize.menu_title Titulek menu
+fontsize.subtitles Text Untertitel
+glcd.brightness Helligkeit
+glcd.brightness_standby Helligkeit in Standby
+glcd.color.black Schwarz
+glcd.color.blue Blau
+glcd.color.cyan Blaugrün
+glcd.color.green Grün
+glcd.color.magenta Magenta
+glcd.color.red Rot
+glcd.color.white Weiss
+glcd.color.yellow Gelb
+glcd.enable GraphLCD aktiv
+glcd.font Schrift
+glcd.head GraphLCD
+glcd.mirror_osd OSD-Menü auf GraphLCD anzeigen
+glcd.mirror_video Videobild auf GraphLCD anzeigen
+glcd.restart Neu erkennen
+glcd.scroll_speed Scroll-Geschwindigkeit
+glcd.select.bar Fortschrittsbalken-Farbe
+glcd.select.bg Hintergrund-Farbe
+glcd.select.fg Vordergrund-Farbe
+glcd.show_logo Sender-Logo anzeigen
+glcd.show_numbers Kanalnummern anzeigen
+glcd.size_bar Fortschrittsbalken-Größe
+glcd.size_channel Sender-Größe
+glcd.size_epg EPG-Größe
+glcd.size_logo Logo-Größe
+glcd.size_time Uhrzeit-Größe
+glcd.size_time_standby Uhrzeit-Größe in Standby
+glcd.time_in_standby Zeitanzeige in Standby
+glcd.volume Lautstärke
 hdd_10min 10 minut
 hdd_1min 1 minuta
 hdd_20min 20 minut
@@ -568,22 +608,28 @@ hdd_60min 60 minut
 hdd_activate Použij nastavení
 hdd_check Kontrola souborového systému
 hdd_check_failed Chyba kontroly disku!
-hdd_ext3 Souborový systém Ext3
+hdd_check_format_bad Überprüfung von Datenträgern mit Format %s wird nicht unterstützt.
 hdd_extended_settings Rozšířené nastavení disku
 hdd_fast rychlé
 hdd_format Formátování HDD
 hdd_format_failed Chyba během formátování disku!
 hdd_format_warn Opravdu formátovat? Všechna data budou ztracena!
 hdd_fs Souborový systém
+hdd_fs_unknown unbekannt
 hdd_manage Správa HDD
 hdd_middle středně
+hdd_mount einhängen
+hdd_mount_umount Laufwerke ein-/aushängen
 hdd_noise Hlučnost (AAM)
 hdd_not_found Nenalezen disk
-hdd_reiser ReiserFS
 hdd_removable_device Odstranitelné zařízení
 hdd_settings Nastavení HDD / USB
 hdd_sleep Čas uspání
 hdd_slow pomalu
+hdd_statfs Füllstands-Abfrage
+hdd_statfs_always immer
+hdd_statfs_recording nur während Aufnahme
+hdd_umount aushängen
 hdd_umount_warn Chyba během odpojení disku!
 imageinfo.creator Vytvořil:
 imageinfo.date Datum:
@@ -615,7 +661,16 @@ infoviewer.subservice Doplňkové služby
 infoviewer.waittime Načítání hodin ... 
 ipsetup.hint_1 Použij 0. .. 9 nebo klávesy NAHORU / DOLŮ
 ipsetup.hint_2 OK = uložení, EXIT = zrušení
+kerneloptions.apply Einstellungen anwenden
+kerneloptions.head Kernel-Optionen
+kerneloptions.hint.disabled_loaded Das Kernel-Modul ist noch geladen.
+kerneloptions.hint.disabled_not_loaded Das Kernel-Modul ist nicht geladen.
+kerneloptions.hint.enabled_loaded Das Kernel-Modul ist geladen und verwendbar.
+kerneloptions.hint.enabled_not_loaded Wenden Sie die Einstellungen an, um das Kernel-Modul zu laden.
+kerneloptions.modules Kernel-Module
+kerneloptions.reset Einstellungen zurücksetzen
 keybindingmenu.RC Nastavení ovladače
+keybindingmenu.accept_other_remotes Andere Fernbedienungen akzeptieren
 keybindingmenu.addrecord Přidání nahrávání
 keybindingmenu.addremind Přidání změny kanálu
 keybindingmenu.allchannels_on_ok Všechny kanály
@@ -628,8 +683,10 @@ keybindingmenu.cancel Zavření seznamu kanálů
 keybindingmenu.channeldown Následující kanál
 keybindingmenu.channellist Seznam kanálů
 keybindingmenu.channelup Předchozí kanál
+keybindingmenu.edit Bearbeiten
 keybindingmenu.head Nastavení kláves
 keybindingmenu.lastchannel Zpět na poslední kanál
+keybindingmenu.longkeypress_duration Langer Tastendruck
 keybindingmenu.misc Různé
 keybindingmenu.mode_left_right_key_tv Činnost Levého / Pravého kurzoru v TV režimu
 keybindingmenu.mode_left_right_key_tv_infobar Zobraz informační lištu
@@ -637,6 +694,8 @@ keybindingmenu.mode_left_right_key_tv_volume Ovládání hlasitosti
 keybindingmenu.mode_left_right_key_tv_vzap Virtuální přepnutí
 keybindingmenu.mode_left_right_key_tv_zap Přepnutí
 keybindingmenu.modechange Změna způsobu
+keybindingmenu.multimedia Multimedia
+keybindingmenu.navigation Navigation
 keybindingmenu.pagedown Následující strana
 keybindingmenu.pageup Předchozí strana
 keybindingmenu.poweroff Správa napájení
@@ -652,9 +711,14 @@ keybindingmenu.remotecontrol_hardware_tripledragon Triple Dragon
 keybindingmenu.repeatblock Základní zpoždění
 keybindingmenu.repeatblockgeneric Zpoždění opakování
 keybindingmenu.sort Změna pořadí třídění
+keybindingmenu.special_active Sondertasten
 keybindingmenu.subchanneldown Předchozí vedlejší kanál
 keybindingmenu.subchannelup Následující vedlejší kanál
 keybindingmenu.tvradiomode TV / Rádio
+keybindingmenu.video Video
+keybindingmenu.volume Lautstärke
+keybindingmenu.volumedown Leiser
+keybindingmenu.volumeup Lauter
 keybindingmenu.zaphistory Historie přepínání buketů
 keychooser.head Nastvenie nového klávesy
 keychooser.text1 Stiskni klávesu
@@ -673,12 +737,19 @@ lcdcontroler.brightnessdeepstandby Jas v hlubokém spánku
 lcdcontroler.brightnessstandby Jas ve spánku
 lcdmenu.dim_brightness Jas po zhasnutí
 lcdmenu.dim_time Čas zhasnutí
-lcdmenu.head Nastavení VFD
+lcdmenu.displaymode.running Anzeige im Betrieb
+lcdmenu.displaymode.standby Anzeige im Standby
+lcdmenu.displaymode.timeoff Ohne Uhrzeit
+lcdmenu.displaymode.timeonly Nur Uhrzeit
+lcdmenu.head LED/LCD Einstellungen
 lcdmenu.lcdcontroler Jas
+lcdmenu.scroll Laufschrift
 lcdmenu.statusline Stavový řádek
 lcdmenu.statusline.both hlasitost / odehraný čas
 lcdmenu.statusline.playtime odehraných čas
 lcdmenu.statusline.volume hlasitost
+ledcontroler.backlight Hintergrundbeleuchtung Buttons
+ledcontroler.backlight.tv TV Modus
 ledcontroler.blink Blikat v hlubokém spánku pokud je nastaven časovač
 ledcontroler.menu Podsvícení Power tlačítka
 ledcontroler.mode.deepstandby Hluboký spánek
@@ -689,31 +760,54 @@ ledcontroler.off LED1 a LED2 vyp.
 ledcontroler.on.all LED1 a LED2 zap.
 ledcontroler.on.led1 LED1 zap.
 ledcontroler.on.led2 LED2 zap.
+ledcontroller.mode.deepstandby Im Deep-Standby
+ledcontroller.mode.deepstandby_timer Im Deep-Standby mit Timer
+ledcontroller.mode.playback Beim Abspielen
+ledcontroller.mode.record Beim Aufnehmen
+ledcontroller.mode.standby Im Standby
+ledcontroller.mode.tv Im TV-Betrieb
+ledcontroller.off Aus
+ledcontroller.on.both Grün und rot
+ledcontroller.on.green Grün
+ledcontroller.on.red Rot
+ledcontroller.title LEDs
+lua.boolparam_deprecated1 Achtung!
+lua.boolparam_deprecated2 Die Verwendung von Zahl oder String
+lua.boolparam_deprecated3 für einen Boolean Parameter ist veraltet.\n                      Bitte nutzen Sie native Bool Werte zB:
+lua.function_deprecated1 Achtung!
+lua.function_deprecated2 Die Funktion
+lua.function_deprecated3 ist veraltet,\n                      bitte nutzen Sie
 mainmenu.audioplayer Přehrávač hudby
+mainmenu.bluepanel FFTeam Bluepanel
+mainmenu.channels Kanalliste
 mainmenu.clearsectionsd Vyčištění EPG zachycování
-mainmenu.games Hry
+mainmenu.games Hry >
 mainmenu.head Hlavní menu
 mainmenu.media Média
 mainmenu.movieplayer Přehrávač filmů
 mainmenu.pausesectionsd Načítání EPG
 mainmenu.pictureviewer Prohlížeč obrázků
+mainmenu.plugins Lua-Plugins >
 mainmenu.radiomode Rádio
 mainmenu.reboot Reboot
 mainmenu.recording Nahrávání
 mainmenu.recording_start Spustit
 mainmenu.recording_stop Zastavit
-mainmenu.scripts Skripty
+mainmenu.scripts Skripty >
 mainmenu.service Služby
 mainmenu.settings Nastavení
 mainmenu.shutdown Vypnout
+mainmenu.shutdown_menu Ausschalt-Optionen
 mainmenu.sleeptimer Časovač vypnutí
+mainmenu.standby Standby
+mainmenu.tools Tools-Plugins >
 mainmenu.tvmode TV
 mainmenu.tvradio_switch Přepnutí TV-Rádio
 mainsettings.audio Zvuk
 mainsettings.head Nastavení
 mainsettings.keybinding Nastavení kláves
 mainsettings.language Jazyk / Časové pásmo
-mainsettings.lcd Prohlížeč VFD
+mainsettings.lcd LED/LCD-Display
 mainsettings.manage Správa nastavení
 mainsettings.misc Jiná nastavení
 mainsettings.network Síť
@@ -726,7 +820,10 @@ mainsettings.video Obraz
 menu.back zpět
 menu.cancel zrušit 
 menu.hint_a_pic Nastavení přehrávače hudby a obrázkového prohlížeče
-menu.hint_aplay Přehrávač zvukových souborů
+menu.hint_accept_other_remotes Deaktivieren um andere Fernbedienungen zu ignorieren
+menu.hint_adzap Der Werbe-Zapper schaltet nach der eingestellten Zeit wieder auf den ursprünglichen Kanal zurück
+menu.hint_aplay Audioplayer
+menu.hint_aplay_setup Ändern Sie Audioplayer-Einstellungen wie Titel-Anzeige, Startverzeichnis oder Bildschirmschoner.
 menu.hint_audio Audio výstup, DD, SRS TrueVolume \ Volby
 menu.hint_audio_analog_mode Výběr zvukového kanálu pro \ stereo, mono-levý, mono-pravý
 menu.hint_audio_avsync A / V synchronizace
