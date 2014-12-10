@@ -741,7 +741,7 @@ ledcontroler.on.led2 Led2 zap.
 mainmenu.audioplayer Prehrávač hudby
 mainmenu.channels Zoznam kanálov
 mainmenu.clearsectionsd Vyčistenie EPG zachytávania
-mainmenu.games Hry
+mainmenu.games Hry >
 mainmenu.head Hlavné menu
 mainmenu.lua Doplnky
 mainmenu.media Média
@@ -753,14 +753,14 @@ mainmenu.reboot Reboot
 mainmenu.recording Nahrávanie
 mainmenu.recording_start Spustiť
 mainmenu.recording_stop Zastaviť
-mainmenu.scripts Skripty
+mainmenu.scripts Skripty >
 mainmenu.service Služby
 mainmenu.settings Nastavenia
 mainmenu.shutdown Vypnúť
 mainmenu.shutdown_menu Nastavenie vypnutia
 mainmenu.sleeptimer Časovač vypnutia
 mainmenu.standby Pohotovostný stav
-mainmenu.tools Nástroje
+mainmenu.tools Nástroje >
 mainmenu.tvmode TV
 mainmenu.tvradio_switch Prepnutie TV-Rádio
 mainsettings.audio Zvuk
