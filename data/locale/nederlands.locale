@@ -900,26 +900,26 @@ mainmenu.audioplayer Audiospeler
 mainmenu.bluepanel FFTeam Bluepanel
 mainmenu.channels zenders
 mainmenu.clearsectionsd EPG geheugen opschonen
-mainmenu.games Spelletjes
+mainmenu.games Spelletjes >
 mainmenu.head Hoofdmenu
 mainmenu.media Media
 mainmenu.movieplayer Videospeler
 mainmenu.pausesectionsd Lees EPG
 mainmenu.pictureviewer Afbeeldingen
-mainmenu.plugins Plugins
+mainmenu.plugins Lua-Plugins >
 mainmenu.radiomode Radio mode
 mainmenu.reboot Herstart systeem
 mainmenu.recording Opnemen
 mainmenu.recording_start Start
 mainmenu.recording_stop Stopt
-mainmenu.scripts Scripts
+mainmenu.scripts Scripts >
 mainmenu.service Installatie
 mainmenu.settings Systeem Instellingen
 mainmenu.shutdown Uitschakelen
 mainmenu.shutdown_menu Afsluiten
 mainmenu.sleeptimer Slaaptimer
 mainmenu.standby Standby
-mainmenu.tools Tools
+mainmenu.tools Tools-Plugins >
 mainmenu.tvmode TV mode
 mainmenu.tvradio_switch TV-Radio Schakelaar
 mainsettings.audio Audio
