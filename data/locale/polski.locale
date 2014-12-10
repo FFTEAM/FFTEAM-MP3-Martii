@@ -605,25 +605,49 @@ ledcontroler.off Led1 & Led2 wył.
 ledcontroler.on.all Led1 & Led2 wł.
 ledcontroler.on.led1 Led1 wł.
 ledcontroler.on.led2 Led2 wł.
-logo_hdd_dir Katalog dla logo kanałow.
+ledcontroller.mode.deepstandby Im Deep-Standby
+ledcontroller.mode.deepstandby_timer Im Deep-Standby mit Timer
+ledcontroller.mode.playback Beim Abspielen
+ledcontroller.mode.record Beim Aufnehmen
+ledcontroller.mode.standby Im Standby
+ledcontroller.mode.tv Im TV-Betrieb
+ledcontroller.off Aus
+ledcontroller.on.both Grün und rot
+ledcontroller.on.green Grün
+ledcontroller.on.red Rot
+ledcontroller.title LEDs
+lua.boolparam_deprecated1 Achtung!
+lua.boolparam_deprecated2 Die Verwendung von Zahl oder String
+lua.boolparam_deprecated3 für einen Boolean Parameter ist veraltet.\n                      Bitte nutzen Sie native Bool Werte zB:
+lua.function_deprecated1 Achtung!
+lua.function_deprecated2 Die Funktion
+lua.function_deprecated3 ist veraltet,\n                      bitte nutzen Sie
 mainmenu.audioplayer Odtwarzacz audio
+mainmenu.bluepanel FFTeam Bluepanel
+mainmenu.channels Kanalliste
 mainmenu.clearsectionsd Czyść bufor EPG
-mainmenu.games Gry
+mainmenu.games Gry >
 mainmenu.head Menu główne
+mainmenu.media Multimedia
 mainmenu.movieplayer Odtwarzacz wideo
 mainmenu.pausesectionsd Czytaj informacje EPG
 mainmenu.pictureviewer Przeglądarka obrazów
+mainmenu.plugins Lua-Plugins >
 mainmenu.radiomode Radio
 mainmenu.reboot Restart odbiornika
 mainmenu.recording Nagrywanie
 mainmenu.recording_start START
 mainmenu.recording_stop STOP
-mainmenu.scripts Skrypty
+mainmenu.scripts Skrypty >
 mainmenu.service Usługi
 mainmenu.settings Ustawienia
 mainmenu.shutdown Wyłącz
+mainmenu.shutdown_menu Ausschalt-Optionen
 mainmenu.sleeptimer Wyłącznik czasowy
+mainmenu.standby Standby
+mainmenu.tools Tools-Plugins >
 mainmenu.tvmode Telewizja
+mainmenu.tvradio_switch TV-Radio Umschaltung
 mainsettings.audio Dźwięk
 mainsettings.head Ustawienia
 mainsettings.keybinding Pilot

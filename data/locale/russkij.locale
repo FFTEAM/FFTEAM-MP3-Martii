@@ -900,26 +900,26 @@ mainmenu.audioplayer Аудио проигрыватель
 mainmenu.bluepanel FFTeam Bluepanel
 mainmenu.channels Каналы
 mainmenu.clearsectionsd Очистить кеш телегида
-mainmenu.games Игры
+mainmenu.games Игры >
 mainmenu.head Главное меню
 mainmenu.media Мультимедиа
 mainmenu.movieplayer Видео проигрыватель
 mainmenu.pausesectionsd Чтение телегида
 mainmenu.pictureviewer Проигрыватель фото файлов
-mainmenu.plugins Plugins
+mainmenu.plugins Lua-Plugins >
 mainmenu.radiomode Радио каналы
 mainmenu.reboot Перезагрузка ресивера
 mainmenu.recording Запись
 mainmenu.recording_start Старт
 mainmenu.recording_stop Стоп
-mainmenu.scripts Служебные сценарии 
+mainmenu.scripts Служебные сценарии >
 mainmenu.service Сервис
 mainmenu.settings Настройка ресивера
 mainmenu.shutdown Выключение ресивера
 mainmenu.shutdown_menu Выключение
 mainmenu.sleeptimer Таймер выключения
 mainmenu.standby Дежурный режим
-mainmenu.tools Tools-Инстрыменты
+mainmenu.tools Tools-Plugins >
 mainmenu.tvmode ТВ режим
 mainmenu.tvradio_switch TВ/радио режим
 mainsettings.audio Аудио параметры
