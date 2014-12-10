@@ -824,6 +824,7 @@ struct SNeutrinoSettings
 		ITEM_HDDMENU = 31,
 		ITEM_AUDIOPLAY = 32,
 		ITEM_INETPLAY = 33,
+		ITEM_TOOLS =34,
 		ITEM_MAX   // MUST be always the last in the list
 	} USER_ITEM;
 
