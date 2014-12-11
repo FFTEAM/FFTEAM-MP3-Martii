@@ -115,7 +115,7 @@ void CComponentsPicture::initCCItem()
 	//handle size
 	int w_pic = width;
 	int h_pic = height;
-	
+
 	if (pic_name.empty())
 		return;
 
@@ -253,11 +253,13 @@ void CComponentsChannelLogo::setChannel(const uint64_t& channelId, const std::st
 {
 	channel_id = channelId; 
 	channel_name = channelName;
+	int dummy;
 
-	has_logo = g_PicViewer->GetLogoName(channel_id, channel_name, pic_name, &width, &height);
+	has_logo = g_PicViewer->GetLogoName(channel_id, channel_name, pic_name, &dummy, &dummy);
 
 	if (!has_logo)
 		pic_name = alt_pic_name;
 	
 	initCCItem();
+	doPaintBg(false);
 }
