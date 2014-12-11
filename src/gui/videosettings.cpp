@@ -171,7 +171,7 @@ const CMenuOptionChooser::keyval VIDEOMENU_VIDEOSIGNAL_TANK_OPTIONS[VIDEOMENU_VI
 	{ ANALOG_MODE(BOTH ,SD,RGB  ), LOCALE_VIDEOMENU_ANALOG_SD_RGB   }, /* SD RGB on Cinch and SCART                        */
 	{ ANALOG_MODE(BOTH ,SD,YPRPB), LOCALE_VIDEOMENU_ANALOG_SD_YPRPB }, /* SD YPrPb on Cinch and SCART                      */
 	{ ANALOG_MODE(BOTH ,HD,RGB  ), LOCALE_VIDEOMENU_ANALOG_HD_RGB   }, /* HD RGB on Cinch and SCART                        */
-	{ ANALOG_MODE(BOTH ,HD,YPRPB), LOCALE_VIDEOMENU_ANALOG_HD_YPRPB }, /* HD YPrPb on Cinch and SCART                      */
+	{ ANALOG_MODE(BOTH ,HD,YPRPB), LOCALE_VIDEOMENU_ANALOG_HD_YPRPB }  /* HD YPrPb on Cinch and SCART                      */
 };
 
 #define VIDEOMENU_VIDEOSIGNAL_HD1PLUS_SCART_OPTION_COUNT 4
@@ -180,7 +180,7 @@ const CMenuOptionChooser::keyval VIDEOMENU_VIDEOSIGNAL_HD1PLUS_SCART_OPTIONS[VID
 	{ ANALOG_MODE(SCART,SD,RGB  ), LOCALE_VIDEOMENU_ANALOG_SD_RGB_SCART   }, /* composite + RGB */
 	{ ANALOG_MODE(SCART,SD,YPRPB), LOCALE_VIDEOMENU_ANALOG_SD_YPRPB_SCART }, /* YPbPr SCART */
 	{ ANALOG_MODE(SCART,HD,RGB  ), LOCALE_VIDEOMENU_ANALOG_HD_RGB_SCART   },
-	{ ANALOG_MODE(SCART,HD,YPRPB), LOCALE_VIDEOMENU_ANALOG_HD_YPRPB_SCART },
+	{ ANALOG_MODE(SCART,HD,YPRPB), LOCALE_VIDEOMENU_ANALOG_HD_YPRPB_SCART }
 };
 
 #define VIDEOMENU_VIDEOSIGNAL_HD1PLUS_CINCH_OPTION_COUNT 4
@@ -211,7 +211,7 @@ const CMenuOptionChooser::keyval VIDEOMENU_VIDEOSIGNAL_HD1PLUS_SCART_OPTIONS[VID
 	{ ANALOG_SD_RGB_SCART,   LOCALE_VIDEOMENU_ANALOG_SD_RGB_SCART   }, /* composite + RGB */
 	{ ANALOG_SD_YPRPB_SCART, LOCALE_VIDEOMENU_ANALOG_SD_YPRPB_SCART }, /* YPbPr SCART */
 	{ ANALOG_HD_RGB_SCART,   LOCALE_VIDEOMENU_ANALOG_HD_RGB_SCART   },
-	{ ANALOG_HD_YPRPB_SCART, LOCALE_VIDEOMENU_ANALOG_HD_YPRPB_SCART },
+	{ ANALOG_HD_YPRPB_SCART, LOCALE_VIDEOMENU_ANALOG_HD_YPRPB_SCART }
 };
 
 #define VIDEOMENU_VIDEOSIGNAL_HD1PLUS_CINCH_OPTION_COUNT 4
@@ -372,7 +372,7 @@ int CVideoSettings::showVideoSetup()
 	else if (system_rev > 0x06)
 	{
 #ifdef ANALOG_MODE
-		if (system_rev == 9 || system_rev == 11) { // Tank, Trinity.
+		if (system_rev == 9 || system_rev == 11 || system_rev == 12) { // Tank, Trinity, Zee2
 			vs_analg_ch = new CMenuOptionChooser(LOCALE_VIDEOMENU_ANALOG_MODE, &g_settings.analog_mode1, VIDEOMENU_VIDEOSIGNAL_TANK_OPTIONS, VIDEOMENU_VIDEOSIGNAL_TANK_OPTION_COUNT, true, this);
 			vs_analg_ch->setHint("", LOCALE_MENU_HINT_VIDEO_ANALOG_MODE);
 		} else 
@@ -386,12 +386,10 @@ int CVideoSettings::showVideoSetup()
 			vs_chinch_ch->setHint("", LOCALE_MENU_HINT_VIDEO_CINCH_MODE);
 		}
 	}
-#ifndef BOXMODEL_APOLLO
 	else if (g_info.hw_caps->has_SCART) /* TRIPLEDRAGON hack... :-) */
 	{
 		vs_scart_ch = new CMenuOptionChooser(LOCALE_VIDEOMENU_SCART, &g_settings.analog_mode1, VIDEOMENU_VIDEOSIGNAL_TD_OPTIONS, VIDEOMENU_VIDEOSIGNAL_TD_OPTION_COUNT, true, this);
 	}
-#endif
 #endif
 
 	//4:3 mode
@@ -449,7 +447,7 @@ int CVideoSettings::showVideoSetup()
 		if (vs_analg_ch != NULL)
 			videosetup->addItem(vs_analg_ch); //analog option
 		if (vs_scart_ch != NULL)
-		videosetup->addItem(vs_scart_ch); //scart
+			videosetup->addItem(vs_scart_ch); //scart
 		if (vs_chinch_ch != NULL)
 			videosetup->addItem(vs_chinch_ch);//chinch
 		if (tmp_locale != NONEXISTANT_LOCALE)
@@ -544,7 +542,7 @@ int CVideoSettings::showVideoSetup()
 	g_settings.video_mixer_color |= video_mixer_red;   g_settings.video_mixer_color <<= 8;
 	g_settings.video_mixer_color |= video_mixer_green; g_settings.video_mixer_color <<= 8;
 	g_settings.video_mixer_color |= video_mixer_blue;
-        frameBuffer->setMixerColor(g_settings.video_mixer_color);
+	frameBuffer->setMixerColor(g_settings.video_mixer_color);
 	delete colorSetupNotifier;
 #endif
 	delete videosetup;

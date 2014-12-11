@@ -297,9 +297,7 @@ bool CUserMenu::showUserMenu(neutrino_msg_t msg)
 			int cnt = 0;
 			for (unsigned int count = 0; count < number_of_plugins; count++)
 			{
-				bool show = g_PluginList->getType(count) == CPlugins::P_TYPE_TOOL ||
-					    g_PluginList->getType(count) == CPlugins::P_TYPE_LUA;
-				if (show && !g_PluginList->isHidden(count))
+				if ((g_PluginList->getType(count) == CPlugins::P_TYPE_LUA) && !g_PluginList->isHidden(count))
 				{
 					sprintf(id, "%d", count);
 					menu_items++;
@@ -307,8 +305,7 @@ bool CUserMenu::showUserMenu(neutrino_msg_t msg)
 					//printf("[neutrino usermenu] plugin %d, set key %d...\n", count, g_PluginList->getKey(count));
 					keyhelper.get(&key,&icon, d_key);
 					menu_item = new CMenuForwarder(g_PluginList->getName(count), true, NULL, &StreamFeaturesChanger, id, key, icon);
-					menu_item->setHint("", g_PluginList->getDescription(count));
-
+					menu_item->setHint(g_PluginList->getHintIcon(count), g_PluginList->getDescription(count));
 					menu->addItem(menu_item, false);
 					cnt++;
 				}
@@ -420,12 +417,10 @@ bool CUserMenu::showUserMenu(neutrino_msg_t msg)
 					neutrino_msg_t d_key = g_PluginList->getKey(count);
 					keyhelper.get(&key,&icon, d_key);
 					menu_item = new CMenuForwarder(g_PluginList->getName(count), true, NULL, &StreamFeaturesChanger, id, key, icon);
-					printf("[neutrino usermenu] lua-plugin %s #%d, set key %d...\n", g_PluginList->getFileName(count), count, g_PluginList->getKey(count));
 					}
 					else {
 					keyhelper.get(&key,&icon);
 					menu_item = new CMenuForwarder(g_PluginList->getName(count), true, NULL, this, pname, key, icon);
-					printf("[neutrino usermenu] std-plugin %s #%d, set key %d...\n", g_PluginList->getFileName(count), count, g_PluginList->getKey(count));
 					}
 					menu_item->setHint(g_PluginList->getHintIcon(count), g_PluginList->getDescription(count));
 					break;
