@@ -356,10 +356,7 @@ void dvbsub_get_stc(int64_t * STC);
 int cDvbSubtitleConverter::Action(void)
 {
 	int WaitMs = WAITMS;
-#if 0
- retry:
-	bool shown = false;
-#endif
+
 	if (!running)
 		return 0;
 
@@ -424,10 +421,6 @@ dbgconverter("cDvbSubtitleConverter::Action: PTS: %012llx STC: %012llx (%lld) ti
 		}
 	}
 	Unlock();
-#if 0
-if (shown)
-	goto retry;
-#endif
 	if(WaitMs != WAITMS)
 		dbgconverter("cDvbSubtitleConverter::Action: finish, WaitMs %d\n", WaitMs);
 
