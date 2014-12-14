@@ -119,8 +119,7 @@ void GLCD_Menu::hide()
 {
 }
 
-bool
-GLCD_Menu::changeNotify (const neutrino_locale_t OptionName, void *Data)
+bool GLCD_Menu::changeNotify (const neutrino_locale_t OptionName, void *Data)
 {
 	if (!Data)
 		return false;
