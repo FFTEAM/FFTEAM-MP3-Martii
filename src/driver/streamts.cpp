@@ -196,6 +196,11 @@ void CStreamInstance::run()
 
 	CCamManager::getInstance()->Start(channel_id, CCamManager::STREAM);
 
+#if HAVE_DUCKBOX_HARDWARE || HAVE_SPARK_HARDWARE
+	CFrontend *fe = CFEManager::getInstance()->allocateFE(tmpchan, true);
+	CFEManager::getInstance()->lockFrontend(fe);
+	CZapit::getInstance()->SetRecordMode(true);
+#endif
 	while (running) {
 		ssize_t r = dmx->Read(buf, IN_SIZE, 100);
 		if (r > 0)
@@ -204,6 +209,10 @@ void CStreamInstance::run()
 
 	CCamManager::getInstance()->Stop(channel_id, CCamManager::STREAM);
 
+#if HAVE_DUCKBOX_HARDWARE || HAVE_SPARK_HARDWARE
+	CFEManager::getInstance()->unlockFrontend(fe);
+	CZapit::getInstance()->SetRecordMode(false);
+#endif
 	printf("CStreamInstance::run: exiting %" PRIx64 " (%d fds)\n", channel_id, (int)fds.size());
 
 	Close();
@@ -302,8 +311,11 @@ CFrontend * CStreamManager::FindFrontend(CZapitChannel * channel)
 
 	CFEManager::getInstance()->Lock();
 
-	bool unlock = true;
-	CFEManager::getInstance()->lockFrontend(live_fe);
+	bool unlock = false;
+	if (!IS_WEBTV(live_channel_id)) {
+		unlock = true;
+		CFEManager::getInstance()->lockFrontend(live_fe);
+	}
 
 	OpenThreads::ScopedLock<OpenThreads::Mutex> m_lock(mutex);
 	for (streammap_iterator_t it = streams.begin(); it != streams.end(); ++it)
@@ -632,6 +644,21 @@ bool CStreamManager::StopStream(t_channel_id channel_id)
 		ret = StopAll();
 	}
 	mutex.unlock();
+	return ret;
+}
+
+bool CStreamManager::StopStream(CFrontend * fe)
+{
+	bool ret = false;
+	for (streammap_iterator_t it = streams.begin(); it != streams.end(); ) {
+		if (it->second->frontend == fe) {
+			delete it->second;
+			streams.erase(it++);
+			ret = true;
+		} else {
+			++it;
+		}
+	}
 	return ret;
 }
 
