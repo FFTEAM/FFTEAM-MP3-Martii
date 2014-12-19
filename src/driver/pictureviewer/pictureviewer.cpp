@@ -963,8 +963,7 @@ unsigned char * CPictureViewer::int_Resize(unsigned char *orgin, int ox, int oy,
 					p[0]=r/sq; p[1]=g/sq; p[2]=b/sq; p[3]=a/sq;
 				}
 			}
-		} else
-		{
+		} else {
 			for(j=0;j<dy;j++)
 			{
 				ya= j*oy/dy;
