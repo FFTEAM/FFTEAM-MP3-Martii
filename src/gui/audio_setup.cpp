@@ -176,32 +176,10 @@ int CAudioSetup::showAudioSetup()
 
 	//clock rec
 	//CMenuOptionChooser * as_oj_clockrec new CMenuOptionChooser(LOCALE_AUDIOMENU_CLOCKREC, &g_settings.clockrec, AUDIOMENU_CLOCKREC_OPTIONS, AUDIOMENU_CLOCKREC_OPTION_COUNT, true, audioSetupNotifier);
-	//SRS volumetech separator
-	CMenuSeparator * as_sep_srs 		= new CMenuSeparator(CMenuSeparator::LINE | CMenuSeparator::STRING, LOCALE_AUDIO_SRS_IQ);
-	
-	//SRS on/off
-	CMenuOptionChooser * as_oj_srsonoff 	= new CMenuOptionChooser(LOCALE_AUDIO_SRS_IQ, &g_settings.srs_enable, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true, audioSetupNotifier);
-	
-	//SRS algo
-	CMenuOptionChooser * as_oj_algo 	= new CMenuOptionChooser(LOCALE_AUDIO_SRS_ALGO, &g_settings.srs_algo, AUDIOMENU_SRS_OPTIONS, AUDIOMENU_SRS_OPTION_COUNT, true, audioSetupNotifier);
-	//CMenuOptionChooser * as_oj_algo 	= new CMenuOptionChooser(LOCALE_AUDIO_SRS_ALGO, &g_settings.srs_algo, AUDIOMENU_SRS_OPTIONS, AUDIOMENU_SRS_OPTION_COUNT, g_settings.srs_enable, audioSetupNotifier);
-	as_oj_algo->setHint("", LOCALE_MENU_HINT_AUDIO_SRS_ALGO);
 
-	//SRS noise manage
-	CMenuOptionChooser * as_oj_noise 	= new CMenuOptionChooser(LOCALE_AUDIO_SRS_NMGR, &g_settings.srs_nmgr_enable, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true, audioSetupNotifier);
-	//CMenuOptionChooser * as_oj_noise 	= new CMenuOptionChooser(LOCALE_AUDIO_SRS_NMGR, &g_settings.srs_nmgr_enable, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, g_settings.srs_enable, audioSetupNotifier);
-	as_oj_noise->setHint("", LOCALE_MENU_HINT_AUDIO_SRS_NMGR);
-
-	//SRS reverence volume
-	CMenuOptionNumberChooser * as_oj_volrev = new CMenuOptionNumberChooser(LOCALE_AUDIO_SRS_VOLUME, &g_settings.srs_ref_volume, true, 1, 100, audioSetupNotifier);
-	//CMenuOptionNumberChooser * as_oj_volrev = new CMenuOptionNumberChooser(LOCALE_AUDIO_SRS_VOLUME, &g_settings.srs_ref_volume, g_settings.srs_enable, 1, 100, audioSetupNotifier);
-	as_oj_volrev->setHint("", LOCALE_MENU_HINT_AUDIO_SRS_VOLUME);
-
-	//SRS on/off
-	//CTruVolumeNotifier truevolSetupNotifier(as_oj_algo, as_oj_noise, as_oj_volrev);
-	//CMenuOptionChooser * as_oj_srsonoff 	= new CMenuOptionChooser(LOCALE_AUDIO_SRS_IQ, &g_settings.srs_enable, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true, &truevolSetupNotifier);
-	//as_oj_srsonoff->setHint("", LOCALE_MENU_HINT_AUDIO_SRS);
-#if 0
+#if HAVE_COOL_HARDWARE
+	/* only coolstream has SRS stuff, so only compile it there */
+	//SRS
 	//SRS algo
 	CMenuOptionChooser * as_oj_algo 	= new CMenuOptionChooser(LOCALE_AUDIO_SRS_ALGO, &g_settings.srs_algo, AUDIOMENU_SRS_OPTIONS, AUDIOMENU_SRS_OPTION_COUNT, g_settings.srs_enable, audioSetupNotifier);
 	as_oj_algo->setHint("", LOCALE_MENU_HINT_AUDIO_SRS_ALGO);
@@ -237,7 +215,7 @@ int CAudioSetup::showAudioSetup()
 	audioSettings->addItem(as_oj_iv);
 	//audioSettings->addItem(as_clockrec);
 	//---------------------------------------------------------
-#if HAVE_SPARK_HARDWARE
+#if HAVE_COOL_HARDWARE
 	/* only coolstream has SRS stuff, so only compile it there */
 	audioSettings->addItem(GenericMenuSeparatorLine);
 	audioSettings->addItem(as_oj_srsonoff);
@@ -249,6 +227,7 @@ int CAudioSetup::showAudioSetup()
 	audioSettings->addItem(mf);
 #endif
 	CMenuOptionNumberChooser *ch;
+#if HAVE_SPARK_HARDWARE
 	audioSettings->addItem(new CMenuSeparator(CMenuSeparator::LINE | CMenuSeparator::STRING, LOCALE_AUDIOMENU_MIXER_VOLUME));
 	ch = new CMenuOptionNumberChooser(LOCALE_AUDIOMENU_MIXER_VOLUME_ANALOG,
 		(int *)&g_settings.audio_mixer_volume_analog, true, 0, 100, audioSetupNotifier);
@@ -262,6 +241,7 @@ int CAudioSetup::showAudioSetup()
 		(int *)&g_settings.audio_mixer_volume_spdif, true, 0, 100, audioSetupNotifier);
 	ch->setNumberFormat("%d%%");
 	audioSettings->addItem(ch);
+#endif
 	audioSettings->addItem(new CMenuSeparator(CMenuSeparator::LINE | CMenuSeparator::STRING, LOCALE_AUDIOMENU_VOLUME_ADJUSTMENT));
 	ch = new CMenuOptionNumberChooser(LOCALE_AUDIOMENU_VOLUME_ADJUSTMENT_AC3,
 		(int *)&g_settings.audio_volume_percent_ac3, true, 0, 100, audioSetupNotifier);
