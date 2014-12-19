@@ -375,7 +375,7 @@ int COsdSetup::exec(CMenuTarget* parent, const std::string &actionKey)
 const CMenuOptionChooser::keyval OSD_PRESET_OPTIONS[OSD_PRESET_OPTIONS_COUNT] =
 {
 	{ 0, LOCALE_COLORMENU_SD_PRESET },
-	{ 1, LOCALE_COLORMENU_HD_PRESET },
+	{ 1, LOCALE_COLORMENU_HD_PRESET }
 };
 
 #define INFOBAR_CASYSTEM_MODE_OPTION_COUNT 4
