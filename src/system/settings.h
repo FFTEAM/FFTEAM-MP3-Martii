@@ -440,8 +440,8 @@ struct SNeutrinoSettings
 	int recording_audio_pids_alt;
 	int recording_audio_pids_ac3;
 #if HAVE_SPARK_HARDWARE
-	int  recording_bufsize;
-	int  recording_bufsize_dmx;
+	int recording_bufsize;
+	int recording_bufsize_dmx;
 #endif
 	int recording_stream_vtxt_pid;
 	int recording_stream_subtitle_pids;
@@ -697,7 +697,7 @@ struct SNeutrinoSettings
 	};
 	int lcd_setting[LCD_SETTING_COUNT];
 	int lcd_info_line;
-	std::string lcd_setting_dim_time; //FIXME
+	std::string lcd_setting_dim_time;
 	int lcd_setting_dim_brightness;
 #if HAVE_SPARK_HARDWARE
 	enum LED_MODE {
@@ -798,8 +798,8 @@ struct SNeutrinoSettings
 		ITEM_RECORD = 8,
 		ITEM_MOVIEPLAYER_MB = 9,
 		ITEM_TIMERLIST = 10,
-		ITEM_FAVORITS = 12,
 		ITEM_VTXT = 11,
+		ITEM_FAVORITS = 12,
 		ITEM_TECHINFO = 13,
 		ITEM_REMOTE = 14,
 		ITEM_PLUGIN = 15,
