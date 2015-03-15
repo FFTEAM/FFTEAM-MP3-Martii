@@ -36,6 +36,7 @@
 #include <fcntl.h>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
@@ -457,7 +458,11 @@ bool CLCDDisplay::load_png(const char * const filename)
 				png_destroy_read_struct(&png_ptr, (png_infopp)NULL, (png_infopp)NULL);
 			else
 			{
+#if (PNG_LIBPNG_VER < 10500)
+				if (!(setjmp(png_ptr->jmpbuf)))
+#else
 				if (!setjmp(png_jmpbuf(png_ptr)))
+#endif
 				{
 					png_init_io(png_ptr,fh);
 					

@@ -163,14 +163,14 @@ TUXBOX_APPS_DIRECTORY_ONE(ucodedir,UCODEDIR,localstatedir,/var,/tuxbox/ucodes,
 TUXBOX_APPS_DIRECTORY_ONE(themesdir,THEMESDIR,datadir,/share,/tuxbox/neutrino/themes,
 	[--with-themesdir=PATH   ],[where to find the themes (don't change)])
 
-TUXBOX_APPS_DIRECTORY_ONE(iconsdir,ICONSDIR,datadir,/share/tuxbox, /neutrino/icons,
-	[--with-iconsdir=PATH     ],[where to find the icons (don't change)])
+TUXBOX_APPS_DIRECTORY_ONE(iconsdir,ICONSDIR,datadir,/share,/tuxbox/neutrino/icons,
+	[--with-iconsdir=PATH    ],[where to find the icons (don't change)])
 
 TUXBOX_APPS_DIRECTORY_ONE(private_httpddir,PRIVATE_HTTPDDIR,datadir,/share,/tuxbox/neutrino/httpd,
-	[--with-private_httpddir=PATH    ],[where to find the the private httpd files])
+	[--with-private_httpddir=PATH   ],[where to find the the private httpd files])
 
 TUXBOX_APPS_DIRECTORY_ONE(public_httpddir,PUBLIC_HTTPDDIR,localstatedir,/var,/httpd,
-	[--with-public_httpddir=PATH     ],[where to find the the public httpd files])
+	[--with-public_httpddir=PATH    ],[where to find the the public httpd files])
 
 TUXBOX_APPS_DIRECTORY_ONE(hosted_httpddir,HOSTED_HTTPDDIR,mntdir,/mnt,/hosted,
 	[--with-hosted_httpddir=PATH     ],[where to find the the hosted files])
@@ -220,7 +220,9 @@ AC_ARG_WITH(dvbincludes,
 	[DVBINCLUDES="$withval"],[DVBINCLUDES=""])
 
 if test "$DVBINCLUDES"; then
-	CPPFLAGS="$CPPFLAGS -I$DVBINCLUDES"
+	CPPFLAGS="-I$DVBINCLUDES $CPPFLAGS"
+	CFLAGS="-I$DVBINCLUDES $CFLAGS"
+	CXXFLAGS="-I$DVBINCLUDES $CXXFLAGS"
 fi
 
 AC_CHECK_HEADERS(ost/dmx.h,[
@@ -237,9 +239,15 @@ AC_CHECK_HEADERS(linux/dvb/version.h,[
 version DVB_API_VERSION
 	]])])
 	DVB_API_VERSION=`(eval "$ac_cpp conftest.$ac_ext") 2>&AS_MESSAGE_LOG_FD | $EGREP "^version" | sed "s,version\ ,,"`
+
+	AC_LANG_CONFTEST([AC_LANG_SOURCE([[
+#include <linux/dvb/version.h>
+version DVB_API_VERSION_MINOR
+	]])])
+	DVB_API_VERSION_MINOR=`(eval "$ac_cpp conftest.$ac_ext") 2>&AS_MESSAGE_LOG_FD | $EGREP "^version" | sed "s,version\ ,,"`
 	rm -f conftest*
 
-	AC_MSG_NOTICE([found dvb version $DVB_API_VERSION])
+	AC_MSG_NOTICE([found dvb version $DVB_API_VERSION.$DVB_API_VERSION_MINOR])
 ])
 fi
 
@@ -248,6 +256,12 @@ if test "$DVB_API_VERSION"; then
 	AC_DEFINE_UNQUOTED(HAVE_DVB_API_VERSION,$DVB_API_VERSION,[Define to the version of the dvb api])
 else
 	AC_MSG_ERROR([can't find dvb headers])
+fi
+
+if test "$DVB_API_VERSION_MINOR"; then
+	AC_DEFINE_UNQUOTED(HAVE_DVB_API_VERSION_MINOR,$DVB_API_VERSION_MINOR,[Define to the minor version of the dvb api])
+else
+	AC_DEFINE_UNQUOTED(HAVE_DVB_API_VERSION_MINOR,0,[Define to the minor version of the dvb api])
 fi
 ])
 
@@ -439,13 +453,53 @@ AC_SUBST(CATALOGS)
 
 AC_DEFUN([TUXBOX_BOXTYPE],[
 AC_ARG_WITH(boxtype,
-	[  --with-boxtype          valid values: dbox2,tripledragon,dreambox,ipbox,coolstream,spark,azbox,generic],
+	[  --with-boxtype          valid values: dbox2,tripledragon,dreambox,ipbox,coolstream,spark,azbox,generic,duckbox,spark7162],
 	[case "${withval}" in
 		dbox2|dreambox|ipbox|tripledragon|coolstream|spark|azbox|generic)
 			BOXTYPE="$withval"
 			;;
+		spark7162)
+			BOXTYPE="spark"
+			BOXMODEL="$withval"
+			;;
 		dm*)
 			BOXTYPE="dreambox"
+			BOXMODEL="$withval"
+			;;
+		ufs*)
+			BOXTYPE="duckbox"
+			BOXMODEL="$withval"
+			;;
+		atevio*)
+			BOXTYPE="duckbox"
+			BOXMODEL="$withval"
+			;;
+		fortis*)
+			BOXTYPE="duckbox"
+			BOXMODEL="$withval"
+			;;
+		octagon*)
+			BOXTYPE="duckbox"
+			BOXMODEL="$withval"
+			;;
+		hs7*)
+			BOXTYPE="duckbox"
+			BOXMODEL="$withval"
+			;;
+		dp*)
+			BOXTYPE="duckbox"
+			BOXMODEL="$withval"
+			;;
+		cuberevo*)
+			BOXTYPE="duckbox"
+			BOXMODEL="$withval"
+			;;
+		ipbox*)
+			BOXTYPE="duckbox"
+			BOXMODEL="$withval"
+			;;
+		tf*)
+			BOXTYPE="duckbox"
 			BOXMODEL="$withval"
 			;;
 		*)
@@ -455,7 +509,8 @@ AC_ARG_WITH(boxtype,
 AC_ARG_WITH(boxmodel,
 	[  --with-boxmodel         valid for coolstream: nevis, apollo
                           valid for dreambox: dm500, dm500plus, dm600pvr, dm56x0, dm7000, dm7020, dm7025
-                          valid for ipbox: ip200, ip250, ip350, ip400],
+                          valid for ipbox: ip200, ip250, ip350, ip400
+                          valid for duckbox: ufs910, ufs912, ufs913, ufs922, atevio7500, fortis_hdbox, octagon1008, hs7110, hs7810a, hs7119, hs7819, dp7000, cuberevo, cuberevo_mini, cuberevo_mini2, cuberevo_250hd, cuberevo_2000hd, ipbox9900, ipbox99, ipbox55, tf7700],
 	[case "${withval}" in
 		nevis|apollo)
 			if test "$BOXTYPE" = "coolstream"; then
@@ -478,10 +533,17 @@ AC_ARG_WITH(boxmodel,
 				AC_MSG_ERROR([unknown model $withval for boxtype $BOXTYPE])
 			fi
 			;;
+		ufs910|ufs912|ufs913|ufs922|atevio7500|fortis_hdbox|octagon1008|hs7110|hs7810a|hs7119|hs7819|dp7000|cuberevo|cuberevo_mini|cuberevo_mini2|cuberevo_250hd|cuberevo_2000hd|ipbox9900|ipbox99|ipbox55|tf7700)
+			if test "$BOXTYPE" = "duckbox"; then
+				BOXMODEL="$withval"
+			else
+				AC_MSG_ERROR([unknown model $withval for boxtype $BOXTYPE])
+			fi
+			;;
 		*)
 			AC_MSG_ERROR([unsupported value $withval for --with-boxmodel])
 			;;
-	esac], [BOXMODEL="nevis"]
+	esac],
 	[if test "$BOXTYPE" = "dreambox" -o "$BOXTYPE" = "ipbox" && test -z "$BOXMODEL"; then
 		AC_MSG_ERROR([Dreambox/IPBox needs --with-boxmodel])
 	fi])
@@ -497,6 +559,7 @@ AM_CONDITIONAL(BOXTYPE_IPBOX, test "$BOXTYPE" = "ipbox")
 AM_CONDITIONAL(BOXTYPE_COOL, test "$BOXTYPE" = "coolstream")
 AM_CONDITIONAL(BOXTYPE_SPARK, test "$BOXTYPE" = "spark")
 AM_CONDITIONAL(BOXTYPE_GENERIC, test "$BOXTYPE" = "generic")
+AM_CONDITIONAL(BOXTYPE_DUCKBOX, test "$BOXTYPE" = "duckbox")
 
 AM_CONDITIONAL(BOXMODEL_NEVIS,test "$BOXMODEL" = "nevis")
 AM_CONDITIONAL(BOXMODEL_APOLLO,test "$BOXMODEL" = "apollo")
@@ -511,6 +574,30 @@ AM_CONDITIONAL(BOXMODEL_IP200,test "$BOXMODEL" = "ip200")
 AM_CONDITIONAL(BOXMODEL_IP250,test "$BOXMODEL" = "ip250")
 AM_CONDITIONAL(BOXMODEL_IP350,test "$BOXMODEL" = "ip350")
 AM_CONDITIONAL(BOXMODEL_IP400,test "$BOXMODEL" = "ip400")
+
+AM_CONDITIONAL(BOXMODEL_UFS910,test "$BOXMODEL" = "ufs910")
+AM_CONDITIONAL(BOXMODEL_UFS912,test "$BOXMODEL" = "ufs912")
+AM_CONDITIONAL(BOXMODEL_UFS913,test "$BOXMODEL" = "ufs913")
+AM_CONDITIONAL(BOXMODEL_UFS922,test "$BOXMODEL" = "ufs922")
+AM_CONDITIONAL(BOXMODEL_SPARK7162,test "$BOXMODEL" = "spark7162")
+AM_CONDITIONAL(BOXMODEL_ATEVIO7500,test "$BOXMODEL" = "atevio7500")
+AM_CONDITIONAL(BOXMODEL_FORTIS_HDBOX,test "$BOXMODEL" = "fortis_hdbox")
+AM_CONDITIONAL(BOXMODEL_OCTAGON1008,test "$BOXMODEL" = "octagon1008")
+AM_CONDITIONAL(BOXMODEL_HS7110,test "$BOXMODEL" = "hs7110")
+AM_CONDITIONAL(BOXMODEL_HS7810A,test "$BOXMODEL" = "hs7810a")
+AM_CONDITIONAL(BOXMODEL_HS7119,test "$BOXMODEL" = "hs7119")
+AM_CONDITIONAL(BOXMODEL_HS7819,test "$BOXMODEL" = "hs7819")
+AM_CONDITIONAL(BOXMODEL_DP7000,test "$BOXMODEL" = "dp7000")
+
+AM_CONDITIONAL(BOXMODEL_CUBEREVO,test "$BOXMODEL" = "cuberevo")
+AM_CONDITIONAL(BOXMODEL_CUBEREVO_MINI,test "$BOXMODEL" = "cuberevo_mini")
+AM_CONDITIONAL(BOXMODEL_CUBEREVO_MINI2,test "$BOXMODEL" = "cuberevo_mini2")
+AM_CONDITIONAL(BOXMODEL_CUBEREVO_250HD,test "$BOXMODEL" = "cuberevo_250hd")
+AM_CONDITIONAL(BOXMODEL_CUBEREVO_2000HD,test "$BOXMODEL" = "cuberevo_2000hd")
+AM_CONDITIONAL(BOXMODEL_IPBOX9900,test "$BOXMODEL" = "ipbox9900")
+AM_CONDITIONAL(BOXMODEL_IPBOX99,test "$BOXMODEL" = "ipbox99")
+AM_CONDITIONAL(BOXMODEL_IPBOX55,test "$BOXMODEL" = "ipbox55")
+AM_CONDITIONAL(BOXMODEL_TF7700,test "$BOXMODEL" = "tf7700")
 
 if test "$BOXTYPE" = "dbox2"; then
 	AC_DEFINE(HAVE_DBOX_HARDWARE, 1, [building for a dbox2])
@@ -528,6 +615,8 @@ elif test "$BOXTYPE" = "spark"; then
 	AC_DEFINE(HAVE_SPARK_HARDWARE, 1, [building for a goldenmedia 990 or edision pingulux])
 elif test "$BOXTYPE" = "generic"; then
 	AC_DEFINE(HAVE_GENERIC_HARDWARE, 1, [building for a generic device like a standard PC])
+elif test "$BOXTYPE" = "duckbox"; then
+	AC_DEFINE(HAVE_DUCKBOX_HARDWARE, 1, [building for a duckbox])
 fi
 
 # TODO: do we need more defines?
@@ -545,6 +634,50 @@ elif test "$BOXMODEL" = "ip350"; then
 	AC_DEFINE(BOXMODEL_IP350, 1, [ipbox 350])
 elif test "$BOXMODEL" = "ip400"; then
 	AC_DEFINE(BOXMODEL_IP400, 1, [ipbox 400])
+elif test "$BOXMODEL" = "ufs910"; then
+	AC_DEFINE(BOXMODEL_UFS910, 1, [ufs910])
+elif test "$BOXMODEL" = "ufs912"; then
+	AC_DEFINE(BOXMODEL_UFS912, 1, [ufs912])
+elif test "$BOXMODEL" = "ufs913"; then
+	AC_DEFINE(BOXMODEL_UFS913, 1, [ufs913])
+elif test "$BOXMODEL" = "ufs922"; then
+	AC_DEFINE(BOXMODEL_UFS922, 1, [ufs922])
+elif test "$BOXMODEL" = "spark7162"; then
+	AC_DEFINE(BOXMODEL_SPARK7162, 1, [spark7162])
+elif test "$BOXMODEL" = "atevio7500"; then
+	AC_DEFINE(BOXMODEL_ATEVIO7500, 1, [atevio7500])
+elif test "$BOXMODEL" = "fortis_hdbox"; then
+	AC_DEFINE(BOXMODEL_FORTIS_HDBOX, 1, [fortis_hdbox])
+elif test "$BOXMODEL" = "octagon1008"; then
+	AC_DEFINE(BOXMODEL_OCTAGON1008, 1, [octagon1008])
+elif test "$BOXMODEL" = "hs7110"; then
+	AC_DEFINE(BOXMODEL_HS7110, 1, [hs7110])
+elif test "$BOXMODEL" = "hs7810a"; then
+	AC_DEFINE(BOXMODEL_HS7810A, 1, [hs7810a])
+elif test "$BOXMODEL" = "hs7119"; then
+	AC_DEFINE(BOXMODEL_HS7119, 1, [hs7119])
+elif test "$BOXMODEL" = "hs7819"; then
+	AC_DEFINE(BOXMODEL_HS7819, 1, [hs7819])
+elif test "$BOXMODEL" = "dp7000"; then
+	AC_DEFINE(BOXMODEL_DP7000, 1, [dp7000])
+elif test "$BOXMODEL" = "cuberevo"; then
+	AC_DEFINE(BOXMODEL_CUBEREVO, 1, [cuberevo])
+elif test "$BOXMODEL" = "cuberevo_mini"; then
+	AC_DEFINE(BOXMODEL_CUBEREVO_MINI, 1, [cuberevo_mini])
+elif test "$BOXMODEL" = "cuberevo_mini2"; then
+	AC_DEFINE(BOXMODEL_CUBEREVO_MINI2, 1, [cuberevo_mini2])
+elif test "$BOXMODEL" = "cuberevo_250hd"; then
+	AC_DEFINE(BOXMODEL_CUBEREVO_250HD, 1, [cuberevo_250hd])
+elif test "$BOXMODEL" = "cuberevo_2000hd"; then
+	AC_DEFINE(BOXMODEL_CUBEREVO_2000HD, 1, [cuberevo_2000hd])
+elif test "$BOXMODEL" = "ipbox9900"; then
+	AC_DEFINE(BOXMODEL_IPBOX9900, 1, [ipbox9900])
+elif test "$BOXMODEL" = "ipbox99"; then
+	AC_DEFINE(BOXMODEL_IPBOX99, 1, [ipbox99])
+elif test "$BOXMODEL" = "ipbox55"; then
+	AC_DEFINE(BOXMODEL_IPBOX55, 1, [ipbox55])
+elif test "$BOXMODEL" = "tf7700"; then
+	AC_DEFINE(BOXMODEL_TF7700, 1, [tf7700])
 fi
 ])
 

@@ -4,8 +4,6 @@
 	Copyright (C) 2001 Steffen Hehn 'McClean'
 	Homepage: http://dbox.cyberphoria.org/
 
-	(C) 2008-2013 Stefan Seyfried
-
 	Kommentar:
 
 	Diese GUI wurde von Grund auf neu programmiert und sollte nun vom
@@ -97,6 +95,7 @@ CRemoteControl::CRemoteControl()
 	current_channel_id = 	CZapit::getInstance()->GetCurrentChannelID();;
 	current_sub_channel_id = 0;
 	current_channel_name = 	"";
+	current_channel_num = -1;
 
 	zap_completion_timeout = 0;
 
@@ -150,10 +149,11 @@ int CRemoteControl::handleMsg(const neutrino_msg_t msg, neutrino_msg_data_t data
 				is_video_started = true;
 				if (channel) {
 					current_channel_name = channel->getName();
-					if (!!channel->bLockCount != g_settings.parentallock_defaultlocked)
+					current_channel_num = channel->number;
+					if (channel->Locked() != g_settings.parentallock_defaultlocked)
 						stopvideo();
 				}
-				CVFD::getInstance()->showServicename(current_channel_name); // UTF-8
+				CVFD::getInstance()->showServicename(current_channel_name, current_channel_num); // UTF-8
 				current_channel_id = new_id;
 
 				current_EPGid = 0;
@@ -170,7 +170,7 @@ int CRemoteControl::handleMsg(const neutrino_msg_t msg, neutrino_msg_data_t data
 				needs_nvods = (msg == NeutrinoMessages:: EVT_ZAP_ISNVOD);
 
 				//g_Sectionsd->setServiceChanged( current_channel_id, true );
-				CNeutrinoApp::getInstance()->channelList->adjustToChannelID(current_channel_id);
+				CNeutrinoApp::getInstance()->adjustToChannelID(current_channel_id);
 				if ( g_InfoViewer->is_visible )
 					g_RCInput->postMsg( NeutrinoMessages::SHOW_INFOBAR , 0 );
 			}
@@ -225,8 +225,8 @@ int CRemoteControl::handleMsg(const neutrino_msg_t msg, neutrino_msg_data_t data
 				processAPIDnames();
 
 			if ( info_CN->flags & CSectionsdClient::epgflags::current_has_linkagedescriptors ) {
-					subChannels.clear();
-					getSubChannels();
+				subChannels.clear();
+				getSubChannels();
 			}
 
 			if ( needs_nvods )
@@ -239,12 +239,14 @@ int CRemoteControl::handleMsg(const neutrino_msg_t msg, neutrino_msg_data_t data
 			current_programm_timer = g_RCInput->addTimer( &end_program );
 #endif
 		}
+#if 0 // FIXME, needs investigation. Has side effect on capmt handling when active.
 		// is_video_started is only false if channel is locked
 		if ((!is_video_started) &&
 			(info_CN->current_fsk == 0 || g_settings.parentallock_prompt == PARENTALLOCK_PROMPT_CHANGETOLOCKED))
 			g_RCInput->postMsg(NeutrinoMessages::EVT_PROGRAMLOCKSTATUS, 0x100, false);
 		else
 			g_RCInput->postMsg(NeutrinoMessages::EVT_PROGRAMLOCKSTATUS, info_CN->current_fsk, false);
+#endif
 		return messages_return::handled;
 	}
 	else if ( msg == NeutrinoMessages::EVT_NEXTEPG )
@@ -289,7 +291,7 @@ int CRemoteControl::handleMsg(const neutrino_msg_t msg, neutrino_msg_data_t data
 
 		if ((*(t_channel_id *)data) == ((msg == NeutrinoMessages::EVT_ZAP_COMPLETE) ? current_channel_id : current_sub_channel_id))
 		{
-			CVFD::getInstance()->showServicename(current_channel_name); // UTF-8
+			CVFD::getInstance()->showServicename(current_channel_name, current_channel_num); // UTF-8
 			g_Zapit->getPIDS( current_PIDs );
 			//tuxtxt
 #if 1
@@ -318,7 +320,7 @@ int CRemoteControl::handleMsg(const neutrino_msg_t msg, neutrino_msg_data_t data
 		if ((*(t_channel_id *)data) == current_channel_id)
 		{
 			needs_nvods = true;
-			CVFD::getInstance()->showServicename(std::string("[") + current_channel_name + ']'); // UTF-8
+			CVFD::getInstance()->showServicename(std::string("[") + current_channel_name + ']', current_channel_num); // UTF-8
 			if ( current_EPGid != 0)
 			{
 				getNVODs();
@@ -670,10 +672,8 @@ const std::string & CRemoteControl::subChannelDown(void)
   	}
 }
 
-void CRemoteControl::zapTo_ChannelID(const t_channel_id channel_id, const std::string & channame, const bool start_video) // UTF-8
+void CRemoteControl::zapTo_ChannelID(const t_channel_id channel_id, const std::string & channame, int channum, const bool start_video) // UTF-8
 {
-	current_channel_id = channel_id;
-	current_channel_name = channame;
 //printf("zapTo_ChannelID: start_video: %d\n", start_video);
 	if (start_video)
 		startvideo();
@@ -707,9 +707,12 @@ void CRemoteControl::zapTo_ChannelID(const t_channel_id channel_id, const std::s
 		g_Zapit->zapTo_serviceID_NOWAIT(channel_id);
 
 		zap_completion_timeout = now + ZAP_GUARD_TIME;
-		//g_Sectionsd->setServiceChanged( current_channel_id, false );
-//		g_RCInput->killTimer( current_programm_timer );
+		//g_Sectionsd->setServiceChanged( channel_id, false );
+		//g_RCInput->killTimer( current_programm_timer );
 	}
+	current_channel_id = channel_id;
+	current_channel_name = channame;
+	current_channel_num = channum;
 }
 
 void CRemoteControl::startvideo()

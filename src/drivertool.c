@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdbool.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -236,7 +237,7 @@ int main(int argc, char **argv)
 	ret = 0;
 	/* allow the old VFD_ names for backwards compatibility */
 	while (n[i].text != NULL && strcmp(n[i].text, argv[1]) != 0 &&
-	       !(strncmp(argv[1], "VFD_", 4) == 0 && strcmp(n[i].text + 2, argv[1] + 3) == 0))
+			!(strncmp(argv[1], "VFD_", 4) == 0 && strcmp(n[i].text + 2, argv[1] + 3) == 0))
 		i++;
 
 	if (!n[i].text || (n[i].type != TYPE_UINT_GET && argc < 3))

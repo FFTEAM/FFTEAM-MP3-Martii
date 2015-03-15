@@ -91,6 +91,7 @@ TUXBOX_APPS_LIB_PKGCONFIG(AVUTIL,libavutil)
 TUXBOX_APPS_LIB_PKGCONFIG(SWRESAMPLE,libswresample)
 
 TUXBOX_APPS_LIB_PKGCONFIG(BLURAY,libbluray)
+TUXBOX_APPS_LIB_PKGCONFIG(SIGC,sigc++-2.0)
 
 #TUXBOX_APPS_LIB_PKGCONFIG(CONFIGFILE,tuxbox-configfile)
 #TUXBOX_APPS_LIB_PKGCONFIG(CONNECTION,tuxbox-connection)
@@ -121,6 +122,11 @@ AM_CONDITIONAL(ENABLE_FREESATEPG, test "$ENABLE_FREESATEPG")
 
 AC_DEFINE(ENABLE_VIASATEPG,1,[enable Viasat EPG code])
 AM_CONDITIONAL(ENABLE_VIASATEPG, test "$ENABLE_VIASATEPG")
+
+AC_ARG_ENABLE(fastscan,
+	AS_HELP_STRING(--enable-fastscan,include FASTSCAN support),
+	,[enable_fastscan=no])
+AM_CONDITIONAL(ENABLE_FASTSCAN,test "$enable_fastscan" = "yes")
 
 AC_ARG_ENABLE(graphlcd,
 	[  --enable-graphlcd                    enable GraphLCD support],
@@ -281,12 +287,14 @@ lib/libdvbsub/Makefile
 lib/libupnpclient/Makefile
 lib/libiw/Makefile
 lib/jsoncpp/Makefile
+lib/luaclient/Makefile
 src/lcddisplay/Makefile
 src/nhttpd/Makefile
 src/nhttpd/web/Makefile
 src/nhttpd/web/images/Makefile
 src/nhttpd/web/scripts/Makefile
 src/nhttpd/web/languages/Makefile
+src/nhttpd/web/styles/Makefile
 src/nhttpd/tuxboxapi/Makefile
 src/nhttpd/tuxboxapi/coolstream/Makefile
 src/nhttpd/yhttpd_core/Makefile
