@@ -7,7 +7,7 @@
  *             rasc       <rasc@berlios.de>,
  *             thegoodguy <thegoodguy@berlios.de>
  *
- * (C) 2009, 2011-2013 Stefan Seyfried
+ * (C) 2009, 2011, 2013 Stefan Seyfried
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -183,6 +183,16 @@ bool CZapitBouquet::getRadioChannels(ZapitChannelList &list, int flags)
 	return (!list.empty());
 }
 
+bool CZapitBouquet::getChannels(ZapitChannelList &list, bool tv, int flags)
+{
+	list.clear();
+	ZapitChannelList *current = tv ? &tvChannels : &radioChannels;
+	for (ZapitChannelList::iterator it = current->begin(); it != current->end(); ++it) {
+		if ((*it)->flags & flags)
+			list.push_back(*it);
+	}
+	return (!list.empty());
+}
 #if 0
 size_t CZapitBouquet::recModeRadioSize(const transponder_id_t transponder_id)
 {
@@ -215,8 +225,12 @@ CBouquetManager::~CBouquetManager()
 void CBouquetManager::writeBouquetHeader(FILE * bouq_fd, uint32_t i, const char * bouquetName)
 {
 //printf("[bouquets] writing bouquet header: %s\n", bouquetName);
-	fprintf(bouq_fd, "\t<Bouquet name=\"%s\" hidden=\"%d\" locked=\"%d\" epg=\"%d\">\n",
-			bouquetName, Bouquets[i]->bHidden ? 1 : 0, Bouquets[i]->bLocked ? 1 : 0, Bouquets[i]->bScanEpg ? 1 : 0);
+	fprintf(bouq_fd, "\t<Bouquet name=\"%s\"", bouquetName);
+	if (Bouquets[i]->BqID!=DEFAULT_BQ_ID) fprintf(bouq_fd, " bqID=\"%04x\"", Bouquets[i]->BqID); // optional_attribute > default=0
+	if (Bouquets[i]->bHidden!=DEFAULT_BQ_HIDDEN) fprintf(bouq_fd, " hidden=\"%d\"", Bouquets[i]->bHidden ? 1 : 0);
+	if (Bouquets[i]->bLocked!=DEFAULT_BQ_LOCKED) fprintf(bouq_fd, " locked=\"%d\"", Bouquets[i]->bLocked ? 1 : 0);
+	if (Bouquets[i]->bScanEpg!=DEFAULT_BQ_SCANEPG) fprintf(bouq_fd, " epg=\"%d\"", Bouquets[i]->bScanEpg ? 1 : 0);
+	fprintf(bouq_fd, ">\n");
 }
 
 void CBouquetManager::writeBouquetFooter(FILE * bouq_fd)
@@ -224,22 +238,22 @@ void CBouquetManager::writeBouquetFooter(FILE * bouq_fd)
 	fprintf(bouq_fd, "\t</Bouquet>\n");
 }
 
-void CBouquetManager::writeChannels(FILE * bouq_fd, ZapitChannelList &list)
+void CBouquetManager::writeChannels(FILE * bouq_fd, ZapitChannelList &list, bool bUser)
 {
 	for(zapit_list_it_t it = list.begin(); it != list.end(); it++)
-		(*it)->dumpBouquetXml(bouq_fd);
+		(*it)->dumpBouquetXml(bouq_fd, bUser);
 }
 
-void CBouquetManager::writeBouquetChannels(FILE * bouq_fd, uint32_t i, bool /*bUser*/)
+void CBouquetManager::writeBouquetChannels(FILE * bouq_fd, uint32_t i, bool bUser)
 {
-	writeChannels(bouq_fd, Bouquets[i]->tvChannels);
-	writeChannels(bouq_fd, Bouquets[i]->radioChannels);
+	writeChannels(bouq_fd, Bouquets[i]->tvChannels, bUser);
+	writeChannels(bouq_fd, Bouquets[i]->radioChannels, bUser);
 }
 
-void CBouquetManager::writeBouquet(FILE * bouq_fd, uint32_t i)
+void CBouquetManager::writeBouquet(FILE * bouq_fd, uint32_t i, bool /* bUser */)
 {
 	writeBouquetHeader(bouq_fd, i, convert_UTF8_To_UTF8_XML(Bouquets[i]->Name.c_str()).c_str());
-	writeBouquetChannels(bouq_fd, i);
+	writeBouquetChannels(bouq_fd, i, Bouquets[i]->bUser);
 	writeBouquetFooter(bouq_fd);
 }
 
@@ -248,13 +262,18 @@ void CBouquetManager::saveBouquets(void)
 {
 	FILE * bouq_fd;
 
+	printf("CBouquetManager::saveBouquets: %s\n", BOUQUETS_XML);
 	bouq_fd = fopen(BOUQUETS_XML, "w");
-	fprintf(bouq_fd, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<zapit>\n");
+	if (!bouq_fd) {
+		perror(BOUQUETS_XML);
+		return;
+	}
+	fprintf(bouq_fd, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<zapit api=\"4\">\n");
 	for (unsigned int i = 0; i < Bouquets.size(); i++) {
 		if (Bouquets[i] != remainChannels) {
 			DBG("save Bouquets: name %s user: %d\n", Bouquets[i]->Name.c_str(), Bouquets[i]->bUser);
 			if(!Bouquets[i]->bUser) {
-				writeBouquet(bouq_fd, i);
+				writeBouquet(bouq_fd, i,false);
 			}
 		}
 	}
@@ -268,12 +287,17 @@ void CBouquetManager::saveUBouquets(void)
 {
 	FILE * ubouq_fd;
 
+	printf("CBouquetManager::saveUBouquets: %s\n", UBOUQUETS_XML);
 	ubouq_fd = fopen(UBOUQUETS_XML, "w");
-	fprintf(ubouq_fd, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<zapit>\n");
+	if (!ubouq_fd) {
+		perror(BOUQUETS_XML);
+		return;
+	}
+	fprintf(ubouq_fd, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<zapit api=\"4\">\n");
 	for (unsigned int i = 0; i < Bouquets.size(); i++) {
 		if (Bouquets[i] != remainChannels) {
 			if(Bouquets[i]->bUser) {
-				writeBouquet(ubouq_fd, i);
+				writeBouquet(ubouq_fd, i, true);
 			}
 		}
 	}
@@ -376,6 +400,8 @@ void CBouquetManager::parseBouquetsXml(const char *fname, bool bUser)
 				name = const_cast<char*>("Unknown");
 
 			CZapitBouquet* newBouquet = addBouquet(name, bUser);
+			// per default in contructor: newBouquet->BqID = 0; //set to default, override if bqID exists
+			GET_ATTR(search, "bqID", SCANF_BOUQUET_ID_TYPE, newBouquet->BqID);
 			char* hidden = xmlGetAttribute(search, "hidden");
 			char* locked = xmlGetAttribute(search, "locked");
 			char* scanepg = xmlGetAttribute(search, "epg");
@@ -385,13 +411,21 @@ void CBouquetManager::parseBouquetsXml(const char *fname, bool bUser)
 			newBouquet->bScanEpg = scanepg ? (strcmp(scanepg, "1") == 0) : false;
 			channel_node = search->xmlChildrenNode;
 			while ((channel_node = xmlGetNextOccurence(channel_node, "S")) != NULL) {
-				std::string  name2 = xmlGetAttribute(channel_node, "n");
+				std::string name2;
+				name = xmlGetAttribute(channel_node, "n");
+				if (name)
+					name2 = name;
+				std::string uname;
+				char *uName = xmlGetAttribute(channel_node, "un");
+				if (uName)
+					uname = uName;
 				char *url = xmlGetAttribute(channel_node, "u");
 				GET_ATTR(channel_node, "i", SCANF_SERVICE_ID_TYPE, service_id);
 				GET_ATTR(channel_node, "on", SCANF_ORIGINAL_NETWORK_ID_TYPE, original_network_id);
 				GET_ATTR(channel_node, "s", SCANF_SATELLITE_POSITION_TYPE, satellitePosition);
 				GET_ATTR(channel_node, "t", SCANF_TRANSPORT_STREAM_ID_TYPE, transport_stream_id);
 				GET_ATTR(channel_node, "frq", SCANF_SATELLITE_POSITION_TYPE, freq);
+				bool clock = xmlGetNumericAttribute(channel_node, "l", 10);
 				if(freq > 20000)
 					freq = freq/1000;
 
@@ -405,18 +439,27 @@ void CBouquetManager::parseBouquetsXml(const char *fname, bool bUser)
 					chan = CServiceManager::getInstance()->FindChannel(chid);
 				if (chan != NULL) {
 					DBG("%04x %04x %04x %s\n", transport_stream_id, original_network_id, service_id, xmlGetAttribute(channel_node, "n"));
-#if 0
-					if(bUser && (name2.length() > 1))
-						chan->setName(name2);
-#endif
+					if(bUser && !(uname.empty()))
+						chan->setUserName(uname);
 					if(!bUser)
 						chan->pname = (char *) newBouquet->Name.c_str();
+					chan->bLocked = clock;
 
 					newBouquet->addService(chan);
 				} else if (bUser) {
-					chan = new CZapitChannel(name2, chid, 1 /*service_type*/, satellitePosition, freq);
+					if (url) {
+						chid = create_channel_id64(0, 0, 0, 0, 0, url);
+						chan = new CZapitChannel(name2.c_str(), chid, url, NULL);
+					}
+					else
+						chan = new CZapitChannel(name2, CREATE_CHANNEL_ID64, 1 /*service_type*/,
+								satellitePosition, freq);
+
 					CServiceManager::getInstance()->AddChannel(chan);
 					chan->flags = CZapitChannel::NOT_FOUND;
+					chan->bLocked = clock;
+					if(!(uname.empty()))
+						chan->setUserName(uname);
 					newBouquet->addService(chan);
 					CServiceManager::getInstance()->SetServicesChanged(false);
 				}
@@ -493,7 +536,8 @@ void CBouquetManager::makeRemainingChannelsBouquet(void)
 	sort(unusedChannels.begin(), unusedChannels.end(), CmpChannelByChName());
 
 	// TODO: use locales
-	remainChannels = addBouquet( Bouquets.empty()  ? "All Channels" : "Other", false); // UTF-8 encoded
+	if (remainChannels == NULL)
+		remainChannels = addBouquet( Bouquets.empty()  ? "All Channels" : "Other", false); // UTF-8 encoded
 	remainChannels->bOther = true;
 
 	for (ZapitChannelList::const_iterator it = unusedChannels.begin(); it != unusedChannels.end(); ++it) {
@@ -506,15 +550,21 @@ void CBouquetManager::makeRemainingChannelsBouquet(void)
 
 void CBouquetManager::renumServices()
 {
+#if 0
 	if(remainChannels)
 		deleteBouquet(remainChannels);
 
 	remainChannels = NULL;
+#endif
+	if(remainChannels) {
+		remainChannels->tvChannels.clear();
+		remainChannels->radioChannels.clear();
+	}
 
 	makeRemainingChannelsBouquet();
 }
 
-CZapitBouquet* CBouquetManager::addBouquet(const std::string & name, bool ub, bool myfav)
+CZapitBouquet* CBouquetManager::addBouquet(const std::string & name, bool ub, bool myfav, bool to_begin)
 {
 	CZapitBouquet* newBouquet = new CZapitBouquet(myfav ? "favorites" : name);
 	newBouquet->bUser = ub;
@@ -524,9 +574,13 @@ CZapitBouquet* CBouquetManager::addBouquet(const std::string & name, bool ub, bo
 //printf("CBouquetManager::addBouquet: %s, user %s\n", name.c_str(), ub ? "YES" : "NO");
 	if(ub) {
 		BouquetList::iterator it;
-		for(it = Bouquets.begin(); it != Bouquets.end(); ++it)
-			if(!(*it)->bUser)
-				break;
+		if (to_begin) {
+			it = Bouquets.begin();
+		} else {
+			for(it = Bouquets.begin(); it != Bouquets.end(); ++it)
+				if(!(*it)->bUser)
+					break;
+		}
 		Bouquets.insert(it, newBouquet);
 	} else
 		Bouquets.push_back(newBouquet);
@@ -545,10 +599,41 @@ void CBouquetManager::deleteBouquet(const CZapitBouquet* bouquet)
 		BouquetList::iterator it = find(Bouquets.begin(), Bouquets.end(), bouquet);
 
 		if (it != Bouquets.end()) {
+			if ((*it)->bLocked) {
+				ZapitChannelList *channels = &(*it)->tvChannels;
+				for(unsigned int i = 0; i < channels->size(); i++)
+					((*channels)[i])->bLockCount--;
+
+				channels = &(*it)->radioChannels;
+				for(unsigned int i = 0; i < channels->size(); i++)
+					((*channels)[i])->bLockCount--;
+			}
+
 			Bouquets.erase(it);
 			delete bouquet;
 		}
 	}
+}
+
+void CBouquetManager::setBouquetLock(const unsigned int id, bool state)
+{
+	if (id < Bouquets.size())
+		setBouquetLock(Bouquets[id], state);
+}
+
+void CBouquetManager::setBouquetLock(CZapitBouquet* bouquet, bool state)
+{
+	bouquet->bLocked = state;
+        int add = bouquet->bLocked * 2 - 1;
+
+        ZapitChannelList *channels = &bouquet->tvChannels;
+        for(unsigned int i = 0; i < channels->size(); i++)
+                ((*channels)[i])->bLockCount += add;
+
+        channels = &bouquet->radioChannels;
+        for(unsigned int i = 0; i < channels->size(); i++)
+                ((*channels)[i])->bLockCount += add;
+
 }
 
 #if 0
@@ -573,10 +658,6 @@ int CBouquetManager::existsBouquet(char const * const name, bool ignore_user)
 {
 	for (unsigned int i = 0; i < Bouquets.size(); i++) {
 		if ((!ignore_user || !Bouquets[i]->bUser) && (Bouquets[i]->Name == name))
-		{
-			return (int)i;
-		}
-		if (Bouquets[i]->lName == name)
 		{
 			return (int)i;
 		}
@@ -634,8 +715,6 @@ int CBouquetManager::existsUBouquet(char const * const name, bool myfav)
 		}
 		//else if (Bouquets[i]->bUser && strncasecmp(Bouquets[i]->Name.c_str(), name,Bouquets[i]->Name.length())==0)
 		else if (Bouquets[i]->bUser && (Bouquets[i]->Name == name))
-			return (int)i;
-		else if (Bouquets[i]->bUser && (Bouquets[i]->lName == name))
 			return (int)i;
 	}
 	return -1;

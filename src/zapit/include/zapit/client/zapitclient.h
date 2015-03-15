@@ -56,7 +56,6 @@ class CZapitClient:public CBasicClient
 			EVT_SCAN_FAILED,
 			EVT_SCAN_NUM_TRANSPONDERS,
 			EVT_SCAN_REPORT_NUM_SCANNED_TRANSPONDERS,
- 			EVT_SCAN_REPORT_FREQUENCY,
  			EVT_SCAN_REPORT_FREQUENCYP,
  			EVT_SCAN_SERVICENAME,
  			EVT_SCAN_FOUND_A_CHAN,
@@ -76,6 +75,7 @@ class CZapitClient:public CBasicClient
 			EVT_PMT_CHANGED,
 			EVT_TUNE_COMPLETE,
 			EVT_BACK_ZAP_COMPLETE,
+			EVT_WEBTV_ZAP_COMPLETE,
 			LAST_EVENT_MARKER             // <- no actual event, needed by pzapit
 		};
 
@@ -374,7 +374,6 @@ class CZapitClient:public CBasicClient
 
 	/* get dvb transmission type */
 	delivery_system_t getDeliverySystem(void);
-	void lockRc(const bool mute);
 
 	void zaptoNvodSubService(const int num);
 

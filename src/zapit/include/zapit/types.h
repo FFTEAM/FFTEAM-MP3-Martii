@@ -22,13 +22,12 @@
 
 #ifndef __zapit__types_h__
 #define __zapit__types_h__
+
 #include <stdint.h>
 #include <inttypes.h>
-#include <string>
-#include <string.h>
-extern "C" {
-#include <libmd5sum/md5.h>
-}
+
+typedef uint16_t bq_id_t;
+#define SCANF_BOUQUET_ID_TYPE "%hx"
 
 typedef uint16_t freq_id_t;
 typedef uint16_t t_service_id;
@@ -47,11 +46,15 @@ typedef uint16_t t_bouquet_id;
 
 /* unique channel identification */
 typedef uint64_t t_channel_id;
-
 #if 0
 #define CREATE_CHANNEL_ID(service_id,original_network_id,transport_stream_id) ((((t_channel_id)transport_stream_id) << 32) | (((t_channel_id)original_network_id) << 16) | (t_channel_id)service_id)
 #define CREATE_CHANNEL_ID64 (((uint64_t)(satellitePosition+freq*4) << 48) | ((uint64_t) transport_stream_id << 32) | ((uint64_t)original_network_id << 16) | (uint64_t)service_id)
 #else
+extern "C" {
+#include <libmd5sum/md5.h>
+}
+#include <string.h>
+
 static inline t_channel_id create_channel_id(t_service_id service_id, t_original_network_id original_network_id, t_transport_stream_id transport_stream_id, const char *url = NULL)
 {
 	if (url) {

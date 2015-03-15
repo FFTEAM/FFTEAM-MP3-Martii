@@ -69,6 +69,9 @@ typedef struct Zapit_config {
         /* FE specific */
         int highVoltage;
         int motorRotationSpeed;
+        int uni_scr;
+	int uni_qrg;       /* the unicable frequency in MHz */
+	int uni_lnb;       /* the input (0/1) of a twin-position switch */
 } t_zapit_config;
 
 
@@ -133,8 +136,8 @@ class CZapit : public OpenThreads::Thread
 		CZapitChannel * current_channel;
 		t_channel_id live_channel_id;
 		t_channel_id pip_channel_id;
-		t_channel_id chid; // temporary, but needs to be static
 		t_channel_id lock_channel_id;
+		t_channel_id last_channel_id;
 		/* scan params */
 		TP_params TP;
 		fast_scan_type_t scant;
@@ -227,7 +230,9 @@ class CZapit : public OpenThreads::Thread
 		bool PrepareChannels();
 		bool StartScan(int scan_mode);
 		bool StartScanTP(TP_params * TPparams);
-//		bool StartFastScan(int scan_mode, int opid);
+#ifdef ENABLE_FASTSCAN
+		bool StartFastScan(int scan_mode, int opid);
+#endif
 
 		void addChannelToBouquet(const unsigned int bouquet, const t_channel_id channel_id);
 		void SetConfig(Zapit_config * Cfg);
@@ -270,8 +275,7 @@ class CZapit : public OpenThreads::Thread
 		void EnablePlayback(bool enable) { playbackStopForced = !enable; }
 		void lockPlayBack(const bool sendpmt = true);
 		void unlockPlayBack(const bool sendpmt = true);
-		void setStandby(const bool enable);
-		void Rezap(void);
+		void Rezap();
 		std::list<std::string> *GetWebTVXML(void) { return webtv_xml; }
 };
 #endif /* __zapit_h__ */

@@ -26,11 +26,12 @@
 
 #include <inttypes.h>
 #include <map>
+#include <list>
 #include <string>
 
 #include <zapit/femanager.h>
 #include <zapit/getservices.h>
-//#include <zapit/fastscan.h>
+#include <zapit/fastscan.h>
 #include "bouquets.h"
 #include <OpenThreads/Thread>
 
@@ -41,8 +42,10 @@ class CServiceScan : public OpenThreads::Thread
 	public:
 		typedef enum scan_type {
 			SCAN_PROVIDER,
-			SCAN_TRANSPONDER,
-//			SCAN_FAST
+			SCAN_TRANSPONDER
+#ifdef ENABLE_FASTSCAN
+			, SCAN_FAST
+#endif
 		} scan_type_t;
 		typedef enum scan_flags {
 			SCAN_NIT		= 0x01,
@@ -66,7 +69,6 @@ class CServiceScan : public OpenThreads::Thread
 		int flags;
 		void * scan_arg;
 		bool satHaveChannels;
-		fe_type_t frontendType;
 
 		uint32_t fake_tid, fake_nid;
 		uint32_t found_transponders;
@@ -88,7 +90,7 @@ class CServiceScan : public OpenThreads::Thread
 
 		bool ScanProvider(t_satellite_position satellitePosition);
 		void Cleanup(const bool success);
-		bool tuneFrequency(FrontendParameters *feparams, uint8_t polarization, t_satellite_position satellitePosition);
+		bool tuneFrequency(FrontendParameters *feparams, t_satellite_position satellitePosition);
 		void SendTransponderInfo(transponder &t);
 		bool ReadNitSdt(t_satellite_position satellitePosition);
 		bool AddFromNit();
@@ -99,26 +101,27 @@ class CServiceScan : public OpenThreads::Thread
 		bool ScanProviders();
 		void SaveServices();
 		void CleanAllMaps();
-		bool ReplaceTransponderParams(freq_id_t freq, t_satellite_position satellitePosition, struct dvb_frontend_parameters * feparams, uint8_t polarization);
+		//bool ReplaceTransponderParams(freq_id_t freq, t_satellite_position satellitePosition, FrontendParameters *feparams);
 
-#if ENABLE_FASTSCAN
 		/* fast scan */
 		std::map <t_channel_id, t_satellite_position> fast_services_sat;
 		std::map <t_channel_id, freq_id_t> fast_services_freq;
 		std::map <t_channel_id, int> fast_services_number;
+		std::list<std::vector<uint8_t> > fst_sections;
+		uint32_t tune_tp_index;
 
 		unsigned char fst_version;
 		bool quiet_fastscan;
 		void InitFastscanLnb(int id);
 		bool FastscanTune(int id);
+		bool ReadFst(unsigned short pid, unsigned short operator_id, bool one_section = false);
 		bool ParseFst(unsigned short pid, fast_scan_operator_t * op);
 		bool ParseFnt(unsigned short pid, unsigned short operator_id);
 		void process_logical_service_descriptor(const unsigned char * const buffer, const t_transport_stream_id transport_stream_id, const t_original_network_id original_network_id, t_satellite_position satellitePosition, freq_id_t freq);
 		void process_service_list_descriptor(const unsigned char * const buffer, const t_transport_stream_id transport_stream_id, const t_original_network_id original_network_id, t_satellite_position satellitePosition, freq_id_t freq);
-		void process_satellite_delivery_system_descriptor(const unsigned char * const buffer, FrontendParameters * feparams, uint8_t * polarization, t_satellite_position * satellitePosition);
+		void process_satellite_delivery_system_descriptor(const unsigned char * const buffer, FrontendParameters * feparams, t_satellite_position * satellitePosition);
 		bool ScanFast();
-		void ReportFastScan(FrontendParameters &feparams, uint8_t polarization, t_satellite_position satellitePosition);
-#endif
+		void ReportFastScan(FrontendParameters &feparams, t_satellite_position satellitePosition);
 
 		void run();
 
@@ -133,7 +136,7 @@ class CServiceScan : public OpenThreads::Thread
 		bool Start(scan_type_t mode, void * arg);
 		bool Stop();
 
-		bool AddTransponder(transponder_id_t TsidOnid, FrontendParameters *feparams, uint8_t polarity, bool fromnit = false);
+		bool AddTransponder(transponder_id_t TsidOnid, FrontendParameters *feparams, bool fromnit = false);
 		void ChannelFound(uint8_t service_type, std::string providerName, std::string serviceName);
 		void AddServiceType(t_channel_id channel_id, uint8_t service_type);
 
@@ -150,14 +153,12 @@ class CServiceScan : public OpenThreads::Thread
 		bool isFtaOnly() { return flags & SCAN_FTA; }
 		int GetFlags() { return flags; }
 		bool SatHaveChannels() { return satHaveChannels; }
-#if 0
 		/* fast-scan */
 		bool TestDiseqcConfig(int num);
 		bool ReadFstVersion(int num);
 		unsigned char GetFstVersion() { return fst_version; }
 		void QuietFastScan(bool enable) { quiet_fastscan = enable; }
 		bool ScanFast(int num, bool reload = true);
-#endif
 };
 
 #endif /* __scan_h__ */
