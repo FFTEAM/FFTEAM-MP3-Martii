@@ -9,6 +9,7 @@ AM_CPPFLAGS += \
 	-I$(top_srcdir)/lib/libeventserver \
 	-I$(top_srcdir)/lib/libconfigfile \
 	-I$(top_srcdir)/lib/xmltree \
+	@SIGC_CFLAGS@ \
 	@FREETYPE_CFLAGS@ \
 	@HWLIB_CFLAGS@
 
@@ -36,4 +37,5 @@ libneutrino_gui_components_a_SOURCES = \
 	cc_item_progressbar.cpp \
 	cc_item_shapes.cpp \
 	cc_item_text.cpp \
-	cc_item_tvpic.cpp
+	cc_item_tvpic.cpp \
+	cc_timer.cpp

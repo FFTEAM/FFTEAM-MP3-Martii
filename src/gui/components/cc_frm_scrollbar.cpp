@@ -166,7 +166,7 @@ void CComponentsScrollBar::initSegments()
 		if (sb_mark_id == id)
 			item->setColorBody(COL_MENUCONTENTSELECTED_PLUS_0);
 		else
-			item->setColorBody(COL_MENUCONTENT_PLUS_1);		
+			item->setColorBody(COL_MENUCONTENT_PLUS_1);
 	}
 
 	//set corner types

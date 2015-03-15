@@ -87,22 +87,22 @@ int CPluginList::exec(CMenuTarget* parent, const std::string &actionKey)
 	if (parent)
 		parent->hide();
 
+	CColorKeyHelper keyhelper;
+	neutrino_msg_t key = CRCInput::RC_nokey;
+	const char * dummy = NULL;
+
 	number = -1;
-	if (actionKey != "")
-		number = atoi(actionKey);
+	if (!actionKey.empty())
+		number = atoi(actionKey.c_str());
 
 	if (number > -1)
 		return run();
 
 	const char *icon = "";
 	if (pluginlisttype == CPlugins::P_TYPE_GAME)
-		icon = NEUTRINO_ICON_HINT_GAMES;
-	else if (pluginlisttype == CPlugins::P_TYPE_SCRIPT)
-		icon = NEUTRINO_ICON_HINT_SCRIPTS;
-	else if (pluginlisttype == CPlugins::P_TYPE_TOOL)
-		icon = NEUTRINO_ICON_HINT_TOOLS;
-	else if (pluginlisttype == CPlugins::P_TYPE_LUA)
-		icon = NEUTRINO_ICON_HINT_PLUGINS;
+		icon = NEUTRINO_ICON_GAMES;
+	else
+		icon = NEUTRINO_ICON_SHELL;
 
 	CMenuWidget m(title, icon, width);
 	m.setSelected(selected);
@@ -110,20 +110,20 @@ int CPluginList::exec(CMenuTarget* parent, const std::string &actionKey)
 
 	int nop = g_PluginList->getNumberOfPlugins();
 
-	int shortcut = 1;
-
 	for(int count = 0; count < nop; count++) {
-		if ((g_PluginList->getType(count) & pluginlisttype) && !g_PluginList->isHidden(count)) {
-			CMenuForwarder *f = new CMenuForwarder(std::string(g_PluginList->getName(count)), true, "", this, to_string(count).c_str(), CRCInput::convertDigitToKey(shortcut++));
+		if ((g_PluginList->getType(count) & pluginlisttype) && !g_PluginList->isHidden(count) && (g_PluginList->getIntegration(count) == CPlugins::I_TYPE_DISABLED)) {
+			neutrino_msg_t d_key = g_PluginList->getKey(count);
+			keyhelper.get(&key, &dummy, d_key);
+			CMenuForwarder *f = new CMenuForwarder(std::string(g_PluginList->getName(count)), true, NULL, this, to_string(count).c_str(), key);
 			f->setHint(g_PluginList->getHintIcon(count), g_PluginList->getDescription(count));
 			m.addItem(f);
 		}
 	}
-	m.exec(NULL, "");
+	int res = m.exec(NULL, "");
 	m.hide();
 	selected = m.getSelected();
 
-	return menu_return::RETURN_REPAINT;
+	return res;
 }
 
 CPluginChooser::CPluginChooser(const neutrino_locale_t Name, const uint32_t listtype, std::string &selectedFile) : CPluginList(Name, listtype)
@@ -136,4 +136,42 @@ int CPluginChooser::run()
 	if (number > -1)
 		*selectedFilePtr = g_PluginList->getFileName(number);
 	return menu_return::RETURN_EXIT;
+}
+
+CPluginsExec* CPluginsExec::getInstance()
+{
+	static CPluginsExec* pluginsExec = NULL;
+
+	if (!pluginsExec)
+		pluginsExec = new CPluginsExec();
+
+	return pluginsExec;
+}
+
+int CPluginsExec::exec(CMenuTarget* parent, const std::string & actionKey)
+{
+	if (actionKey.empty())
+		return menu_return::RETURN_NONE;
+
+	//printf("CPluginsExec exec: %s\n", actionKey.c_str());
+	int sel = atoi(actionKey.c_str());
+
+	if (parent != NULL)
+		parent->hide();
+
+	if (actionKey == "teletext") {
+		g_RCInput->postMsg(CRCInput::RC_timeout, 0);
+		g_RCInput->postMsg(CRCInput::RC_text, 0);
+		return menu_return::RETURN_EXIT;
+	}
+	else if (sel >= 0)
+		g_PluginList->startPlugin(sel);
+
+	if (!g_PluginList->getScriptOutput().empty())
+		ShowMsg(LOCALE_PLUGINS_RESULT, g_PluginList->getScriptOutput(), CMessageBox::mbrBack, CMessageBox::mbBack, NEUTRINO_ICON_SHELL);
+
+	if (g_PluginList->getIntegration(sel) == CPlugins::I_TYPE_DISABLED)
+		return menu_return::RETURN_EXIT;
+
+	return menu_return::RETURN_REPAINT;
 }

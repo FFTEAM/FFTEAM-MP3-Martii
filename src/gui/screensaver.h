@@ -19,39 +19,39 @@
 	GNU General Public License for more details.
 
 	You should have received a copy of the GNU General Public License
-	along with this program; if not, write to the Free Software
-	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+	along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CSCREENSAVER_H
-#define CSCREENSAVER_H
+#ifndef __CSCREENSAVER_H__
+#define __CSCREENSAVER_H__
 
 #include <driver/framebuffer.h>
-#if HAVE_DUCKBOX_HARDWARE
-#include <driver/pictureviewer/pictureviewer.h>
-#endif
+#include <vector>
+#include <string>
 
-class CScreensaver
+class CScreenSaver
 {
 	private:
-		bool firstRun;
-		int last_pic;
-		CFrameBuffer * m_frameBuffer;
-#if HAVE_DUCKBOX_HARDWARE
-		CPictureViewer * m_viewer;
-#endif
+		CFrameBuffer 	*m_frameBuffer;
+		CPictureViewer	*m_viewer;
 		pthread_t	thrScreenSaver;
 		static void*	ScreenSaverPrg(void *arg);
+		vector<string> 	v_bg_files;
+		unsigned int 	index;
 
-		void read_dir();
+		bool		status_mute;
+		bool		status_clock;
 
-	
+		bool ReadDir();
+		void PaintPicture();
+
 	public:
-		CScreensaver();
-		~CScreensaver();
-		
-		void start();
-		void stop();
+		CScreenSaver();
+		~CScreenSaver();
+		static CScreenSaver* getInstance();
+
+		void Start();
+		void Stop();
 };
 
-#endif // CSCREENSAVER_H
+#endif // __CSCREENSAVER_H__

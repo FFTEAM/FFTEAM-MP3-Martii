@@ -27,12 +27,8 @@
 
 #include <driver/framebuffer.h>
 #include <gui/components/cc.h>
-#include <gui/movieplayer.h>
 #include <zapit/femanager.h>
-#include <vector>
-#include <map>
 
-struct AVFormatContext;
 
 class CStreamInfo2 : public CMenuTarget
 {
@@ -41,7 +37,6 @@ class CStreamInfo2 : public CMenuTarget
 		CFrameBuffer	*frameBuffer;
 		CFrontend	*frontend;
 		CComponentsPIP  *pip;
-		CMoviePlayerGui	*mp;
 		int x;
 		int y;
 		int width;
@@ -69,25 +64,21 @@ class CStreamInfo2 : public CMenuTarget
 		int   sig_text_snr_x;
 		int   sig_text_rate_x;
 		int   average_bitrate_pos;
-
-		int   techinfo_xpos, techinfo_ypos;
-		int   box_width;
-
-		int   spaceoffset;
+		int   average_bitrate_offset;
 		unsigned int scaling;
 		unsigned int pmt_version;
 		int box_h,box_h2;
 		struct feSignal {
-			unsigned long	ber, old_ber, max_ber, min_ber;
-			unsigned long	sig, old_sig, max_sig, min_sig;
-			unsigned long	snr, old_snr, max_snr, min_snr;
+			long	ber, max_ber, min_ber;
+			long	sig, max_sig, min_sig;
+			long	snr, max_snr, min_snr;
 		} signal;
+		struct feSignal s_old;
 
 		struct bitrate {
-			unsigned int short_average, max_short_average, min_short_average;
+			int short_average, max_short_average, min_short_average;
 		} rate;
-
-		std::vector<std::map<std::string,std::string> > streamdata;
+		struct bitrate br_old;
 
 		int  doSignalStrengthLoop();
 
@@ -97,21 +88,9 @@ class CStreamInfo2 : public CMenuTarget
 		uint64_t abit_s;
 		uint64_t b_total;
 		unsigned char *dmxbuf;
-		unsigned char *probebuf;
-		unsigned int probebuf_off;
-		unsigned int probebuf_size;
-		unsigned int probebuf_length;
-		OpenThreads::Mutex probe_mutex;
-		pthread_t probe_thread;
-		bool probed;
-
-		bool update_rate();
-		bool ts_setup();
+		int update_rate();
+		int ts_setup();
 		int ts_close();
-		static void *probeStreams(void *arg);
-		void probeStreams();
-		void analyzeStreams(AVFormatContext *avfc);
-		void analyzeStream(AVFormatContext *avfc, unsigned int i);
 
 		void paint(int mode);
 		void paint_techinfo(int x, int y);
@@ -119,12 +98,11 @@ class CStreamInfo2 : public CMenuTarget
 		void paint_signal_fe_box(int x, int y, int w, int h);
 		void paint_signal_fe(struct bitrate rate, struct feSignal s);
 		int  y_signal_fe(unsigned long value, unsigned long max_range, int max_y);
-		void SignalRenderStr (unsigned int value, int x, int y);
+		void SignalRenderStr(unsigned int oldvalue, unsigned int value, int x, int y);
 		CSignalBox *signalbox;
 
 		void showSNR ();
 	public:
-		bool abort_probing;
 
 		CStreamInfo2();
 		~CStreamInfo2();
@@ -132,7 +110,6 @@ class CStreamInfo2 : public CMenuTarget
 		void hide();
 		int exec(CMenuTarget* parent, const std::string & actionKey);
 
-		int readPacket(uint8_t *buf, int buf_size);
 };
 #endif
 

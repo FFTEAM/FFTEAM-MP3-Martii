@@ -42,6 +42,7 @@
 #include <gui/widget/buttons.h>
 #include <gui/widget/icons.h>
 #include <gui/color.h>
+#include <gui/plugins.h>
 #include <gui/components/cc.h>
 #include <string>
 #include <vector>
@@ -81,6 +82,13 @@ class CChangeObserver
 		}
 };
 
+class CActivateObserver
+{
+	public:
+		virtual ~CActivateObserver(){}
+		virtual void activateNotify(const neutrino_locale_t /*OptionName*/) {}
+};
+
 class CMenuTarget
 {
 	protected:
@@ -112,6 +120,7 @@ class CMenuItem
 		std::string nameString;
 		neutrino_locale_t desc;
 		std::string descString;
+		CActivateObserver * actObserv;
 	public:
 		int		height;
 		bool		active;
@@ -170,9 +179,7 @@ class CMenuItem
 		virtual int isMenueOptionChooser(void) const{return 0;}
 		void setHint(const char * const icon, const neutrino_locale_t text) { hintIcon = (icon && *icon) ? icon : NULL; hint = text; }
 		void setHint(const char * const icon, const std::string text) { hintIcon = (icon && *icon) ? icon : NULL; hintText = text; }
-
 		void setLua(lua_State *_luaState, std::string &_luaAction, std::string &_luaId) { luaState = _luaState; luaAction = _luaAction; luaId = _luaId; };
-
 		virtual const char *getName();
 		virtual void setName(const std::string& text);
 		virtual void setName(const neutrino_locale_t text);
@@ -181,6 +188,8 @@ class CMenuItem
 		virtual void setDescription(const std::string& text);
 		virtual void setDescription(const neutrino_locale_t text);
 		virtual int getDescriptionHeight(void);
+		void setActivateObserver(CActivateObserver * Observ) { actObserv = Observ; }
+		void activateNotify(void);
 };
 
 class CMenuSeparator : public CMenuItem
@@ -325,65 +334,106 @@ private:
 	void setNumericInput(bool _numeric_input) { numeric_input = _numeric_input; }
 };
 
+class CMenuOptionChooserOptions
+{
+	public:
+		int               key;
+		std::string       valname;
+};
+
+struct CMenuOptionChooserCompareItem: public std::binary_function <const CMenuOptionChooserOptions * const, const CMenuOptionChooserOptions * const, bool>
+{
+	static bool cmpToLower(const char a, const char b)
+	{
+		return tolower(a) < tolower(b);
+	};
+
+	bool operator() (const CMenuOptionChooserOptions * const c1, CMenuOptionChooserOptions * const c2)
+	{
+		return std::lexicographical_compare(c1->valname.begin(), c1->valname.end(), c2->valname.begin(), c2->valname.end(), cmpToLower);
+	};
+};
+
 class CMenuOptionChooser : public CAbstractMenuOptionChooser
 {
- public:
-	struct keyval_ext
-	{
-		int key;
-		neutrino_locale_t value;
-		const char *valname;
-	};
+	public:
+		struct keyval
+		{
+			const int key;
+			const neutrino_locale_t value;
+		};
+		struct keyval_ext
+		{
+			int key;
+			neutrino_locale_t value;
+			const char *valname;
+			keyval_ext & operator=(const keyval &p)
+			{
+				key = p.key;
+				value = p.value;
+				valname = NULL;
+				return *this;
+			}
+		};
 
-	struct keyval
-	{
-		const int key;
-		const neutrino_locale_t value;
-	};
+	private:
+		std::vector<keyval_ext> options;
+		std::vector<CMenuOptionChooserOptions*> option_chooser_options_v;
+		unsigned		number_of_options;
+		CChangeObserver *	observ;
+		bool			pulldown;
+		bool                    optionsSort;
 
- private:
-	std::vector<keyval_ext> options;
-	unsigned		number_of_options;
-	CChangeObserver *	observ;
-	bool			pulldown;
+		void clearChooserOptions();
+		void initVarOptionChooser(      const std::string &OptionName,
+				const neutrino_locale_t Name,
+				int * const OptionValue,
+				const bool Active,
+				CChangeObserver * const Observ,
+				neutrino_msg_t DirectKey,
+				const char * IconName,
+				bool Pulldown,
+				bool OptionsSort
+				);
 
- public:
-	CMenuOptionChooser(const neutrino_locale_t Name, int * const OptionValue, const struct keyval * const Options,
-			   const unsigned Number_Of_Options, const bool Active = false, CChangeObserver * const Observ = NULL,
-			   const neutrino_msg_t DirectKey = CRCInput::RC_nokey, const char * const IconName = NULL,
-			   bool Pulldown = false);
-	CMenuOptionChooser(const neutrino_locale_t Name, int * const OptionValue, const struct keyval_ext * const Options,
-			   const unsigned Number_Of_Options, const bool Active = false, CChangeObserver * const Observ = NULL,
-			   const neutrino_msg_t DirectKey = CRCInput::RC_nokey, const char * const IconName = NULL,
-			   bool Pulldown = false);
-	CMenuOptionChooser(const std::string &Name, int * const OptionValue, const struct keyval * const Options,
-			   const unsigned Number_Of_Options, const bool Active = false, CChangeObserver * const Observ = NULL,
-			   const neutrino_msg_t DirectKey = CRCInput::RC_nokey, const char * const IconName = NULL,
-			   bool Pulldown = false);
-	CMenuOptionChooser(const std::string &Name, int * const OptionValue, const struct keyval_ext * const Options,
-			   const unsigned Number_Of_Options, const bool Active = false, CChangeObserver * const Observ = NULL,
-			   const neutrino_msg_t DirectKey = CRCInput::RC_nokey, const char * const IconName = NULL,
-			   bool Pulldown = false);
-	CMenuOptionChooser(const neutrino_locale_t Name, int * const OptionValue, std::vector<keyval_ext> &Options,
-			   const bool Active = false, CChangeObserver * const Observ = NULL,
-			   const neutrino_msg_t DirectKey = CRCInput::RC_nokey, const char * const IconName = NULL,
-			   bool Pulldown = false);
-	CMenuOptionChooser(const std::string &Name, int * const OptionValue, std::vector<keyval_ext> &Options,
-			   const bool Active = false, CChangeObserver * const Observ = NULL,
-			   const neutrino_msg_t DirectKey = CRCInput::RC_nokey, const char * const IconName = NULL,
-			   bool Pulldown = false);
-	~CMenuOptionChooser();
 
-	void setOption(const int newvalue);
-	int getOption(void) const;
-	int getWidth(void);
-	void setOptions(const struct keyval * const Options, const unsigned Number_Of_Options);
-	void setOptions(const struct keyval_ext * const Options, const unsigned Number_Of_Options);
+	public:
+		CMenuOptionChooser(const neutrino_locale_t Name, int * const OptionValue, const struct keyval * const Options,
+				const unsigned Number_Of_Options, const bool Active = false, CChangeObserver * const Observ = NULL,
+				const neutrino_msg_t DirectKey = CRCInput::RC_nokey, const char * const IconName = NULL,
+				bool Pulldown = false, bool OptionsSort = false);
+		CMenuOptionChooser(const neutrino_locale_t Name, int * const OptionValue, const struct keyval_ext * const Options,
+				const unsigned Number_Of_Options, const bool Active = false, CChangeObserver * const Observ = NULL,
+				const neutrino_msg_t DirectKey = CRCInput::RC_nokey, const char * const IconName = NULL,
+				bool Pulldown = false, bool OptionsSort = false);
+		CMenuOptionChooser(const std::string &Name, int * const OptionValue, const struct keyval * const Options,
+				const unsigned Number_Of_Options, const bool Active = false, CChangeObserver * const Observ = NULL,
+				const neutrino_msg_t DirectKey = CRCInput::RC_nokey, const char * const IconName = NULL,
+				bool Pulldown = false, bool OptionsSort = false);
+		CMenuOptionChooser(const std::string &Name, int * const OptionValue, const struct keyval_ext * const Options,
+				const unsigned Number_Of_Options, const bool Active = false, CChangeObserver * const Observ = NULL,
+				const neutrino_msg_t DirectKey = CRCInput::RC_nokey, const char * const IconName = NULL,
+				bool Pulldown = false, bool OptionsSort = false);
+		CMenuOptionChooser(const neutrino_locale_t Name, int * const OptionValue, std::vector<keyval_ext> &Options,
+				const bool Active = false, CChangeObserver * const Observ = NULL,
+				const neutrino_msg_t DirectKey = CRCInput::RC_nokey, const char * const IconName = NULL,
+				bool Pulldown = false, bool OptionsSort = false);
+		CMenuOptionChooser(const std::string &Name, int * const OptionValue, std::vector<keyval_ext> &Options,
+				const bool Active = false, CChangeObserver * const Observ = NULL,
+				const neutrino_msg_t DirectKey = CRCInput::RC_nokey, const char * const IconName = NULL,
+				bool Pulldown = false, bool OptionsSort = false);
+		~CMenuOptionChooser();
 
-	int paint(bool selected);
+		void setOption(const int newvalue);
+		int getOption(void) const;
+		int getWidth(void);
+		void setOptions(const struct keyval * const Options, const unsigned Number_Of_Options);
+		void setOptions(const struct keyval_ext * const Options, const unsigned Number_Of_Options);
 
-	int exec(CMenuTarget* parent);
-	int isMenueOptionChooser(void) const{return 1;}
+		int paint(bool selected);
+
+		int exec(CMenuTarget* parent);
+		int isMenueOptionChooser(void) const{return 1;}
 };
 
 class CMenuOptionStringChooser : public CMenuItem
@@ -480,6 +530,7 @@ class CMenuWidget : public CMenuTarget
 		bool			from_wizard;
 		bool			fade;
 		bool			washidden;
+		int			nextShortcut;
 
 		void Init(const std::string & Icon, const int mwidth, const mn_widget_id_t &w_index);
 		virtual void paintItems();
@@ -517,6 +568,7 @@ class CMenuWidget : public CMenuTarget
 		virtual void hide();
 		virtual int exec(CMenuTarget* parent, const std::string & actionKey);
 		virtual const char *getName();
+		virtual void integratePlugins(CPlugins::i_type_t integration, const unsigned int shortcut=CRCInput::RC_nokey);
 		void setSelected(const int &Preselected){ preselected = Preselected; };
 		int getSelected()const { return selected; };
 		void move(int xoff, int yoff);
@@ -535,7 +587,9 @@ class CMenuWidget : public CMenuTarget
 		};
 		void addKey(neutrino_msg_t key, CMenuTarget *menue, const std::string &action);
 		void setFooter(const struct button_label *_fbutton_label, const int _fbutton_count, bool repaint = false);
-		void suppressDetailsLine(bool suppress = true){show_details_line = !suppress ? false : true;};
+		void suppressDetailsLine(bool suppress = true){show_details_line = suppress ? false : true;};
+		void setNextShortcut(int sc) { nextShortcut = sc; };
+		int getNextShortcut() { return nextShortcut; };
 };
 
 class CPINProtection

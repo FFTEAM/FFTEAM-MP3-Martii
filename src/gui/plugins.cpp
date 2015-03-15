@@ -199,16 +199,26 @@ bool CPlugins::parseCfg(plugin *plugin_data)
 	{};
 
 	plugin_data->index = sindex++;
-	plugin_data->key = 0; //CRCInput::RC_nokey
+	plugin_data->key = CRCInput::RC_nokey;
+	plugin_data->name = "";
+	plugin_data->description = "";
+#if 0
 	plugin_data->fb = false;
 	plugin_data->rc = false;
 	plugin_data->lcd = false;
 	plugin_data->vtxtpid = false;
 	plugin_data->showpig = false;
 	plugin_data->needoffset = false;
+#endif
+	plugin_data->shellwindow = false;
 	plugin_data->hide = false;
 	plugin_data->type = CPlugins::P_TYPE_DISABLED;
-	std::string _hintIcon = plugin_data->filename + "_hint";
+	plugin_data->integration = CPlugins::I_TYPE_DISABLED;
+	plugin_data->hinticon = NEUTRINO_ICON_HINT_PLUGIN;
+
+	std::string _hintIcon = plugin_data->plugindir + "/" + plugin_data->filename + "_hint.png";
+	if (access(_hintIcon.c_str(), F_OK) == 0)
+		plugin_data->hinticon = _hintIcon;
 
 	for (int i = 0; i < linecount; i++)
 	{
@@ -223,17 +233,27 @@ bool CPlugins::parseCfg(plugin *plugin_data)
 		{
 			plugin_data->index = atoi(parm);
 		}
-		else if (cmd == "pluginversion")
+		else if (cmd == "key")
 		{
-			plugin_data->key = atoi(parm);
+			plugin_data->key = getPluginKey(parm);
 		}
-		else if (cmd == "name")
+		else if (cmd == "name." + g_settings.language)
 		{
 			plugin_data->name = parm;
 		}
-		else if (cmd == "desc")
+		else if (cmd == "name")
+		{
+			if (plugin_data->name.empty())
+				plugin_data->name = parm;
+		}
+		else if (cmd == "desc." + g_settings.language)
 		{
 			plugin_data->description = parm;
+		}
+		else if (cmd == "desc")
+		{
+			if (plugin_data->description.empty())
+				plugin_data->description = parm;
 		}
 		else if (cmd == "depend")
 		{
@@ -241,12 +261,17 @@ bool CPlugins::parseCfg(plugin *plugin_data)
 		}
 		else if (cmd == "hinticon")
 		{
-			_hintIcon = parm;
+			plugin_data->hinticon = parm;
 		}
 		else if (cmd == "type")
 		{
 			plugin_data->type = getPluginType(atoi(parm));
 		}
+		else if (cmd == "integration")
+		{
+			plugin_data->integration = getPluginIntegration(atoi(parm));
+		}
+#if 0
 		else if (cmd == "needfb")
 		{
 			plugin_data->fb = atoi(parm);
@@ -271,6 +296,11 @@ bool CPlugins::parseCfg(plugin *plugin_data)
 		{
 			plugin_data->needoffset = atoi(parm);
 		}
+#endif
+		else if (cmd == "shellwindow")
+		{
+			plugin_data->shellwindow = atoi(parm);
+		}
 		else if (cmd == "hide")
 		{
 			plugin_data->hide = atoi(parm);
@@ -284,28 +314,18 @@ bool CPlugins::parseCfg(plugin *plugin_data)
 
 	inFile.close();
 
+	if (plugin_data->name.empty())
+		plugin_data->name = plugin_data->filename;
+
+	_hintIcon = plugin_data->plugindir + "/" + plugin_data->hinticon + ".png";
+	if (access(_hintIcon.c_str(), F_OK) == 0)
+		plugin_data->hinticon = _hintIcon;
+
 	overrideType(plugin_data, g_settings.plugins_disabled, P_TYPE_DISABLED) ||
 	overrideType(plugin_data, g_settings.plugins_game, P_TYPE_GAME) ||
 	overrideType(plugin_data, g_settings.plugins_tool, P_TYPE_TOOL) ||
 	overrideType(plugin_data, g_settings.plugins_script, P_TYPE_SCRIPT) ||
 	overrideType(plugin_data, g_settings.plugins_lua, P_TYPE_LUA);
-
-	plugin_data->hinticon = plugin_data->plugindir + "/" + _hintIcon + ".png";
-	if (access(plugin_data->hinticon.c_str(), F_OK) != 0)
-	    switch(plugin_data->type) {
-		    case P_TYPE_GAME:
-			plugin_data->hinticon = NEUTRINO_ICON_HINT_GAMES;
-			break;
-		    case P_TYPE_TOOL:
-			plugin_data->hinticon = NEUTRINO_ICON_HINT_TOOLS;
-			break;
-		    case P_TYPE_SCRIPT:
-			plugin_data->hinticon = NEUTRINO_ICON_HINT_SCRIPTS;
-			break;
-		    default:
-			plugin_data->hinticon = NEUTRINO_ICON_HINT_PLUGINS;
-			break;
-	    };
 
 	return !reject;
 }
@@ -354,6 +374,31 @@ void CPlugins::startPlugin(const char * const name)
 
 }
 
+void CPlugins::popenScriptPlugin(const char * script)
+{
+	pid_t pid = 0;
+	FILE *f = my_popen(pid, script, "r");
+	if (f != NULL)
+	{
+		char *output=NULL;
+		size_t len = 0;
+		g_RCInput->clearRCMsg();
+		g_RCInput->stopInput();
+		while ((getline(&output, &len, f)) != -1)
+			scriptOutput += output;
+		pclose(f);
+		int s;
+		while (waitpid(pid, &s, WNOHANG)>0);
+		kill(pid, SIGTERM);
+		if (output)
+			free(output);
+		g_RCInput->restartInput();
+		g_RCInput->clearRCMsg();
+	}
+	else
+		printf("[CPlugins] can't execute %s\n",script);
+}
+
 void CPlugins::startScriptPlugin(int number)
 {
 	const char *script = plugin_list[number].pluginfile.c_str();
@@ -368,8 +413,13 @@ void CPlugins::startScriptPlugin(int number)
 	// workaround for manually messed up permissions
 	if (access(script, X_OK))
 		chmod(script, 0755);
-	CShellWindow(script, CShellWindow::VERBOSE | CShellWindow::ACKNOWLEDGE);
-	scriptOutput = "";
+	if (plugin_list[number].shellwindow)
+	{
+		CShellWindow(script, CShellWindow::VERBOSE | CShellWindow::ACKNOWLEDGE);
+		scriptOutput = "";
+	}
+	else
+		popenScriptPlugin(script);
 }
 
 void CPlugins::startLuaPlugin(int number)
@@ -398,29 +448,13 @@ void CPlugins::startPlugin(int number)
 	delScriptOutput();
 	/* export neutrino settings to the environment */
 	char tmp[32];
-#if HAVE_SPARK_HARDWARE
-	sprintf(tmp, "%d", g_settings.screen_StartX_int);
-#else
 	sprintf(tmp, "%d", g_settings.screen_StartX);
-#endif
 	setenv("SCREEN_OFF_X", tmp, 1);
-#if HAVE_SPARK_HARDWARE
-	sprintf(tmp, "%d", g_settings.screen_StartY_int);
-#else
 	sprintf(tmp, "%d", g_settings.screen_StartY);
-#endif
 	setenv("SCREEN_OFF_Y", tmp, 1);
-#if HAVE_SPARK_HARDWARE
-	sprintf(tmp, "%d", g_settings.screen_EndX_int);
-#else
 	sprintf(tmp, "%d", g_settings.screen_EndX);
-#endif
 	setenv("SCREEN_END_X", tmp, 1);
-#if HAVE_SPARK_HARDWARE
-	sprintf(tmp, "%d", g_settings.screen_EndY_int);
-#else
 	sprintf(tmp, "%d", g_settings.screen_EndY);
-#endif
 	setenv("SCREEN_END_Y", tmp, 1);
 
 	bool ispip  = strstr(plugin_list[number].pluginfile.c_str(), "pip") != 0;
@@ -510,4 +544,47 @@ CPlugins::p_type_t CPlugins::getPluginType(int type)
 	default:
 		return P_TYPE_DISABLED;
 	}
+}
+
+CPlugins::i_type_t CPlugins::getPluginIntegration(int integration)
+{
+	switch (integration)
+	{
+	case INTEGRATION_TYPE_DISABLED:
+		return I_TYPE_DISABLED;
+		break;
+	/*
+	case INTEGRATION_TYPE_MAIN:
+		return I_TYPE_MAIN;
+		break;
+	*/
+	case INTEGRATION_TYPE_MULTIMEDIA:
+		return I_TYPE_MULTIMEDIA;
+		break;
+	case INTEGRATION_TYPE_SETTING:
+		return I_TYPE_SETTING;
+		break;
+	case INTEGRATION_TYPE_SERVICE:
+		return I_TYPE_SERVICE;
+		break;
+	case INTEGRATION_TYPE_INFORMATION:
+		return I_TYPE_INFORMATION;
+		break;
+	default:
+		return I_TYPE_DISABLED;
+	}
+}
+
+neutrino_msg_t CPlugins::getPluginKey(std::string key)
+{
+	if (key == "red")
+		return CRCInput::RC_red;
+	else if (key == "green")
+		return CRCInput::RC_green;
+	else if (key == "yellow")
+		return CRCInput::RC_yellow;
+	else if (key == "blue")
+		return CRCInput::RC_blue;
+	else /* (key == "auto") */
+		return CRCInput::RC_nokey;
 }

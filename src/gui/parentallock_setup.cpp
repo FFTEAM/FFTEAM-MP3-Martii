@@ -108,8 +108,9 @@ int CParentalSetup::showParentalSetup()
 	// intros
 	plock->addIntroItems();
 
+	CMenuForwarder * mf;
 	CPersonalizeGui &p = CNeutrinoApp::getInstance()->getPersonalizeGui();
-	CMenuForwarder * mf = new CMenuForwarder(LOCALE_PARENTALLOCK_MENU, true, NULL, &p, NULL, CRCInput::RC_red);
+	mf = new CMenuForwarder(LOCALE_PARENTALLOCK_MENU, true, NULL, &p, NULL, CRCInput::RC_red);
 	mf->setHint("", LOCALE_MENU_HINT_PARENTALLOCK_MENU);
 	plock->addItem(mf);
 
@@ -122,11 +123,12 @@ int CParentalSetup::showParentalSetup()
 	mc->setHint("", LOCALE_MENU_HINT_PARENTALLOCK_LOCKAGE);
 	plock->addItem(mc);
 
-	plock->addItem(new CMenuOptionChooser(LOCALE_PARENTALLOCK_BOUQUETMODE, &g_settings.parentallock_defaultlocked, PARENTALLOCK_DEFAULTLOCKED_OPTIONS, PARENTALLOCK_DEFAULTLOCKED_OPTION_COUNT, !parentallocked));
+	mc = new CMenuOptionChooser(LOCALE_PARENTALLOCK_BOUQUETMODE, &g_settings.parentallock_defaultlocked, PARENTALLOCK_DEFAULTLOCKED_OPTIONS, PARENTALLOCK_DEFAULTLOCKED_OPTION_COUNT, !parentallocked);
+	plock->addItem(mc);
 	plock->addItem(new CMenuOptionNumberChooser(LOCALE_PARENTALLOCK_ZAPTIME, (int *)&g_settings.parentallock_zaptime, !parentallocked, 0, 10000));
 
 	CPINChangeWidget pinChangeWidget(LOCALE_PARENTALLOCK_CHANGEPIN, &g_settings.parentallock_pincode, 4, LOCALE_PARENTALLOCK_CHANGEPIN_HINT1);
-	mf = new CMenuForwarder(LOCALE_PARENTALLOCK_CHANGEPIN, true, NULL, &pinChangeWidget);
+	mf = new CMenuForwarder(LOCALE_PARENTALLOCK_CHANGEPIN, true, g_settings.parentallock_pincode, &pinChangeWidget);
 	mf->setHint("", LOCALE_MENU_HINT_PARENTALLOCK_CHANGEPIN);
 	plock->addItem(mf);
 

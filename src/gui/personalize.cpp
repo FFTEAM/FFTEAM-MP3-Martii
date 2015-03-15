@@ -182,22 +182,20 @@ const CMenuOptionChooser::keyval PERSONALIZE_MODE_OPTIONS[CPersonalizeGui::PERSO
 {
 	{ CPersonalizeGui::PERSONALIZE_MODE_NOTVISIBLE	, LOCALE_PERSONALIZE_NOTVISIBLE      	},// The option is NOT visible on the menu's
 	{ CPersonalizeGui::PERSONALIZE_MODE_VISIBLE	, LOCALE_PERSONALIZE_VISIBLE         	},// The option is visible on the menu's
-	{ CPersonalizeGui::PERSONALIZE_MODE_PIN		, LOCALE_PERSONALIZE_PIN      		},// PIN Protect the item on the menu
+	{ CPersonalizeGui::PERSONALIZE_MODE_PIN		, LOCALE_PERSONALIZE_PIN      		} // PIN Protect the item on the menu
 };
 
 const CMenuOptionChooser::keyval PERSONALIZE_ACTIVE_MODE_OPTIONS[CPersonalizeGui::PERSONALIZE_ACTIVE_MODE_MAX] =
 {
 	{ CPersonalizeGui::PERSONALIZE_ACTIVE_MODE_DISABLED	, LOCALE_PERSONALIZE_DISABLED        	},// The option is NOT enabled / accessible
-	{ CPersonalizeGui::PERSONALIZE_ACTIVE_MODE_ENABLED	, LOCALE_PERSONALIZE_ENABLED         	},// The option is enabled / accessible
+	{ CPersonalizeGui::PERSONALIZE_ACTIVE_MODE_ENABLED	, LOCALE_PERSONALIZE_ENABLED         	} // The option is enabled / accessible
 };
 
 const CMenuOptionChooser::keyval PERSONALIZE_PROTECT_MODE_OPTIONS[CPersonalizeGui::PERSONALIZE_PROTECT_MODE_MAX] =
 {
 	{ CPersonalizeGui::PERSONALIZE_PROTECT_MODE_NOT_PROTECTED	, LOCALE_PERSONALIZE_NOTPROTECTED    	},// The menu/option is NOT protected
-	{ CPersonalizeGui::PERSONALIZE_PROTECT_MODE_PIN_PROTECTED	, LOCALE_PERSONALIZE_PINPROTECT      	},// The menu/option is protected by a PIN
+	{ CPersonalizeGui::PERSONALIZE_PROTECT_MODE_PIN_PROTECTED	, LOCALE_PERSONALIZE_PINPROTECT      	} // The menu/option is protected by a PIN
 };
-
-
 
 CPersonalizeGui::CPersonalizeGui() : CPINProtection(g_settings.personalize_pincode)
 {
@@ -233,6 +231,17 @@ int CPersonalizeGui::exec(CMenuTarget* parent, const string & actionKey)
 			if (ak && *ak && std::string(ak).find_first_not_of("0123456789") == std::string::npos) {
 				int i = atoi(ak);
 				if (i > -1) {
+					for (unsigned int j = 4; j < g_settings.usermenu.size(); j++) {
+						std::string name = to_string(j);
+						std::string usermenu_key("usermenu_key_");
+						usermenu_key += name;
+						CNeutrinoApp::getInstance()->getConfigFile()->deleteKey(usermenu_key);
+						std::string txt1("usermenu_tv_");
+						txt1 += name;
+						CNeutrinoApp::getInstance()->getConfigFile()->deleteKey(txt1);
+						txt1 += "_text";
+						CNeutrinoApp::getInstance()->getConfigFile()->deleteKey(txt1);
+					}
 					delete g_settings.usermenu[i];
 					g_settings.usermenu[i] = NULL;
 				}
@@ -244,12 +253,10 @@ int CPersonalizeGui::exec(CMenuTarget* parent, const string & actionKey)
 		return menu_return::RETURN_NONE;
 	}
 
-	if(parent)
+	if (parent)
 		parent->hide();
 
 	if (actionKey == ">a") {
-		int selected = uMenu->getSelected();
-
 		unsigned int i = g_settings.usermenu.size();
 		CUserMenuSetup *cms = new CUserMenuSetup(LOCALE_USERMENU_HEAD, i);
 		SNeutrinoSettings::usermenu_t *um = new SNeutrinoSettings::usermenu_t;
@@ -258,10 +265,13 @@ int CPersonalizeGui::exec(CMenuTarget* parent, const string & actionKey)
 		CMenuDForwarder *fw = new CMenuDForwarder(CRCInput::getKeyName(um->key), true, um->title, cms, to_string(i).c_str());
 		cms->setCaller(fw);
 
+#if 0
+		int selected = uMenu->getSelected();
 		if (selected >= customkey_offset)
 			uMenu->insertItem(selected, fw);
 		else
-			uMenu->addItem(fw);
+#endif
+			uMenu->addItem(fw, true);
 		uMenu->hide();
 		return menu_return::RETURN_REPAINT;
 	}
@@ -272,31 +282,31 @@ int CPersonalizeGui::exec(CMenuTarget* parent, const string & actionKey)
 		i_str << i;
 		string s(i_str.str());
 		string a_key = s;
-		
-		if(actionKey == a_key) 
+
+		if(actionKey == a_key)
 		{
 			res = ShowMenuOptions(i);
 			return res;
 		}
 	}
-		
+
 	if (actionKey=="personalize_help") {
 		ShowHelpPersonalize();
 		return res;
 	}
-	
+
 	if (actionKey=="restore") {
 		ShowPersonalizationMenu	();
 		return menu_return::RETURN_EXIT_ALL;
 	}
-	
-	//also handle pin access 
+
+	//also handle pin access
 	handleSetting(&g_settings.personalize[SNeutrinoSettings::P_MAIN_PINSTATUS]);
-	
-	//pin protected access to personalize menu also if found any pin protected items 
+
+	//pin protected access to personalize menu also if found any pin protected items
 	bool is_pin_protected = g_settings.personalize[SNeutrinoSettings::P_MAIN_PINSTATUS];
-	
-	if ( is_pin_protected || hasPinItems()){
+
+	if (is_pin_protected || hasPinItems()) {
 		setHint(LOCALE_PERSONALIZE_PINHINT); //from CPINProtection
 		is_pin_protected = true;
 		if (check())
@@ -315,10 +325,10 @@ int CPersonalizeGui::exec(CMenuTarget* parent, const string & actionKey)
 int CPersonalizeGui::ShowPersonalizationMenu()
 {
 	width = w_max (40, 10);
-	
+
 	CMenuWidget* pMenu = new CMenuWidget(LOCALE_PERSONALIZE_HEAD, NEUTRINO_ICON_PERSONALIZE, width, MN_WIDGET_ID_PERSONALIZE);
 	pMenu->addIntroItems(NONEXISTANT_LOCALE, LOCALE_PERSONALIZE_ACCESS);
-	
+
 	//pin
 	CPINChangeWidget *pinChangeWidget = NULL;
 	if (show_pin_setup)
@@ -333,10 +343,10 @@ int CPersonalizeGui::ShowPersonalizationMenu()
 		string s(i_str.str());
 		string action_key = s;
 		string mn_name = v_widget[i]->getName();
-		p_mn[i] = new CMenuForwarder(mn_name, true, NULL, this, action_key.c_str(), CRCInput::convertDigitToKey(i+1));
+		p_mn[i] = new CMenuForwarder(mn_name.c_str(), true, NULL, this, action_key.c_str(), CRCInput::convertDigitToKey(i+1));
 		pMenu->addItem(p_mn[i]);
 	}
-	
+
 
 	//usermenu
 	uMenu = NULL;
@@ -345,7 +355,7 @@ int CPersonalizeGui::ShowPersonalizationMenu()
 		pMenu->addItem(GenericMenuSeparatorLine);
 		uMenu = new CMenuWidget(LOCALE_PERSONALIZE_HEAD, NEUTRINO_ICON_PERSONALIZE, width, MN_WIDGET_ID_PERSONALIZE_USERMENU);
 		pMenu->addItem(new CMenuForwarder(LOCALE_USERMENU_HEAD, true, NULL, uMenu, NULL, CRCInput::RC_green));
-	
+
 		ShowUserMenu();
 	}
 	CMenuWidget* plMenu = NULL;
@@ -358,14 +368,14 @@ int CPersonalizeGui::ShowPersonalizationMenu()
 			pMenu->addItem(GenericMenuSeparatorLine);
 		plMenu = new CMenuWidget(LOCALE_PERSONALIZE_HEAD, NEUTRINO_ICON_PERSONALIZE, width, MN_WIDGET_ID_PERSONALIZE_PLUGINS);
 		pMenu->addItem(new CMenuForwarder(LOCALE_PERSONALIZE_PLUGINS, true, NULL, plMenu, NULL, CRCInput::RC_blue));
-	
+
 		ShowPluginMenu(plMenu, pldesc, pltype);
 	}
-	
+
 	//help
 	pMenu->addItem(GenericMenuSeparatorLine);
 	pMenu->addItem(new CMenuForwarder(LOCALE_PERSONALIZE_HELP, true, NULL, this, "personalize_help", CRCInput::RC_help));
-	
+
 	int res = pMenu->exec(NULL, "");
 	if (show_pluginmenu) {
 		g_settings.plugins_disabled = "";
@@ -375,27 +385,27 @@ int CPersonalizeGui::ShowPersonalizationMenu()
 		g_settings.plugins_lua = "";
 		for (int i = 0; i < pcount; i++) {
 			if (pltype[i] & CPlugins::P_TYPE_DISABLED) {
-				if (g_settings.plugins_disabled != "")
+				if (!g_settings.plugins_disabled.empty())
 					g_settings.plugins_disabled += ",";
 				g_settings.plugins_disabled +=  g_PluginList->getFileName(i);
 				g_PluginList->setType(i, CPlugins::P_TYPE_DISABLED);
 			} else if (pltype[i] & CPlugins::P_TYPE_GAME) {
-				if (g_settings.plugins_game != "")
+				if (!g_settings.plugins_game.empty())
 					g_settings.plugins_game += ",";
 				g_settings.plugins_game +=  g_PluginList->getFileName(i);
 				g_PluginList->setType(i, CPlugins::P_TYPE_GAME);
 			} else if (pltype[i] & CPlugins::P_TYPE_TOOL) {
-				if (g_settings.plugins_tool != "")
+				if (!g_settings.plugins_tool.empty())
 					g_settings.plugins_tool += ",";
 				g_settings.plugins_tool +=  g_PluginList->getFileName(i);
 				g_PluginList->setType(i, CPlugins::P_TYPE_TOOL);
 			} else if (pltype[i] & CPlugins::P_TYPE_SCRIPT) {
-				if (g_settings.plugins_script != "")
+				if (!g_settings.plugins_script.empty())
 					g_settings.plugins_script += ",";
 				g_settings.plugins_script +=  g_PluginList->getFileName(i);
 				g_PluginList->setType(i, CPlugins::P_TYPE_SCRIPT);
 			} else if (pltype[i] & CPlugins::P_TYPE_LUA) {
-				if (g_settings.plugins_lua != "")
+				if (!g_settings.plugins_lua.empty())
 					g_settings.plugins_lua += ",";
 				g_settings.plugins_lua +=  g_PluginList->getFileName(i);
 				g_PluginList->setType(i, CPlugins::P_TYPE_LUA);
@@ -418,22 +428,22 @@ int CPersonalizeGui::ShowPersonalizationMenu()
 	delete plMenu;
 	delete user_menu_notifier;
 	delete pin_setup_notifier;
-	
+
 	return res;
 }
 
 //init pin setup dialog
-void CPersonalizeGui::ShowPinSetup(CMenuWidget* p_widget, CPINChangeWidget *pin_widget)
+void CPersonalizeGui::ShowPinSetup(CMenuWidget* p_widget, CPINChangeWidget * &pin_widget)
 {
 	pin_widget = new CPINChangeWidget(LOCALE_PERSONALIZE_PINCODE, &g_settings.personalize_pincode, 4, LOCALE_PERSONALIZE_PINHINT);
-	
-	CMenuForwarder * fw_pin_setup = new CMenuForwarder(LOCALE_PERSONALIZE_PINCODE, true, NULL, pin_widget, NULL, CRCInput::RC_red);
+
+	CMenuForwarder * fw_pin_setup = new CMenuForwarder(LOCALE_PERSONALIZE_PINCODE, true, g_settings.personalize_pincode, pin_widget, NULL, CRCInput::RC_red);
  	pin_setup_notifier = new CPinSetupNotifier(fw_pin_setup);
  	p_widget->addItem(new CMenuOptionChooser(LOCALE_PERSONALIZE_PIN_IN_USE, &g_settings.personalize[SNeutrinoSettings::P_MAIN_PINSTATUS], OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true, pin_setup_notifier));
-	
+
 	pin_setup_notifier->changeNotify();
 	p_widget->addItem(fw_pin_setup);
-	
+
 	p_widget->addItem(new CMenuSeparator(CMenuSeparator::LINE | CMenuSeparator::STRING, LOCALE_PERSONALIZE_MENUCONFIGURATION));
 }
 
@@ -445,24 +455,27 @@ static const struct button_label footerButtons[2] = {
 //init usermenu items
 void CPersonalizeGui::ShowUserMenu()
 {
+	int uMenu_shortcut = 1;
+
 	uMenu->addIntroItems(LOCALE_USERMENU_HEAD);
-	
+
+	uMenu->addItem(new CMenuOptionChooser(LOCALE_PERSONALIZE_USERMENU_SHOW_CANCEL, &g_settings.personalize[SNeutrinoSettings::P_UMENU_SHOW_CANCEL], OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true));
+
+	uMenu->addItem(GenericMenuSeparatorLine);
 	//define usermenu items
 	std::vector<CMenuForwarder*> v_umenu_fw;
 	for (uint i = 0; i<USERMENU_ITEMS_COUNT; i++)
 	{
 		CUserMenuSetup *cms = new CUserMenuSetup(usermenu[i].menue_title, usermenu[i].menue_button);
-		CMenuDForwarder *fw = new CMenuDForwarder(usermenu[i].menue_title, true, g_settings.usermenu[i]->title, cms, g_settings.usermenu[i]->name.c_str(), /*usermenu[i].DirectKey*/CRCInput::RC_nokey, usermenu[i].IconName);
+		CMenuDForwarder *fw = new CMenuDForwarder(usermenu[i].menue_title, true, g_settings.usermenu[i]->title, cms, g_settings.usermenu[i]->name.c_str(), /*usermenu[i].DirectKey*/CRCInput::RC_nokey /*, usermenu[i].IconName*/);
 		cms->setCaller(fw);
 		v_umenu_fw.push_back(fw);
 	}
 	user_menu_notifier = new CUserMenuNotifier(v_umenu_fw[0], v_umenu_fw[1], v_umenu_fw[2], v_umenu_fw[3]);
+
 	int  buttons[USERMENU_ITEMS_COUNT] = { SNeutrinoSettings::P_MAIN_RED_BUTTON, SNeutrinoSettings::P_MAIN_GREEN_BUTTON, SNeutrinoSettings::P_MAIN_YELLOW_BUTTON, SNeutrinoSettings::P_MAIN_BLUE_BUTTON };
 	for (int i = 0; i < USERMENU_ITEMS_COUNT; i++)
 		uMenu->addItem(new CMenuOptionChooser(usermenu[i].menue_title, &g_settings.personalize[buttons[i]], PERSONALIZE_ACTIVE_MODE_OPTIONS, PERSONALIZE_ACTIVE_MODE_MAX, true, user_menu_notifier));
-
-	uMenu->addItem(GenericMenuSeparatorLine);
-	uMenu->addItem(new CMenuOptionChooser(LOCALE_PERSONALIZE_USERMENU_SHOW_CANCEL, &g_settings.personalize[SNeutrinoSettings::P_UMENU_SHOW_CANCEL], OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true));
 
 	//add usermenu items
 	uMenu->addItem(new CMenuSeparator(CMenuSeparator::ALIGN_RIGHT | CMenuSeparator::LINE | CMenuSeparator::STRING, LOCALE_USERMENU_NAME));
@@ -470,6 +483,31 @@ void CPersonalizeGui::ShowUserMenu()
 	for (uint j = 0; j<USERMENU_ITEMS_COUNT; j++)
 		uMenu->addItem(v_umenu_fw[j]);
 
+	uMenu->addItem(GenericMenuSeparatorLine);
+	//add plugin selection menu
+	CMenuWidget *pluginSelectionMenu = new CMenuWidget(LOCALE_PERSONALIZE_USERMENU_PLUGIN_TYPES, NEUTRINO_ICON_SETTINGS);
+	pluginSelectionMenu->addIntroItems(LOCALE_MAINMENU_SETTINGS);
+
+	CMenuOptionChooser * /*oc = NULL;*/
+	oc = new CMenuOptionChooser(LOCALE_MAINMENU_GAMES, &g_settings.personalize[SNeutrinoSettings::P_UMENU_PLUGIN_TYPE_GAMES], OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true);
+	oc->setHint(NEUTRINO_ICON_HINT_PERSONALIZE, LOCALE_MENU_HINT_PLUGIN_TYPE_GAMES);
+	pluginSelectionMenu->addItem(oc);
+
+	oc = new CMenuOptionChooser(LOCALE_MAINMENU_TOOLS, &g_settings.personalize[SNeutrinoSettings::P_UMENU_PLUGIN_TYPE_TOOLS], OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true);
+	oc->setHint(NEUTRINO_ICON_HINT_PERSONALIZE, LOCALE_MENU_HINT_PLUGIN_TYPE_TOOLS);
+	pluginSelectionMenu->addItem(oc);
+
+	oc = new CMenuOptionChooser(LOCALE_MAINMENU_SCRIPTS, &g_settings.personalize[SNeutrinoSettings::P_UMENU_PLUGIN_TYPE_SCRIPTS], OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true);
+	oc->setHint(NEUTRINO_ICON_HINT_PERSONALIZE, LOCALE_MENU_HINT_PLUGIN_TYPE_SCRIPTS);
+	pluginSelectionMenu->addItem(oc);
+
+	oc = new CMenuOptionChooser(LOCALE_MAINMENU_LUA, &g_settings.personalize[SNeutrinoSettings::P_UMENU_PLUGIN_TYPE_LUA], OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true);
+	oc->setHint(NEUTRINO_ICON_HINT_PERSONALIZE, LOCALE_MENU_HINT_PLUGIN_TYPE_LUA);
+	pluginSelectionMenu->addItem(oc);
+
+	uMenu->addItem(new CMenuDForwarder(LOCALE_PERSONALIZE_USERMENU_PLUGIN_TYPES, true, NULL, pluginSelectionMenu, NULL, CRCInput::convertDigitToKey(uMenu_shortcut++)));
+
+	uMenu->addItem(GenericMenuSeparatorLine);
 	//non-standard usermenu keys
 	customkey_offset = uMenu->getItemsCount();
 	unsigned int ums = g_settings.usermenu.size();
@@ -501,7 +539,7 @@ void CPersonalizeGui::ShowPluginMenu(CMenuWidget* p_widget, std::string da[], in
 {
 	p_widget->addIntroItems(LOCALE_PERSONALIZE_PLUGINS);
 
-	uint  d_key = 1;	
+	uint  d_key = 1;
 	int pcount = g_PluginList->getNumberOfPlugins();
 	for (int i = 0; i < pcount; i++)
 	{
@@ -527,7 +565,7 @@ int CPersonalizeGui::ShowMenuOptions(const int& widget)
 	mn_widget_id_t w_index = widget+MN_WIDGET_ID_PERSONALIZE_MAIN;
 	CMenuWidget* pm = new CMenuWidget(LOCALE_PERSONALIZE_HEAD, NEUTRINO_ICON_PERSONALIZE, width, w_index);
 	//reuqired in changeNotify()
-	options_count = 0; 
+	options_count = 0;
 	tmpW = pm;
 	//*************************
 
@@ -550,8 +588,8 @@ int CPersonalizeGui::ShowMenuOptions(const int& widget)
 			if (i_mode != PERSONALIZE_SHOW_NO)
 			{
 				//add items to the options menu
-				if (i_mode == PERSONALIZE_SHOW_AS_ITEM_OPTION) 
-				{	
+				if (i_mode == PERSONALIZE_SHOW_AS_ITEM_OPTION)
+				{
 					if (v_item[i].personalize_mode != NULL) //option chooser
 					{
 						//get locale name and personalize mode
@@ -560,19 +598,19 @@ int CPersonalizeGui::ShowMenuOptions(const int& widget)
 
 						//found observer item and if found, then define 'this' as observer for current option chooser and run changeNotify
 						bool is_observer = isObserver(v_item[i].widget, v_item[i].menuItem) ? true : false;
-						CChangeObserver* observer = is_observer ? this : NULL;					
+						CChangeObserver* observer = is_observer ? this : NULL;
 						CMenuOptionChooser * opt = new CMenuOptionChooser(name, p_mode, PERSONALIZE_MODE_OPTIONS, PERSONALIZE_MODE_MAX, v_item[i].menuItem->active, observer);
 						if (is_observer)
 							changeNotify(name, (void*)p_mode);
 
 						//required for first view: check active mode of option chooser and disable if it's an observed item and item mode is set to 'not visible'
-						for (uint j = 0; j < v_observ.size(); j++)		
+						for (uint j = 0; j < v_observ.size(); j++)
 							if (opt->getName()== g_Locale->getText(v_observ[j].to_observ_locale) && *p_mode == PERSONALIZE_MODE_NOTVISIBLE)
-								opt->setActive(false);	
+								opt->setActive(false);
 
 						pm->addItem(opt); //add option chooser
 					}
-					else 
+					else
 						pm->addItem(v_item[i].menuItem); //separator
 				}
 
@@ -589,8 +627,8 @@ int CPersonalizeGui::ShowMenuOptions(const int& widget)
 
 				//only show in personalize menu, usefull to hide separators in menu, but visible only in personalizing menu
 				if (i_mode == PERSONALIZE_SHOW_ONLY_IN_PERSONALIZE_MENU)
-					pm->addItem(v_item[i].menuItem); 
-			}	
+					pm->addItem(v_item[i].menuItem);
+			}
 		}
 
 	}
@@ -602,22 +640,22 @@ int CPersonalizeGui::ShowMenuOptions(const int& widget)
 
 //returns true, if found an observer item
 bool CPersonalizeGui::isObserver(CMenuWidget* widget, CMenuItem *item)
-{	 
+{
 	for (uint i = 0; i < v_observ.size(); i++)
-	{	
+	{
 		if (v_observ[i].widget == widget)
 		{
-			CMenuForwarder* fw = static_cast <CMenuForwarder*> (item);		
+			CMenuForwarder* fw = static_cast <CMenuForwarder*> (item);
 			if (fw->getTextLocale() == v_observ[i].observer_locale)
-				return true;	
+				return true;
 		}
-	}	
+	}
 	return false;
 }
 
 
 bool CPersonalizeGui::changeNotify(const neutrino_locale_t locale, void *data)
-{	
+{
 	int opt_val = *(int*) data;
 
 	//exit if no options found
@@ -637,12 +675,12 @@ bool CPersonalizeGui::changeNotify(const neutrino_locale_t locale, void *data)
 			string opt_name = chooser->getName();
 
 			for (uint j = 0; j < v_observ.size(); j++)
-			{	
+			{
 				//if found the same option name for an observer item then...
 				if (locale == v_observ[j].observer_locale)
-				{	
+				{
 					//...compare for observed item
-					if (opt_name == g_Locale->getText(v_observ[j].to_observ_locale))	
+					if (opt_name == g_Locale->getText(v_observ[j].to_observ_locale))
 					{
 						//and if found an observed item, then set properties
 						if (opt_val == PERSONALIZE_MODE_VISIBLE || opt_val == PERSONALIZE_MODE_PIN)
@@ -707,7 +745,7 @@ void CPersonalizeGui::SaveAndExit()
 
 
 
-//adds a menu widget to v_widget and sets the count of available widgets 
+//adds a menu widget to v_widget and sets the count of available widgets
 void CPersonalizeGui::addWidget(CMenuWidget *widget)
 {
 	v_widget.push_back(widget);
@@ -740,7 +778,7 @@ int CPersonalizeGui::getWidgetId(CMenuWidget *widget)
 void CPersonalizeGui::addObservedItem(CMenuWidget *widget, CMenuItem* observer_Item, CMenuItem* to_observ_Item)
 {
 	CMenuForwarder *fw[2] = {	static_cast <CMenuForwarder*> (observer_Item),
-		static_cast <CMenuForwarder*> (to_observ_Item)};
+					static_cast <CMenuForwarder*> (to_observ_Item)};
 	observ_menu_item_t item = {widget, fw[0]->getTextLocale(), fw[1]->getTextLocale()};
 	v_observ.push_back(item);
 }
@@ -805,7 +843,11 @@ void CPersonalizeGui::addSeparator(CMenuWidget &widget, const neutrino_locale_t 
 		menu_item_t to_add_sep = {&widget, GenericMenuSeparatorLine, false, locale_text, NULL, item_mode, NULL};
 		v_item.push_back(to_add_sep);
 	} else {
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 		menu_item_t to_add_sep = {&widget, new CMenuSeparator(CMenuSeparator::LINE | CMenuSeparator::STRING, locale_text, true), false, locale_text, NULL, item_mode, NULL};
+#else
+		menu_item_t to_add_sep = {&widget, new CMenuSeparator(CMenuSeparator::LINE | CMenuSeparator::STRING, locale_text), false, locale_text, NULL, item_mode, NULL};
+#endif
 		v_item.push_back(to_add_sep);
 	}
 }
@@ -813,7 +855,7 @@ void CPersonalizeGui::addSeparator(CMenuWidget &widget, const neutrino_locale_t 
 //returns available count of personalized item for definied widget
 int CPersonalizeGui::getItemsCount(CMenuWidget *widget)
 {
-	int ret = 0; 
+	int ret = 0;
 
 	for (uint i = 0; i < v_item.size(); i++)
 		if (v_item[i].widget == widget)
@@ -851,10 +893,10 @@ void CPersonalizeGui::addPersonalizedItems()
 			if (old_w_id != widget_id)
 			{
 				//reset shortcut if widget has changed
-				short_cut = shortcut; 
+				short_cut = shortcut;
 
 				//normalize previous widget: remove last item, if it is a separator line
-				uint items_count = v_item[old_w_id].widget->getItemsCount(); 
+				uint items_count = v_item[old_w_id].widget->getItemsCount();
 				if (v_item[old_w_id].widget->getItem(items_count-1) == GenericMenuSeparatorLine)
 					v_item[old_w_id].widget->removeItem(items_count-1);
 
@@ -871,18 +913,18 @@ void CPersonalizeGui::addPersonalizedItems()
 				bool add_shortcut 	= false;
 
 				//get shortcut
-				if (d_key == CRCInput::RC_nokey && fw->active) //if no directkey is defined and item is active, allow to generate a shortcut, 
+				if (fw->active && (d_key == CRCInput::RC_nokey || CRCInput::isNumeric(d_key))) //if RC_nokey  or RC_key is digi and item is active, allow to generate a shortcut,
 				{
 					add_shortcut = true;
 					d_key = getShortcut(short_cut);
-				}					
+				}
 
 				//set pin mode if required
 				const char* lock_icon = NULL;
 				if (p_mode == PERSONALIZE_MODE_PIN || (p_mode == PERSONALIZE_PROTECT_MODE_PIN_PROTECTED && i_mode == PERSONALIZE_SHOW_AS_ACCESS_OPTION))
 					use_pin = true;
 
-				//set pinmode for personalize menu or for settings manager menu and if any item is pin protected 
+				//set pinmode for personalize menu or for settings manager menu and if any item is pin protected
 				if (in_pinmode && !use_pin)
 					if (v_item[i].personalize_mode == &g_settings.personalize[SNeutrinoSettings::P_MAIN_PINSTATUS] || v_item[i].personalize_mode == &g_settings.personalize[SNeutrinoSettings::P_MSET_SETTINGS_MANAGER])
 					{
@@ -890,8 +932,10 @@ void CPersonalizeGui::addPersonalizedItems()
 						lock_icon = NEUTRINO_ICON_LOCK_PASSIVE;
 					}
 
-				//convert item to locked forwarder and use generated pin mode for usage as ask parameter 
-				v_item[i].menuItem = new CLockedMenuForwarder(fw->getTextLocale(), g_settings.personalize_pincode, use_pin, fw->active, NULL, fw->getTarget(), fw->getActionKey(), d_key, NULL, lock_icon);
+				//convert item to locked forwarder and use generated pin mode for usage as ask parameter
+				v_item[i].menuItem = new CLockedMenuForwarder(fw->getTextLocale(),
+						g_settings.personalize_pincode,
+						use_pin, fw->active, NULL, fw->getTarget(), fw->getActionKey(), d_key, NULL, lock_icon);
 				v_item[i].menuItem->hintIcon = fw->hintIcon;
 				v_item[i].menuItem->hint = fw->hint;
 				//add item if it's set to visible or pin protected and allow to add an forwarder as next
@@ -902,8 +946,10 @@ void CPersonalizeGui::addPersonalizedItems()
 					allow_sep = true;
 
 					//generate shortcut for next item
-					if (add_shortcut)
+					if (add_shortcut) {
 						short_cut++;
+						v_item[i].widget->setNextShortcut(short_cut);
+					}
 				}
 				else if (p_mode == PERSONALIZE_MODE_NOTVISIBLE)
 				{
@@ -918,7 +964,7 @@ void CPersonalizeGui::addPersonalizedItems()
 				delete fw;
 			}
 			else //handle and add separator as non personalized item and don't allow to add a separator as next but allow back button as next
-			{						
+			{
 				if (allow_sep || v_item[i].menuItem == GenericMenuBack)
 				{
 					v_item[i].widget->addItem(v_item[i].menuItem, v_item[i].default_selected); //separators
@@ -935,17 +981,17 @@ void CPersonalizeGui::addPersonalizedItems()
 // parameter alternate_rc_key allows using an alternate key, default key is RC_nokey
 neutrino_msg_t CPersonalizeGui::getShortcut(const int & shortcut_num, neutrino_msg_t alternate_rc_key)
 {
-	if (shortcut_num < 10) 
+	if (shortcut_num < 10)
 		return CRCInput::convertDigitToKey(shortcut_num);
-	else if (shortcut_num == 10) 
+	else if (shortcut_num == 10)
 		return CRCInput::RC_0;
-	else	
+	else
 		return alternate_rc_key;
 }
 
 //handle/collects old int settings
 void  CPersonalizeGui::handleSetting(int *setting)
-{	
+{
 	settings_int_t val	= {*setting, setting};
 	v_int_settings.push_back(val);
 }
@@ -963,7 +1009,7 @@ bool  CPersonalizeGui::haveChangedSettings()
 
 //checks for pin protected item
 bool  CPersonalizeGui::hasPinItems()
-{	
+{
 	for (uint i = 0; i < v_int_settings.size(); i++)
 		if (*v_int_settings[i].p_val == PERSONALIZE_MODE_PIN || *v_int_settings[i].p_val == PERSONALIZE_PROTECT_MODE_PIN_PROTECTED)
 		{

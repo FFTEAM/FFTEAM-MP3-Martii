@@ -1,40 +1,31 @@
 /*
-	Experimental OPKG-Manager - Neutrino-GUI
+	Based up Neutrino-GUI - Tuxbox-Project
+	Copyright (C) 2001 by Steffen Hehn 'McClean'
 
-	Based upon Neutrino-GUI 
-	Copyright (C) 2001 Steffen Hehn 'McClean'
-	and some other guys
-	Homepage: http://dbox.cyberphoria.org/
+	OPKG-Manager Class for Neutrino-GUI
 
-	Implementation: 
+	Implementation:
 	Copyright (C) 2012 T. Graf 'dbt'
-	Homepage: http://www.dbox2-tuning.net/
+	www.dbox2-tuning.net
 
+	Adaptions:
 	Copyright (C) 2013 martii
+	gitorious.org/neutrino-mp/martiis-neutrino-mp
 
-        License: GPL
+	License: GPL
 
-        This library is free software; you can redistribute it and/or
-	modify it under the terms of the GNU Library General Public
+	This program is free software; you can redistribute it and/or
+	modify it under the terms of the GNU General Public
 	License as published by the Free Software Foundation; either
 	version 2 of the License, or (at your option) any later version.
 
-	This library is distributed in the hope that it will be useful,
+	This program is distributed in the hope that it will be useful,
 	but WITHOUT ANY WARRANTY; without even the implied warranty of
 	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-	Library General Public License for more details.
+	General Public License for more details.
 
-	You should have received a copy of the GNU Library General Public
-	License along with this library; if not, write to the
-	Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
-	Boston, MA  02110-1301, USA.
-
-		
-	NOTE for ignorant distributors:
-	It's not allowed to distribute any compiled parts of this code, if you don't accept the terms of GPL.
-	Please read it and understand it right!
-	This means for you: Hold it, if not, leave it! You could face legal action! 
-	Otherwise ask the copyright owners, anything else would be theft!
+	You should have received a copy of the GNU General Public License
+	along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 #ifndef __OPKG_MANAGER__
@@ -51,7 +42,7 @@ class COPKGManager : public CMenuTarget
 {
 	private:
 		int width;
-		
+
 		CFrameBuffer *frameBuffer;
 
 		struct pkg;
@@ -87,10 +78,10 @@ class COPKGManager : public CMenuTarget
 			pkg(std::string &_name, std::string &_desc)
 				: name(_name), desc(_desc), installed(false), upgradable(false) { }
 		};
-	public:	
+	public:
 		COPKGManager();
 		~COPKGManager();
-		
+
 		int exec(CMenuTarget* parent, const std::string & actionKey);
 		static bool hasOpkgSupport();
 };

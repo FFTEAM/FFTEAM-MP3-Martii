@@ -78,6 +78,7 @@ int CSettingsManager::exec(CMenuTarget* parent, const std::string &actionKey)
 			CNeutrinoApp::getInstance()->loadSetup(fileBrowser.getSelectedFile()->Name.c_str());
 			CColorSetupNotifier *colorSetupNotifier = new CColorSetupNotifier;
 			colorSetupNotifier->changeNotify(NONEXISTANT_LOCALE, NULL);
+			CNeutrinoApp::getInstance()->SetupFonts(CNeutrinoFonts::FONTSETUP_ALL);
 			CVFD::getInstance()->setlcdparameter();
 			printf("[neutrino] new settings: %s\n", fileBrowser.getSelectedFile()->Name.c_str());
 			delete colorSetupNotifier;
@@ -107,7 +108,7 @@ int CSettingsManager::exec(CMenuTarget* parent, const std::string &actionKey)
 		{
 			struct statfs s;
 			int ret = ::statfs(fileBrowser.getSelectedFile()->Name.c_str(), &s);
-			if(ret == 0 && s.f_type != 0x72b6L /*jffs2*/ && s.f_type != 0x5941ff53L /*yaffs2*/)
+			if(ret == 0 && s.f_type != 0x72b6L) /*jffs2*/
 			{
 				const char backup_sh[] = "/bin/backup.sh";
 				printf("backup: executing [%s %s]\n",backup_sh, fileBrowser.getSelectedFile()->Name.c_str());
@@ -172,7 +173,6 @@ int CSettingsManager::showMenu()
 	mset->addItem(mf);
 
 	mset->addItem(GenericMenuSeparatorLine);
-
 	mf = new CMenuForwarder(LOCALE_RESET_ALL, true, NULL, resetNotifier, "all", CRCInput::RC_standby);
 	mf->setHint(NEUTRINO_ICON_HINT_FACTORY, LOCALE_MENU_HINT_FACTORY);
 	mset->addItem(mf);

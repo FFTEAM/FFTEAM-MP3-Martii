@@ -75,7 +75,7 @@ int COsdLangSetup::exec(CMenuTarget* parent, const std::string &actionKey)
 	if(parent != NULL)
 		parent->hide();
 
-	if (actionKey != "") {
+	if (!actionKey.empty()) {
 		g_settings.language = actionKey;
 		g_Locale->loadLocale(g_settings.language.c_str());
 		return menu_return::RETURN_EXIT;
@@ -231,7 +231,7 @@ void COsdLangSetup::showPrefMenu(CMenuWidget *prefMenu, CLangSelectNotifier *lan
 		langSelect->addOption("none");
 		std::map<std::string, std::string>::const_iterator it;
 		for(it = iso639rev.begin(); it != iso639rev.end(); ++it)
-			langSelect->addOption(it->first);
+			langSelect->addOption(it->first.c_str());
 
 		prefMenu->addItem(langSelect);
 	}
@@ -247,10 +247,18 @@ void COsdLangSetup::showPrefMenu(CMenuWidget *prefMenu, CLangSelectNotifier *lan
 		std::map<std::string, std::string>::const_iterator it;
 		langSelect->addOption("none");
 		for(it = iso639rev.begin(); it != iso639rev.end(); ++it)
-			langSelect->addOption(it->first);
+			langSelect->addOption(it->first.c_str());
 
 		prefMenu->addItem(langSelect);
 	}
+}
+
+bool COsdLangSetup::changeNotify(const neutrino_locale_t, void *)
+{
+	//apply osd language
+	g_Locale->loadLocale(g_settings.language.c_str());
+
+	return true;
 }
 
 bool CLangSelectNotifier::changeNotify(const neutrino_locale_t, void *)

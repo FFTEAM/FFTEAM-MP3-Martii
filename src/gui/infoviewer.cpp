@@ -36,6 +36,7 @@
 #include <config.h>
 #endif
 #include "infoviewer.h"
+#include "infoviewer_bb.h"
 
 #include <algorithm>
 
@@ -1558,7 +1559,7 @@ void CInfoViewer::showSNR ()
 	uint16_t ssig, ssnr;
 	/* right now, infobar_show_channellogo == 3 is the trigger for signal bars etc.
 	   TODO: decouple this  */
-	if (! fileplay && ( g_settings.infobar_show_channellogo == 3 || g_settings.infobar_show_channellogo == 5 || g_settings.infobar_show_channellogo == 6 )) {
+	if (!fileplay && !IS_WEBTV(channel_id) && ( g_settings.infobar_show_channellogo == 3 || g_settings.infobar_show_channellogo == 5 || g_settings.infobar_show_channellogo == 6 )) {
 		int chanH = g_SignalFont->getHeight();
 		int freqStartY = BoxStartY + 2 * chanH - 3;
 		if ((newfreq && chanready) || SDT_freq_update) {
@@ -1567,7 +1568,7 @@ void CInfoViewer::showSNR ()
 
 			std::string polarisation = "";
 			
-			if (CFEManager::getInstance()->getLiveFE()->getType() == FE_QPSK)
+			if (CFrontend::isSat(CFEManager::getInstance()->getLiveFE()->getCurrentDeliverySystem()))
 				polarisation = transponder::pol(CFEManager::getInstance()->getLiveFE()->getPolarization());
 
 			int frequency = CFEManager::getInstance()->getLiveFE()->getFrequency();

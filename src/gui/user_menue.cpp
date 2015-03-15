@@ -199,6 +199,8 @@ bool CUserMenu::showUserMenu(neutrino_msg_t msg)
 			// FIXME menu_item->setHint("", NONEXISTANT_LOCALE);
 			break;
 		case SNeutrinoSettings::ITEM_MOVIEPLAYER_MB:
+			if (g_settings.recording_type == RECORDING_OFF)
+				break;
 			keyhelper.get(&key,&icon,CRCInput::RC_green);
 			menu_item = new CMenuForwarder(LOCALE_MOVIEBROWSER_HEAD, true, NULL, neutrino, "tsmoviebrowser", key, icon);
 			menu_item->setHint(NEUTRINO_ICON_HINT_MB, LOCALE_MENU_HINT_MB);
@@ -274,46 +276,55 @@ bool CUserMenu::showUserMenu(neutrino_msg_t msg)
 			break;
 		case SNeutrinoSettings::ITEM_TOOLS:
 			keyhelper.get(&key,&icon);
-			menu_item = new CMenuDForwarder(LOCALE_MAINMENU_TOOLS, g_PluginList->hasPlugin(CPlugins::P_TYPE_SCRIPT), NULL, new CPluginList(LOCALE_MAINMENU_TOOLS,CPlugins::P_TYPE_TOOL), "-1", key, icon );
-			menu_item->setHint(NEUTRINO_ICON_HINT_TOOLS, LOCALE_MENU_HINT_TOOLS);
+			menu_item = new CMenuDForwarder(LOCALE_MAINMENU_TOOLS, g_PluginList->hasPlugin(CPlugins::P_TYPE_TOOL), NULL, new CPluginList(LOCALE_MAINMENU_TOOLS,CPlugins::P_TYPE_TOOL), "-1", key, icon );
+			// FIXME menu_item->setHint("", NONEXISTANT_LOCALE);
 			break;
 		case SNeutrinoSettings::ITEM_SCRIPTS:
 			keyhelper.get(&key,&icon);
 			menu_item = new CMenuDForwarder(LOCALE_MAINMENU_SCRIPTS, g_PluginList->hasPlugin(CPlugins::P_TYPE_SCRIPT), NULL, new CPluginList(LOCALE_MAINMENU_SCRIPTS,CPlugins::P_TYPE_SCRIPT), "-1", key, icon );
 			menu_item->setHint(NEUTRINO_ICON_HINT_SCRIPTS, LOCALE_MENU_HINT_SCRIPTS);
 			break;
-		case SNeutrinoSettings::ITEM_PLUGIN:
+		case SNeutrinoSettings::ITEM_LUA:
 			keyhelper.get(&key,&icon);
-			menu_item = new CMenuDForwarder(LOCALE_MAINMENU_PLUGINS, g_PluginList->hasPlugin(CPlugins::P_TYPE_SCRIPT), NULL, new CPluginList(LOCALE_MAINMENU_PLUGINS,CPlugins::P_TYPE_LUA), "-1", key, icon );
-			menu_item->setHint(NEUTRINO_ICON_HINT_PLUGINS, LOCALE_MENU_HINT_LUA);
+			menu_item = new CMenuDForwarder(LOCALE_MAINMENU_LUA, g_PluginList->hasPlugin(CPlugins::P_TYPE_LUA), NULL, new CPluginList(LOCALE_MAINMENU_LUA,CPlugins::P_TYPE_LUA), "-1", key, icon );
+			// FIXME menu_item->setHint("", NONEXISTANT_LOCALE);
 			break;
-#if 0
-		case SNeutrinoSettings::ITEM_PLUGIN:
+		case SNeutrinoSettings::ITEM_PLUGIN_TYPES:
 		{
 			unsigned int number_of_plugins = (unsigned int) g_PluginList->getNumberOfPlugins();
 			if (!number_of_plugins)
 				continue;
-			char id[5];
-			int cnt = 0;
 			for (unsigned int count = 0; count < number_of_plugins; count++)
 			{
-				if ((g_PluginList->getType(count) == CPlugins::P_TYPE_LUA) && !g_PluginList->isHidden(count))
+#if 0
+				bool show = g_PluginList->getType(count) == CPlugins::P_TYPE_TOOL ||
+					g_PluginList->getType(count) == CPlugins::P_TYPE_LUA;
+#endif
+				bool show = false;
+				if (g_settings.personalize[SNeutrinoSettings::P_UMENU_PLUGIN_TYPE_GAMES])
+					show = show || g_PluginList->getType(count) == CPlugins::P_TYPE_GAME;
+				if (g_settings.personalize[SNeutrinoSettings::P_UMENU_PLUGIN_TYPE_TOOLS])
+					show = show || g_PluginList->getType(count) == CPlugins::P_TYPE_TOOL;
+				if (g_settings.personalize[SNeutrinoSettings::P_UMENU_PLUGIN_TYPE_SCRIPTS])
+					show = show || g_PluginList->getType(count) == CPlugins::P_TYPE_SCRIPT;
+				if (g_settings.personalize[SNeutrinoSettings::P_UMENU_PLUGIN_TYPE_LUA])
+					show = show || g_PluginList->getType(count) == CPlugins::P_TYPE_LUA;
+
+				if (show && !g_PluginList->isHidden(count) && (g_PluginList->getIntegration(count) == CPlugins::I_TYPE_DISABLED))
 				{
-					sprintf(id, "%d", count);
 					menu_items++;
 					neutrino_msg_t d_key = g_PluginList->getKey(count);
 					//printf("[neutrino usermenu] plugin %d, set key %d...\n", count, g_PluginList->getKey(count));
 					keyhelper.get(&key,&icon, d_key);
-					menu_item = new CMenuForwarder(g_PluginList->getName(count), true, NULL, &StreamFeaturesChanger, id, key, icon);
+					menu_item = new CMenuForwarder(g_PluginList->getName(count), true, NULL, CPluginsExec::getInstance(), to_string(count).c_str(), key, icon);
 					menu_item->setHint(g_PluginList->getHintIcon(count), g_PluginList->getDescription(count));
+
 					menu->addItem(menu_item, false);
-					cnt++;
 				}
 			}
 			menu_item = NULL;
 			break;
 		}
-#endif
 		case SNeutrinoSettings::ITEM_VTXT:
 			keyhelper.get(&key,&icon, feat_key[g_settings.personalize[SNeutrinoSettings::P_FEAT_KEY_VTXT]].key); //CRCInput::RC_blue
 			menu_item = new CMenuForwarder(LOCALE_USERMENU_ITEM_VTXT, true, NULL, &StreamFeaturesChanger, "teletext", key, icon);
@@ -410,18 +421,10 @@ bool CUserMenu::showUserMenu(neutrino_msg_t msg)
 			int count = 0;
 			for(; count < number_of_plugins; count++) {
 				const char *pname = g_PluginList->getFileName(count);
-				if (pname && (std::string(pname) == *it)) {
-					if (g_PluginList->getType(count) == CPlugins::P_TYPE_LUA) {
-					char id[5];
-					sprintf(id, "%d", count);
+				if (pname && (std::string(pname) == *it) && !g_PluginList->isHidden(count)) {
 					neutrino_msg_t d_key = g_PluginList->getKey(count);
 					keyhelper.get(&key,&icon, d_key);
-					menu_item = new CMenuForwarder(g_PluginList->getName(count), true, NULL, &StreamFeaturesChanger, id, key, icon);
-					}
-					else {
-					keyhelper.get(&key,&icon);
-					menu_item = new CMenuForwarder(g_PluginList->getName(count), true, NULL, this, pname, key, icon);
-					}
+					menu_item = new CMenuForwarder(g_PluginList->getName(count), true, NULL, CPluginsExec::getInstance(), to_string(count).c_str(), key, icon);
 					menu_item->setHint(g_PluginList->getHintIcon(count), g_PluginList->getDescription(count));
 					break;
 				}
@@ -507,7 +510,7 @@ const char *CUserMenu::getUserMenuButtonName(int button, bool &active)
 					active = true;
 				}
 				continue;
-			case SNeutrinoSettings::ITEM_PLUGIN:
+			case SNeutrinoSettings::ITEM_PLUGIN_TYPES:
 				return_title = true;
 				continue;
 			case SNeutrinoSettings::ITEM_CLOCK:
@@ -556,7 +559,7 @@ const char *CUserMenu::getUserMenuButtonName(int button, bool &active)
 	return "";
 }
 
-#if 0
+#if 1
 /**************************************************************************************
 *          changeNotify - features menu recording start / stop                        *
 **************************************************************************************/

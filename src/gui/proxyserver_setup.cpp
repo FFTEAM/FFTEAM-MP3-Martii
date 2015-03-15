@@ -82,28 +82,28 @@ int CProxySetup::showProxySetup()
 	mn->addIntroItems(subtitle);
 
 	CKeyboardInput softUpdate_proxy(LOCALE_FLASHUPDATE_PROXYSERVER, &g_settings.softupdate_proxyserver, 0, NULL, NULL, LOCALE_FLASHUPDATE_PROXYSERVER_HINT1, LOCALE_FLASHUPDATE_PROXYSERVER_HINT2);
-	CMenuForwarder * mf = new CMenuForwarder(LOCALE_FLASHUPDATE_PROXYSERVER, true, NULL, &softUpdate_proxy, NULL, CRCInput::RC_red);
+	CMenuForwarder * mf = new CMenuForwarder(LOCALE_FLASHUPDATE_PROXYSERVER, true, g_settings.softupdate_proxyserver, &softUpdate_proxy, NULL, CRCInput::RC_red);
 	mf->setHint("", LOCALE_MENU_HINT_NET_PROXYSERVER);
 	mn->addItem(mf);
 
 	CKeyboardInput softUpdate_proxyuser(LOCALE_FLASHUPDATE_PROXYUSERNAME, &g_settings.softupdate_proxyusername, 0, NULL, NULL, LOCALE_FLASHUPDATE_PROXYUSERNAME_HINT1, LOCALE_FLASHUPDATE_PROXYUSERNAME_HINT2);
-	mf = new CMenuForwarder(LOCALE_FLASHUPDATE_PROXYUSERNAME, true, NULL, &softUpdate_proxyuser, NULL, CRCInput::RC_green);
+	mf = new CMenuForwarder(LOCALE_FLASHUPDATE_PROXYUSERNAME, true, g_settings.softupdate_proxyusername, &softUpdate_proxyuser, NULL, CRCInput::RC_green);
 	mf->setHint("", LOCALE_MENU_HINT_NET_PROXYUSER);
 	mn->addItem(mf);
 
 	CKeyboardInput softUpdate_proxypass(LOCALE_FLASHUPDATE_PROXYPASSWORD, &g_settings.softupdate_proxypassword, 0, NULL, NULL, LOCALE_FLASHUPDATE_PROXYPASSWORD_HINT1, LOCALE_FLASHUPDATE_PROXYPASSWORD_HINT2);
-	mf = new CMenuForwarder(LOCALE_FLASHUPDATE_PROXYPASSWORD, true, NULL, &softUpdate_proxypass, NULL, CRCInput::RC_yellow);
+	mf = new CMenuForwarder(LOCALE_FLASHUPDATE_PROXYPASSWORD, true, g_settings.softupdate_proxypassword, &softUpdate_proxypass, NULL, CRCInput::RC_yellow);
 	mf->setHint("", LOCALE_MENU_HINT_NET_PROXYPASS);
 	mn->addItem(mf);
 
 	int res = mn->exec(NULL, "");
 	delete mn;
 
-	if (g_settings.softupdate_proxyserver == "")
+	if (g_settings.softupdate_proxyserver.empty())
 		unsetenv("http_proxy");
 	else {
 		std::string proxy = "http://";
-		if (g_settings.softupdate_proxyusername != "")
+		if (!g_settings.softupdate_proxyusername.empty())
 			proxy += g_settings.softupdate_proxyusername + ":" + g_settings.softupdate_proxypassword + "@";
 		proxy += g_settings.softupdate_proxyserver;
 		setenv("http_proxy", proxy.c_str(), 1);

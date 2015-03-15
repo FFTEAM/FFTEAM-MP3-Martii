@@ -22,19 +22,11 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
-#define __STDC_CONSTANT_MACROS
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <sys/poll.h>
 #include <sys/time.h>
 #include <unistd.h>
-
-extern "C" {
-#include <libavutil/opt.h>
-#include <libavformat/avformat.h>
-}
-
-#include <OpenThreads/ScopedLock>
 
 #include <gui/streaminfo2.h>
 
@@ -56,8 +48,6 @@ extern "C" {
 #include <dmx.h>
 #include <zapit/satconfig.h>
 #include <string>
-#include <system/helpers.h>
-#include <system/set_threadname.h>
 
 extern cVideo * videoDecoder;
 extern cAudio * audioDecoder;
@@ -105,9 +95,8 @@ CStreamInfo2::CStreamInfo2 ()
 	rate.min_short_average = 0;
 	box_h = 0;
 	box_h2 = 0;
+	yypos = -1;
 	dmxbuf = NULL;
-	probebuf = NULL;
-	probe_thread = 0;
 }
 
 CStreamInfo2::~CStreamInfo2 ()
@@ -116,223 +105,13 @@ CStreamInfo2::~CStreamInfo2 ()
 	ts_close();
 }
 
-/* based on ffmpeg-2.2.1/libavformat/utils.c:print_fps() */
-static std::string fps_str(double d)
-{
-	uint64_t v = lrintf(d * 100);
-	char buf[64];
-	if (v % 100)
-		snprintf(buf, sizeof(buf), "%3.2f", d);
-	else if (v % (100 * 1000))
-		snprintf(buf, sizeof(buf), "%1.0f", d);
-	else
-		snprintf(buf, sizeof(buf), "%1.0fk", d / 1000);
-
-	return std::string(buf);
-}
-
-/* based on ffmpeg-2.2.1/libavformat/utils.c:dump_stream_format() */
-void CStreamInfo2::analyzeStream(AVFormatContext *avfc, unsigned int idx)
-{
-	std::map<std::string, std::string> _m;
-	streamdata.push_back(_m);
-	std::map<std::string, std::string> &m = streamdata.back();
-
-	AVStream *st = avfc->streams[idx];
-
-	AVDictionaryEntry *lang = av_dict_get(st->metadata, "language", NULL, 0);
-	if (lang)
-		m["language"] = lang->value;
-
-	char buf[256];
-	avcodec_string(buf, sizeof(buf), st->codec, 0);
-	m["codec"] = buf;
-
-	m["pid"] = to_string(st->id);
-
-	if (st->sample_aspect_ratio.num && // default
-		av_cmp_q(st->sample_aspect_ratio, st->codec->sample_aspect_ratio)) {
-		AVRational display_aspect_ratio;
-		av_reduce(&display_aspect_ratio.num, &display_aspect_ratio.den,
-			  st->codec->width * st->sample_aspect_ratio.num,
-			  st->codec->height * st->sample_aspect_ratio.den,
-			  1024 * 1024);
-		snprintf(buf, sizeof(buf), "%d:%d", st->sample_aspect_ratio.num, st->sample_aspect_ratio.den);
-		m["sar"] = buf;
-		snprintf(buf, sizeof(buf), "%d:%d", display_aspect_ratio.num, display_aspect_ratio.den);
-		m["dar"] = buf;
-	}
-
-	if (st->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
-		if (st->avg_frame_rate.den && st->avg_frame_rate.num)
-			m["fps"] = fps_str(av_q2d(st->avg_frame_rate));
-#if FF_API_R_FRAME_RATE
-		if (st->r_frame_rate.den && st->r_frame_rate.num)
-			m["tbf"] = fps_str(av_q2d(st->r_frame_rate));
-#endif
-		if (st->time_base.den && st->time_base.num)
-			m["tbn"] = fps_str(1 / av_q2d(st->time_base));
-		if (st->codec->time_base.den && st->codec->time_base.num)
-			m["tbc"] = fps_str(1 / av_q2d(st->codec->time_base));
-	}
-
-	m["disposition"] = "";
-	if (st->disposition & AV_DISPOSITION_DEFAULT)
-		m["disposition"] += " (default)";
-	if (st->disposition & AV_DISPOSITION_DUB)
-		m["disposition"] += " (dub)";
-	if (st->disposition & AV_DISPOSITION_ORIGINAL)
-		m["disposition"] += " (original)";
-	if (st->disposition & AV_DISPOSITION_COMMENT)
-		m["disposition"] += " (comment)";
-	if (st->disposition & AV_DISPOSITION_LYRICS)
-		m["disposition"] += " (lyrics)";
-	if (st->disposition & AV_DISPOSITION_KARAOKE)
-		m["disposition"] += " (karaoke)";
-	if (st->disposition & AV_DISPOSITION_FORCED)
-		m["disposition"] += " (forced)";
-	if (st->disposition & AV_DISPOSITION_HEARING_IMPAIRED)
-		m["disposition"] += " (hearing impaired)";
-	if (st->disposition & AV_DISPOSITION_VISUAL_IMPAIRED)
-		m["disposition"] += " (visual impaired)";
-	if (st->disposition & AV_DISPOSITION_CLEAN_EFFECTS)
-		m["disposition"] += " (clean effects)";
-	if (!m["disposition"].empty())
-		m["disposition"].erase(0, 1);
-
-	//for (std::map<std::string,std::string>::iterator it = m.begin(); it != m.end(); ++it)
-	//	fprintf(stderr, "%s -> %s\n", it->first.c_str(), it->second.c_str());
-}
-
-void CStreamInfo2::analyzeStreams(AVFormatContext *avfc)
-{
-	// av_dump_format(avfc, 0, "", 0);
-
-	streamdata.clear();
-	for (unsigned int i = 0; i < avfc->nb_streams; i++)
-		analyzeStream(avfc, i);
-}
-
-static cDemux * dmx = NULL;
-
-#define TS_LEN		188
-#define TS_BUF_SIZE	(1024 * 1024 * 8 / TS_LEN * TS_LEN)		
-
-static int read_packet(void *opaque, uint8_t *buf, int buf_size)
-{
-	CStreamInfo2 *me = (CStreamInfo2 *) opaque;
-	return me->readPacket(buf, buf_size);
-}
-
-int CStreamInfo2::readPacket(uint8_t *buf, int buf_size)
-{
-	if (!probebuf)
-		return 0;
-	while (!abort_probing && (probebuf_length == probebuf_off) && (probebuf_off != probebuf_size))
-		usleep(10000);
-
-	if (!abort_probing) {
-		OpenThreads::ScopedLock<OpenThreads::Mutex> lock(probe_mutex);
-		if (probebuf) {
-			int len = std::min(buf_size, (int)(probebuf_length - probebuf_off));
-			memcpy(buf, probebuf + probebuf_off, len);
-			probebuf_off += len;
-			return len;
-		}
-	}
-	return -1;
-}
-
-//#define ENABLE_FFMPEG_LOGGING
-#ifdef ENABLE_FFMPEG_LOGGING
-static void log_callback(void *, int, const char *format, va_list ap)
-{
-	vfprintf(stderr, format, ap);
-}
-#endif
-
-static int interrupt_cb(void *arg)
-{
-	CStreamInfo2 *me = (CStreamInfo2 *) arg;
-	return me->abort_probing;
-}
-
-void CStreamInfo2::probeStreams()
-{
-	if (mp) {
-		AVFormatContext *avfc = mp->getPlayback()->GetAVFormatContext();
-		if (avfc) {
-			analyzeStreams(avfc);
-			mp->getPlayback()->ReleaseAVFormatContext();
-		}
-		probed = true;
-	} else {
-#ifdef ENABLE_FFMPEG_LOGGING
-		av_log_set_callback(log_callback);
-#endif
-		avcodec_register_all();
-		av_register_all();
-
-		AVIOContext *avioc = NULL;
-		int buffer_size = 188 * 256;
-		unsigned char *buffer = (unsigned char *) av_malloc(buffer_size);
-		AVFormatContext *avfc = avformat_alloc_context();
-		if (!avfc) {
-			av_freep(&buffer);
-			goto bye;
-		}
-
-		avfc->interrupt_callback.callback = interrupt_cb;
-		avfc->interrupt_callback.opaque = (void *) this;
-
-		avioc = avio_alloc_context (buffer, buffer_size, 0, this, read_packet, NULL, NULL);
-		if (!avioc) {
-			av_freep(&buffer);
-			avformat_free_context(avfc);
-			goto bye;
-		}
-
-		avfc->pb = avioc;
-		avfc->flags |= AVFMT_FLAG_CUSTOM_IO;
-		avfc->probesize = probebuf_size/2;
-
-		if (!avformat_open_input(&avfc, "", NULL, NULL)) {
-			avformat_find_stream_info(avfc, NULL);
-			analyzeStreams(avfc);
-		}
-
-		avformat_close_input(&avfc);
-		avformat_free_context(avfc);
-		probed = true;
-bye:
-		OpenThreads::ScopedLock<OpenThreads::Mutex> lock(probe_mutex);
-		if(probebuf) {
-			delete [] probebuf;
-			probebuf = NULL;
-		}
-	}
-}
-
-void *CStreamInfo2::probeStreams(void *arg)
-{
-	set_threadname(__func__);
-	CStreamInfo2 *me = (CStreamInfo2 *) arg;
-	me->probeStreams();
-	pthread_exit(NULL);
-}
-
 int CStreamInfo2::exec (CMenuTarget * parent, const std::string &)
 {
 
 	if (parent)
 		parent->hide ();
 
-	mp = &CMoviePlayerGui::getInstance();
-	if (!mp->Playing())
-		mp = NULL;
-
-	frontend = mp ? NULL : CFEManager::getInstance()->getLiveFE();
-
+	frontend = CFEManager::getInstance()->getLiveFE();
 	paint (paint_mode);
 	int res = doSignalStrengthLoop ();
 	hide ();
@@ -352,9 +131,10 @@ int CStreamInfo2::doSignalStrengthLoop ()
 	char tmp_str[150];
 	int delay_counter = 0;
 	const int delay = 15;
-	int sw = 3 * g_Font[font_small]->getRenderWidth(" ") + 8 * g_Font[font_small]->getMaxDigitWidth();
+	int offset = g_Font[font_info]->getRenderWidth(g_Locale->getText (LOCALE_STREAMINFO_BITRATE));
+	int sw = g_Font[font_info]->getRenderWidth ("99999.999");
+	int dheight = g_Font[font_info]->getHeight ();
 	maxb = minb = lastb = tmp_rate = 0;
-	bool repaint_bitrate = true;
 	ts_setup ();
 	frameBuffer->blit();
 	while (1) {
@@ -363,27 +143,17 @@ int CStreamInfo2::doSignalStrengthLoop ()
 		uint64_t timeoutEnd = CRCInput::calcTimeoutEnd_MS(10);
 		g_RCInput->getMsgAbsoluteTimeout (&msg, &data, &timeoutEnd);
 
-		if (!mp) {
-			signal.sig = 100 * (frontend->getSignalStrength() & 0xFFFF) >> 16;
-			signal.snr = 100 * (frontend->getSignalNoiseRatio() & 0xFFFF) >> 16;
-			signal.ber = 100 * (frontend->getBitErrorRate() & 0xFFFF) >> 16; // FIXME?
-		}
+		signal.sig = frontend->getSignalStrength() & 0xFFFF;
+		signal.snr = frontend->getSignalNoiseRatio() & 0xFFFF;
+		signal.ber = frontend->getBitErrorRate();
 
-		bool got_rate = update_rate();
-
-		if (got_rate && (lastb != bit_s)) {
-			if (maxb < bit_s)
-				rate.max_short_average = maxb = bit_s;
-			if ((cnt > 10) && ((minb == 0) || (minb > bit_s)))
-				rate.min_short_average = minb = bit_s;
-		}
-
+		int ret = update_rate ();
 		if (paint_mode == 0) {
 			if (cnt < 12)
 				cnt++;
 			int dx1 = x + 10;
 
-			if(!mp && delay_counter > delay + 1){
+			if(delay_counter > delay + 1){
 				CZapitChannel * channel = CZapit::getInstance()->GetCurrentChannel();
 				if(channel)
 					pmt_version = channel->getPmtVersion();
@@ -391,43 +161,32 @@ int CStreamInfo2::doSignalStrengthLoop ()
 					delay_counter = 0;
 				}
 			}
-			if (got_rate && (rate.short_average || lastb) && (lastb != bit_s)) {
-				if (repaint_bitrate) {
-					snprintf(tmp_str, sizeof(tmp_str), "%s:",g_Locale->getText(LOCALE_STREAMINFO_BITRATE));
-					g_Font[font_small]->RenderString(dx1, average_bitrate_pos, spaceoffset, tmp_str, COL_INFOBAR_TEXT);
-
-					snprintf(tmp_str, sizeof(tmp_str), "(%s)",g_Locale->getText(LOCALE_STREAMINFO_AVERAGE_BITRATE));
-					g_Font[font_small]->RenderString(dx1 + spaceoffset + sw , average_bitrate_pos, box_width - spaceoffset - sw, tmp_str, COL_INFOBAR_TEXT);
-					repaint_bitrate = false;
-				}
-
-				frameBuffer->paintBoxRel (dx1 + spaceoffset, average_bitrate_pos - sheight, sw, sheight, COL_MENUHEAD_PLUS_0);
-				char currate[140];
-				snprintf(currate, sizeof(currate), "%10u", rate.short_average);
-				currate[0] = currate[2];
-				currate[1] = currate[3];
-				currate[2] = ' ';
-				currate[3] = currate[4];
-				currate[4] = currate[5];
-				currate[5] = currate[6];
-				currate[6] = ' ';
-				g_Font[font_small]->RenderString (dx1 + spaceoffset, average_bitrate_pos, sw, currate, COL_INFOBAR_TEXT);
+			if (ret && (lastb != bit_s)) {
 				lastb = bit_s;
-			}
-			if((!mp && pmt_version != current_pmt_version && delay_counter > delay) || probed){
-				probed = false;
-				current_pmt_version = pmt_version;
-				paint_techinfo(techinfo_xpos, techinfo_ypos);
-				repaint_bitrate = true;
-				continue;
-			}
-			if (!mp)
-				showSNR ();
 
+				if (maxb < bit_s)
+					rate.max_short_average = maxb = bit_s;
+				if ((cnt > 10) && ((minb == 0) || (minb > bit_s)))
+					rate.min_short_average = minb = bit_s;
+
+				char currate[150];
+				sprintf(tmp_str, "%s:",g_Locale->getText(LOCALE_STREAMINFO_BITRATE));
+				g_Font[font_info]->RenderString(dx1 , average_bitrate_pos, offset+10, tmp_str, COL_INFOBAR_TEXT);
+				sprintf(currate, "%5llu.%02llu", rate.short_average / 1000ULL, rate.short_average % 1000ULL);
+				frameBuffer->paintBoxRel (dx1 + average_bitrate_offset , average_bitrate_pos -dheight, sw, dheight, COL_MENUHEAD_PLUS_0);
+				g_Font[font_info]->RenderString (dx1 + average_bitrate_offset , average_bitrate_pos, sw - 10, currate, COL_INFOBAR_TEXT);
+				sprintf(tmp_str, "(%s)",g_Locale->getText(LOCALE_STREAMINFO_AVERAGE_BITRATE));
+				g_Font[font_info]->RenderString (dx1 + average_bitrate_offset + sw , average_bitrate_pos, sw *2, tmp_str, COL_INFOBAR_TEXT);
+
+			}
+			showSNR ();
+			if(pmt_version != current_pmt_version && delay_counter > delay){
+				current_pmt_version = pmt_version;
+				paint_techinfo (x + 10, y+ hheight +5);
+			}
 			delay_counter++;
 		}
 		rate.short_average = abit_s;
-
 		if (signal.max_ber < signal.ber)
 			signal.max_ber = signal.ber;
 
@@ -446,19 +205,13 @@ int CStreamInfo2::doSignalStrengthLoop ()
 		if ((signal.min_snr == 0) || (signal.min_snr > signal.snr))
 			signal.min_snr = signal.snr;
 
-		if (got_rate) {
-			paint_signal_fe(rate, signal);
-			signal.old_sig = signal.sig;
-			signal.old_snr = signal.snr;
-			signal.old_ber = signal.ber;
-		}
+		paint_signal_fe(rate, signal);
 
 		// switch paint mode
 		if (msg == CRCInput::RC_red || msg == CRCInput::RC_blue || msg == CRCInput::RC_green || msg == CRCInput::RC_yellow) {
 			hide ();
 			paint_mode = !paint_mode;
 			paint (paint_mode);
-			repaint_bitrate = true;
 			continue;
 		}
 		else if(msg == CRCInput::RC_setup || msg == CRCInput::RC_home) {
@@ -499,12 +252,12 @@ void CStreamInfo2::hide ()
 
 void CStreamInfo2::paint_signal_fe_box(int _x, int _y, int w, int h)
 {
-	std::string tname(g_Locale->getText(LOCALE_STREAMINFO_SIGNAL));
-	tname += ": ";
-	if (mp)
-		tname += g_Locale->getText(LOCALE_WEBTV_HEAD);
-	else
-		tname += to_string(1 + frontend->getNumber()) + ": " + frontend->getInfo()->name;
+	int y1;
+	int xd = w/4;
+
+	int tuner = 1 + frontend->getNumber();
+	char tname[255];
+	snprintf(tname, sizeof(tname), "%s: %d: %s", g_Locale->getText(LOCALE_STREAMINFO_SIGNAL), tuner, frontend->getName());
 
 	g_Font[font_small]->RenderString(_x, _y+iheight+15, width-_x-10, tname /*tuner_name.c_str()*/, COL_INFOBAR_TEXT);
 
@@ -514,59 +267,55 @@ void CStreamInfo2::paint_signal_fe_box(int _x, int _y, int w, int h)
 	sigBox_h = h-iheight*3;
 	frameBuffer->paintBoxRel(sigBox_x,sigBox_y,sigBox_w+2,sigBox_h, COL_BLACK);
 	sig_text_y = sigBox_y + sigBox_h;
-
-	int y1 = sig_text_y + sheight+4;
+	y1 = sig_text_y + sheight+4;
 	int fw = g_Font[font_small]->getWidth();
+
+
+	frameBuffer->paintBoxRel(_x+xd*0,y1- 12,16,2, COL_RED); //red
+	g_Font[font_small]->RenderString(_x+20+xd*0, y1, fw*4, "BER", COL_INFOBAR_TEXT);
+
+	frameBuffer->paintBoxRel(_x+xd*1,y1- 12,16,2,COL_BLUE); //blue
+	g_Font[font_small]->RenderString(_x+20+xd*1, y1, fw*4, "SNR", COL_INFOBAR_TEXT);
+
+	frameBuffer->paintBoxRel(_x+8+xd*2,y1- 12,16,2, COL_GREEN); //green
+	g_Font[font_small]->RenderString(_x+28+xd*2, y1, fw*4, "SIG", COL_INFOBAR_TEXT);
+
+	frameBuffer->paintBoxRel(_x+xd*3,y1- 12,16,2,COL_YELLOW); // near yellow
+	g_Font[font_small]->RenderString(_x+20+xd*3, y1, fw*5, "Bitrate", COL_INFOBAR_TEXT);
+
+	sig_text_ber_x =  _x +      xd * 0;
+	sig_text_snr_x =  _x +  5 + xd * 1;
+	sig_text_sig_x =  _x +  5 + xd * 2;
+	sig_text_rate_x = _x + 10 + xd * 3;
 
 	int maxmin_x; // x-position of min and max
 	int fontW = g_Font[font_small]->getWidth();
-	int xd;
-	int col = 0;
 
-	if (paint_mode == 0) {
-		maxmin_x = _x;
-		xd = (w - 5 * fontW)/4;
-		_x += 5 * fontW;
-	} else {
-		maxmin_x = _x + 40;
-		xd = (w - 5 * fontW + 40)/5;
-		col = 1;
-	}
+	if (paint_mode == 0)
+		maxmin_x = sig_text_ber_x-(fontW*4);
+	else
+		maxmin_x = _x + 40 + xd * 3 + (fontW*4);
 
-	g_Font[font_small]->RenderString(maxmin_x, y1 + (sheight + 1) +5, fw*3, "max", COL_INFOBAR_TEXT);
+	g_Font[font_small]->RenderString(maxmin_x, y1 + sheight + 5, fw*3, "max", COL_INFOBAR_TEXT);
 	g_Font[font_small]->RenderString(maxmin_x, y1 + (sheight * 2) +5, fw*3, "now", COL_INFOBAR_TEXT);
 	g_Font[font_small]->RenderString(maxmin_x, y1 + (sheight * 3) +5, fw*3, "min", COL_INFOBAR_TEXT);
 
-	if (!mp) {
-		g_Font[font_small]->RenderString(_x+xd*col, y1, fw*8, "BER [%]", COL_RED);
-		sig_text_ber_x =  _x +  5 + xd * col;
-		col++;
 
-		g_Font[font_small]->RenderString(_x+xd*col, y1, fw*8, "SNR [%]", COL_WHITE);
-		sig_text_snr_x =  _x +  5 + xd * col;
-		col++;
-
-		g_Font[font_small]->RenderString(_x+xd*col, y1, fw*8, "SIG [%]", COL_GREEN);
-		sig_text_sig_x =  _x +  5 + xd * col;
-		col++;
-	}
-
-	g_Font[font_small]->RenderString(_x+xd*col, y1, fw*10, "BR [kbps]", COL_YELLOW);
-	sig_text_rate_x = _x + 5 + xd * col;
-
+	s_old.ber = s_old.max_ber = s_old.min_ber = -1;
+	s_old.sig = s_old.max_sig = s_old.min_sig = -1;
+	s_old.snr = s_old.max_snr = s_old.min_snr = -1;
+	br_old.short_average = br_old.max_short_average = br_old.min_short_average = -1000;
 	sigBox_pos = 0;
-
-	signal.old_sig = 1;
-	signal.old_snr = 1;
-	signal.old_ber = 1;
 }
 
 void CStreamInfo2::paint_signal_fe(struct bitrate br, struct feSignal s)
 {
 	int   x_now = sigBox_pos;
 	int   yt = sig_text_y + (sheight *2)+4;
-	int   yd;
-	static int old_x=0,old_y=0;
+	int   yd[4];
+	const fb_pixel_t colors[4] = { COL_YELLOW, COL_RED, COL_GREEN, COL_BLUE };
+	static int old_x = 0, old_y[4] = { 0, 0, 0, 0 };
+	int i;
 	sigBox_pos++;
 	sigBox_pos %= sigBox_w;
 
@@ -575,48 +324,52 @@ void CStreamInfo2::paint_signal_fe(struct bitrate br, struct feSignal s)
 
 	long value = (long) (bit_s / 1000ULL);
 
-	SignalRenderStr(value,     sig_text_rate_x, yt + sheight);
-	SignalRenderStr(br.max_short_average/ 1000ULL, sig_text_rate_x, yt);
-	SignalRenderStr(br.min_short_average/ 1000ULL, sig_text_rate_x, yt + (sheight * 2));
-	if (mp || g_RemoteControl->current_PIDs.PIDs.vpid > 0 ){
-		yd = y_signal_fe (value, scaling, sigBox_h);// Video + Audio
+	if ( g_RemoteControl->current_PIDs.PIDs.vpid > 0 ){
+		yd[0] = y_signal_fe (value, scaling, sigBox_h);// Video + Audio
 	} else {
-		yd = y_signal_fe (value, 512, sigBox_h); // Audio only
+		yd[0] = y_signal_fe (value, 512, sigBox_h); // Audio only
 	}
-	if ((old_x == 0 && old_y == 0) || sigBox_pos == 1) {
-		old_x = sigBox_x + x_now;
-		old_y = sigBox_y+sigBox_h-yd;
-	} else {
-		frameBuffer->paintLine(old_x, old_y, sigBox_x+x_now, sigBox_y+sigBox_h-yd, COL_YELLOW);
-		old_x = sigBox_x+x_now;
-		old_y = sigBox_y+sigBox_h-yd;
+	yd[1] = y_signal_fe(s.ber, 4000, sigBox_h);
+	yd[2] = y_signal_fe(s.sig, 65000, sigBox_h);
+	yd[3] = y_signal_fe(s.snr, 65000, sigBox_h);
+
+	for (i = 0; i < 4; i++)
+	{
+		if (!((old_x == 0 && old_y[i] == 0) || sigBox_pos == 1))
+			frameBuffer->paintLine(old_x, old_y[i],
+					       sigBox_x + x_now, sigBox_y + sigBox_h - yd[i], colors[i]);
+		old_y[i] = sigBox_y + sigBox_h - yd[i];
 	}
+	old_x = sigBox_x + x_now;
 
-	if (!mp) {
-		if (s.ber != s.old_ber) {
-			SignalRenderStr(s.ber,     sig_text_ber_x, yt + sheight);
-			SignalRenderStr(s.max_ber, sig_text_ber_x, yt);
-			SignalRenderStr(s.min_ber, sig_text_ber_x, yt + (sheight * 2));
-		}
-		yd = y_signal_fe (s.ber, 100, sigBox_h);
-		frameBuffer->paintPixel(sigBox_x+x_now, sigBox_y+sigBox_h-yd, COL_RED);
+	if (s.max_ber != s_old.max_ber)
+		SignalRenderStr(s_old.max_ber, s.max_ber, sig_text_ber_x, yt);
+	if (s.ber != s_old.ber)
+		SignalRenderStr(s_old.ber,     s.ber,     sig_text_ber_x, yt + sheight);
+	if (s.min_ber != s_old.min_ber)
+		SignalRenderStr(s_old.min_ber, s.min_ber, sig_text_ber_x, yt + (sheight * 2));
 
-		if (s.sig != s.old_sig) {
-			SignalRenderStr(s.sig,     sig_text_sig_x, yt + sheight);
-			SignalRenderStr(s.max_sig, sig_text_sig_x, yt);
-			SignalRenderStr(s.min_sig, sig_text_sig_x, yt + (sheight * 2));
-		}
-		yd = y_signal_fe (s.sig, 100, sigBox_h);
-		frameBuffer->paintPixel(sigBox_x+x_now, sigBox_y+sigBox_h-yd, COL_GREEN);
+	if (s.max_snr != s_old.max_snr)
+		SignalRenderStr(s_old.max_snr, s.max_snr, sig_text_snr_x, yt);
+	if (s.snr != s_old.snr)
+		SignalRenderStr(s_old.snr,     s.snr,     sig_text_snr_x, yt + sheight);
+	if (s.min_snr != s_old.min_snr)
+		SignalRenderStr(s_old.min_snr, s.min_snr, sig_text_snr_x, yt + (sheight * 2));
 
-		if (s.snr != s.old_snr) {
-			SignalRenderStr(s.snr,     sig_text_snr_x, yt + sheight);
-			SignalRenderStr(s.max_snr, sig_text_snr_x, yt);
-			SignalRenderStr(s.min_snr, sig_text_snr_x, yt + (sheight * 2));
-		}
-		yd = y_signal_fe (s.snr, 100, sigBox_h);
-		frameBuffer->paintPixel(sigBox_x+x_now, sigBox_y+sigBox_h-yd, COL_WHITE);
-	}
+	if (s.max_sig != s_old.max_sig)
+		SignalRenderStr(s_old.max_sig, s.max_sig, sig_text_sig_x, yt);
+	if (s.sig != s_old.sig)
+		SignalRenderStr(s_old.sig,     s.sig,     sig_text_sig_x, yt + sheight);
+	if (s.min_sig != s_old.min_sig)
+		SignalRenderStr(s_old.min_sig, s.min_sig, sig_text_sig_x, yt + (sheight * 2));
+
+	if (br.max_short_average / 1000 != br_old.max_short_average / 1000)
+		SignalRenderStr(br_old.max_short_average / 1000, br.max_short_average / 1000ULL, sig_text_rate_x, yt);
+	SignalRenderStr(222222,                          value,                          sig_text_rate_x, yt + sheight);
+	if (br.min_short_average / 1000 != br_old.min_short_average / 1000)
+		SignalRenderStr(br_old.min_short_average / 1000, br.min_short_average / 1000ULL, sig_text_rate_x, yt + (sheight * 2));
+	memcpy(&s_old, &s, sizeof(s));
+	memcpy(&br_old, &br, sizeof(br));
 }
 
 // -- calc y from max_range and max_y
@@ -641,11 +394,11 @@ int CStreamInfo2::y_signal_fe (unsigned long value, unsigned long max_value, int
 	return (int) l;
 }
 
-void CStreamInfo2::SignalRenderStr(unsigned int value, int _x, int _y)
+void CStreamInfo2::SignalRenderStr(unsigned int oldvalue, unsigned int value, int _x, int _y)
 {
 	char str[30];
-	int fw = g_Font[font_small]->getWidth();
-	fw *=(fw>17)?5:6;
+	sprintf(str,"%6u", oldvalue);
+	int fw = g_Font[font_small]->getRenderWidth(str);
 	frameBuffer->paintBoxRel(_x, _y - sheight + 5, fw, sheight -1, COL_MENUHEAD_PLUS_0);
 	sprintf(str,"%6u",value);
 	g_Font[font_small]->RenderString(_x, _y + 5, fw, str, COL_INFOBAR_TEXT);
@@ -674,17 +427,11 @@ void CStreamInfo2::paint (int /*mode*/)
 
 		if (pip == NULL)
 			pip = new CComponentsPIP(width-width/3-10, y+10, 33);
-		pip->paint();
-
-		techinfo_xpos = xpos;
-		techinfo_ypos = ypos;
+		pip->paint(CC_SAVE_SCREEN_NO);
 
 		paint_techinfo (xpos, ypos);
 		paint_signal_fe_box (width - width/3 - 10, (y + 10 + height/3 + hheight), width/3, height/3 + hheight);
 	} else {
-		delete signalbox;
-		signalbox = NULL;
-
 		// --  small PIG, small signal graph
 		// -- paint backround, title pig, etc.
 		frameBuffer->paintBoxRel (0, 0, max_width, max_height, COL_MENUHEAD_PLUS_0);
@@ -694,20 +441,14 @@ void CStreamInfo2::paint (int /*mode*/)
 	}
 }
 
-struct row {
-	std::string key;
-	std::string val;
-	int col;
-};
-
 void CStreamInfo2::paint_techinfo(int xpos, int ypos)
 {
-	Font *f = g_Font[font_small];
 	char buf[100];
 	int xres = 0, yres = 0, aspectRatio = 0, framerate = -1;
 	// paint labels
+	int spaceoffset = 0,i = 0;
 	int ypos1 = ypos;
-	box_width = width*2/3 - 10 - xpos;
+	int box_width = width*2/3 - 10;
 
 	yypos = ypos;
 	if(box_h > 0)
@@ -717,217 +458,261 @@ void CStreamInfo2::paint_techinfo(int xpos, int ypos)
 	if(!channel)
 		return;
 
-	ypos += sheight;
+	transponder t;
+	//CServiceManager::getInstance()->GetTransponder(channel->getTransponderId(), t);
+	t = *frontend->getParameters();
 
-	std::vector<row> v;
-	row r;
+	int array[6]={g_Font[font_info]->getRenderWidth(g_Locale->getText (LOCALE_STREAMINFO_RESOLUTION)),
+		      g_Font[font_info]->getRenderWidth(g_Locale->getText (LOCALE_STREAMINFO_ARATIO)),
+		      g_Font[font_info]->getRenderWidth(g_Locale->getText (LOCALE_STREAMINFO_BITRATE)),
+		      g_Font[font_info]->getRenderWidth(g_Locale->getText (LOCALE_STREAMINFO_FRAMERATE)),
+		      g_Font[font_info]->getRenderWidth(g_Locale->getText (LOCALE_STREAMINFO_AUDIOTYPE)),
+		      g_Font[font_info]->getRenderWidth(g_Locale->getText (LOCALE_SCANTS_FREQDATA))};
 
-	if((mp || channel->getVideoPid()) && !(videoDecoder->getBlank())){
+	for(i=0 ; i<6; i++) {
+		if(spaceoffset < array[i])
+			spaceoffset = array[i];
+	}
+	spaceoffset += g_Font[font_info]->getRenderWidth(" ");
+
+	average_bitrate_offset = spaceoffset;
+
+#if BOXMODEL_UFS910
+	if(channel->getVideoPid() || IS_WEBTV(channel->getChannelID())) {
+#else
+	if((channel->getVideoPid() || IS_WEBTV(channel->getChannelID())) && !(videoDecoder->getBlank())) {
+#endif
 		 videoDecoder->getPictureInfo(xres, yres, framerate);
 		 if (yres == 1088)
 		 	yres = 1080;
 		 aspectRatio = videoDecoder->getAspectRatio();
 	}
 
-	// video resolution
-	r.key = g_Locale->getText (LOCALE_STREAMINFO_RESOLUTION);
-	r.key += ": ";
-	snprintf (buf, sizeof(buf), "%dx%d", xres, yres);
-	r.val = buf;
-	r.col = COL_INFOBAR_TEXT;
-	v.push_back(r);
+	//Video RESOLUTION
+	ypos += iheight;
+	sprintf (buf, "%s:",g_Locale->getText (LOCALE_STREAMINFO_RESOLUTION));
+	g_Font[font_info]->RenderString (xpos, ypos, box_width, buf, COL_INFOBAR_TEXT);
+	sprintf (buf, "%dx%d", xres, yres);
+	g_Font[font_info]->RenderString (xpos+spaceoffset, ypos, box_width, buf, COL_INFOBAR_TEXT);
 
-	// aspect ratio
-	r.key = g_Locale->getText (LOCALE_STREAMINFO_ARATIO);
-	r.key += ": ";
-	if (aspectRatio < 0 || aspectRatio > 4)
-		r.val = g_Locale->getText (LOCALE_STREAMINFO_ARATIO_UNKNOWN);
-	else {
-		const char *arr[] = { "N/A", "4:3", "14:9", "16:9", "20:9" };
-		r.val = arr[aspectRatio];
+	//audio rate
+	ypos += iheight;
+	sprintf (buf, "%s:",g_Locale->getText (LOCALE_STREAMINFO_ARATIO));
+	g_Font[font_info]->RenderString (xpos, ypos, box_width, buf, COL_INFOBAR_TEXT);
+	switch (aspectRatio) {
+		case 0:
+			sprintf (buf, "N/A");
+			break;
+		case 1:
+			sprintf (buf, "4:3");
+			break;
+		case 2:
+			sprintf (buf, "14:9");
+			break;
+		case 3:
+			sprintf (buf, "16:9");
+			break;
+		case 4:
+			sprintf (buf, "20:9");
+			break;
+		default:
+			strncpy (buf, g_Locale->getText (LOCALE_STREAMINFO_ARATIO_UNKNOWN), sizeof (buf)-1);
 	}
-	r.col = COL_INFOBAR_TEXT;
-	v.push_back(r);
+	g_Font[font_info]->RenderString (xpos+spaceoffset, ypos, box_width, buf, COL_INFOBAR_TEXT);
 
-	// video framerate
-	r.key = g_Locale->getText (LOCALE_STREAMINFO_FRAMERATE);
-	r.key += ": ";
-	if (framerate < 0 || framerate > 7)
-		r.val = g_Locale->getText (LOCALE_STREAMINFO_FRAMERATE_UNKNOWN);
-	else {
-		const char *arr[] = { "23.976fps", "24fps", "25fps", "29,976fps", "30fps", "50fps", "50,94fps", "60fps" };
-		r.val = arr[framerate];
+	//Video FRAMERATE
+	ypos += iheight;
+	sprintf (buf, "%s:", g_Locale->getText (LOCALE_STREAMINFO_FRAMERATE));
+	g_Font[font_info]->RenderString (xpos, ypos, box_width, buf, COL_INFOBAR_TEXT);
+	switch (framerate) {
+		case 0:
+			snprintf (buf,sizeof(buf), "23.976fps");
+			break;
+		case 1:
+			snprintf (buf,sizeof(buf), "24fps");
+			break;
+		case 2:
+			snprintf (buf,sizeof(buf), "25fps");
+			break;
+		case 3:
+			snprintf (buf,sizeof(buf), "29,976fps");
+			break;
+		case 4:
+			snprintf (buf,sizeof(buf), "30fps");
+			break;
+		case 5:
+			snprintf (buf,sizeof(buf), "50fps");
+			break;
+		case 6:
+			snprintf (buf,sizeof(buf), "50,94fps");
+			break;
+		case 7:
+			snprintf (buf,sizeof(buf), "60fps");
+			break;
+		default:
+			strncpy (buf, g_Locale->getText (LOCALE_STREAMINFO_FRAMERATE_UNKNOWN), sizeof (buf)-1);
+			break;
 	}
-	r.col = COL_INFOBAR_TEXT;
-	v.push_back(r);
-
+	g_Font[font_info]->RenderString (xpos+spaceoffset, ypos, box_width, buf, COL_INFOBAR_TEXT);
 	// place for average bitrate
-	average_bitrate_pos = ypos + sheight * v.size();
-	r.key = r.val = "";
-	v.push_back(r);
+	average_bitrate_pos = ypos += iheight;
+	//AUDIOTYPE
+	ypos += iheight;
+	int type, layer, freq, mode, lbitrate;
+	audioDecoder->getAudioInfo(type, layer, freq, lbitrate, mode);
 
-	// audio
-	r.key = g_Locale->getText (LOCALE_STREAMINFO_AUDIOTYPE);
-	r.key += ": ";
-	r.val = mp ? mp->getAPIDDesc(mp->getAPID()).c_str() : g_RemoteControl->current_PIDs.APIDs[g_RemoteControl->current_PIDs.PIDs.selected_apid].desc;
-	r.col = COL_INFOBAR_TEXT;
-	v.push_back(r);
+	sprintf (buf, "%s:", g_Locale->getText (LOCALE_STREAMINFO_AUDIOTYPE));
+	g_Font[font_info]->RenderString (xpos, ypos, box_width, buf, COL_INFOBAR_TEXT);
 
-	if (mp) {
-		if (CNeutrinoApp::getInstance()->getMode() == NeutrinoMessages::mode_webtv) {
-			// url
-			r.key = g_Locale->getText (LOCALE_STREAMINFO_URL);
-			r.val = channel->getUrl();
-		} else {
-			// file
-			r.key = g_Locale->getText (LOCALE_MOVIEBROWSER_INFO_FILE);
-			r.val = mp->GetFile();
-		}
-		r.key += ": ";
-		r.col = COL_INFOBAR_TEXT;
-		v.push_back(r);
-
-		scaling = 8000;
+	if(type == AUDIO_FMT_MPEG) {
+		const int max_mode = 4;
+		const char *mpegmodes[max_mode] = { "stereo", "joint_st", "dual_ch", "single_ch" };
+		sprintf (buf, "MPEG %s (%d)", (mode > max_mode) ?"unk":mpegmodes[mode], freq);
+	} else if (type == AUDIO_FMT_DOLBY_DIGITAL || type == AUDIO_FMT_DD_PLUS) {
+		const int max_mode = 8;
+		const char *ddmodes[max_mode] = { "CH1/CH2", "C", "L/R", "L/C/R", "L/R/S", "L/C/R/S", "L/R/SL/SR", "L/C/R/SL/SR" };
+		sprintf (buf, "%s %s (%d)",
+			 (type == AUDIO_FMT_DOLBY_DIGITAL) ? "DD" : "DD+",
+			 (mode > max_mode) ?"unk": ddmodes[mode],
+			 freq);
+	} else if (type == AUDIO_FMT_AAC || type == AUDIO_FMT_AAC_PLUS) {
+		const int max_mode = 10;
+		const char *aacmodes[max_mode] = {
+			"N/S",
+			"Mono",
+			"L/R",
+			"L/C/R",
+			"L/C/R/SR/SL",
+			"L/C/R/SR/SL/S",
+			"L/R/RL/RR",
+			"L/C/R/S",
+			"L/R/SL/SR",
+			"Dual-Mono"
+		};
+		sprintf (buf, "%s %s (%d)",
+			 (type == AUDIO_FMT_AAC) ? "AAC" : "AAC+",
+			 (mode > max_mode) ?"unk":aacmodes[mode], freq);
 	} else {
-		// satellite
-		transponder t;
-		CServiceManager::getInstance()->GetTransponder(channel->getTransponderId(), t);
+		sprintf (buf, "%s (%d)", g_Locale->getText(LOCALE_STREAMINFO_AUDIOTYPE_UNKNOWN), freq);
+	}
+	g_Font[font_info]->RenderString (xpos+spaceoffset, ypos, box_width, buf, COL_INFOBAR_TEXT);
 
-		if(t.deltype == FE_QPSK)
-			r.key = g_Locale->getText (LOCALE_SATSETUP_SATELLITE);
-		else if(t.deltype == FE_QAM)
-			r.key = g_Locale->getText (LOCALE_CHANNELLIST_PROVS);
-		else
-			r.key = g_Locale->getText (LOCALE_TERRESTRIALSETUP_AREA);
+	//satellite
+	ypos += iheight;
+	if (CFrontend::isSat(t.feparams.delsys))
+		sprintf (buf, "%s:",g_Locale->getText (LOCALE_SATSETUP_SATELLITE));//swiped locale
+	else if (CFrontend::isCable(t.feparams.delsys))
+		sprintf (buf, "%s:",g_Locale->getText (LOCALE_CHANNELLIST_PROVS));
+	else if (CFrontend::isTerr(t.feparams.delsys))
+		snprintf (buf, sizeof(buf), "%s:",g_Locale->getText (LOCALE_TERRESTRIALSETUP_AREA));
 
-		r.key += ": ";
-		r.val = CServiceManager::getInstance()->GetSatelliteName(channel->getSatellitePosition()).c_str();
-		r.col = COL_INFOBAR_TEXT;
-		v.push_back(r);
+	g_Font[font_info]->RenderString(xpos, ypos, box_width, buf, COL_INFOBAR_TEXT);
 
-		// channel
-		r.key = g_Locale->getText (LOCALE_TIMERLIST_CHANNEL);
-		r.key += ": ";
-		r.val = channel->getName().c_str();
-		r.col = COL_INFOBAR_TEXT;
-		v.push_back(r);
+	sprintf (buf, "%s", IS_WEBTV(channel->getChannelID()) ? g_Locale->getText(LOCALE_WEBTV_HEAD) :
+		CServiceManager::getInstance()->GetSatelliteName(channel->getSatellitePosition()).c_str());
+	g_Font[font_info]->RenderString (xpos+spaceoffset, ypos, box_width, buf, COL_INFOBAR_TEXT);
 
-		// ts frequency
-		scaling = 27000;
-		scaling = (t.deltype == FE_QPSK && t.feparams.dvb_feparams.u.qpsk.fec_inner < FEC_S2_QPSK_1_2) ? 15000 : 27000;
-		r.key = g_Locale->getText (LOCALE_SCANTS_FREQDATA);
-		r.val = t.description();
-		r.col = COL_INFOBAR_TEXT;
-		v.push_back(r);
+	//channel
+	ypos += iheight;
+	sprintf (buf, "%s:",g_Locale->getText (LOCALE_TIMERLIST_CHANNEL));//swiped locale
+	g_Font[font_info]->RenderString(xpos, ypos, box_width, buf , COL_INFOBAR_TEXT);
+	sprintf(buf, "%s", channel->getName().c_str());
+	g_Font[font_info]->RenderString (xpos+spaceoffset, ypos, box_width, buf, COL_INFOBAR_TEXT);
+
+	//tsfrequenz
+	ypos += iheight;
+
+	scaling = 27000;
+	if (CFrontend::isSat(t.feparams.delsys) && t.feparams.delsys == DVB_S)
+		scaling = 15000;
+
+	sprintf (buf, "%s",g_Locale->getText (LOCALE_SCANTS_FREQDATA));
+	g_Font[font_info]->RenderString(xpos, ypos, box_width, buf , COL_INFOBAR_TEXT);
+	g_Font[font_info]->RenderString(xpos+spaceoffset, ypos, box_width, t.description().c_str(), COL_INFOBAR_TEXT);
 	
-		// onid
-		r.key = "ONid: ";
-		int i = channel->getOriginalNetworkId();
-		snprintf(buf, sizeof(buf), "0x%04X (%i)", i, i);
-		r.val = buf;
-		r.col = COL_INFOBAR_TEXT;
-		v.push_back(r);
+	// paint labels
+	int fontW = g_Font[font_small]->getWidth();
+	spaceoffset = 7 * fontW;
+	//onid
+	ypos+= sheight;
+	sprintf(buf, "0x%04X (%i)", channel->getOriginalNetworkId(), channel->getOriginalNetworkId());
+	g_Font[font_small]->RenderString(xpos, ypos, box_width, "ONid:" , COL_INFOBAR_TEXT);
+	g_Font[font_small]->RenderString(xpos+spaceoffset, ypos, box_width, buf, COL_INFOBAR_TEXT);
 
-		// sid
-		r.key = "Sid: ";
-		i = channel->getServiceId();
-		snprintf(buf, sizeof(buf), "0x%04X (%i)", i, i);
-		r.val = buf;
-		r.col = COL_INFOBAR_TEXT;
-		v.push_back(r);
+	//sid
+	ypos+= sheight;
+	sprintf(buf, "0x%04X (%i)", channel->getServiceId(), channel->getServiceId());
+	g_Font[font_small]->RenderString(xpos, ypos, box_width, "Sid:" , COL_INFOBAR_TEXT);
+	g_Font[font_small]->RenderString(xpos+spaceoffset, ypos, box_width, buf, COL_INFOBAR_TEXT);
 
-		// tsid
-		r.key = "TSid: ";
-		i = channel->getTransportStreamId();
-		snprintf(buf, sizeof(buf), "0x%04X (%i)", i, i);
-		r.val = buf;
-		r.col = COL_INFOBAR_TEXT;
-		v.push_back(r);
+	//tsid
+	ypos+= sheight;
+	sprintf(buf, "0x%04X (%i)", channel->getTransportStreamId(), channel->getTransportStreamId());
+	g_Font[font_small]->RenderString(xpos, ypos, box_width, "TSid:" , COL_INFOBAR_TEXT);
+	g_Font[font_small]->RenderString(xpos+spaceoffset, ypos, box_width, buf, COL_INFOBAR_TEXT);
 
-		// pmtpid
-		r.key = "PMTpid: ";
-		i = channel->getPmtPid();
-		pmt_version = channel->getPmtVersion();
-		snprintf(buf, sizeof(buf), "0x%04X (%i) [0x%02X]", i, i, pmt_version);
-		r.val = buf;
-		r.col = COL_INFOBAR_TEXT;
-		v.push_back(r);
+	//pmtpid
+	ypos+= sheight;
+	pmt_version = channel->getPmtVersion();
+	sprintf(buf, "0x%04X (%i) [0x%02X]", channel->getPmtPid(), channel->getPmtPid(), pmt_version);
+	g_Font[font_small]->RenderString(xpos, ypos, box_width, "PMTpid:", COL_INFOBAR_TEXT);
+	g_Font[font_small]->RenderString(xpos+spaceoffset, ypos, box_width, buf, COL_INFOBAR_TEXT);
 
-		// video pid
-		if ( g_RemoteControl->current_PIDs.PIDs.vpid){
-			r.key = "Vpid: ";
-			i = g_RemoteControl->current_PIDs.PIDs.vpid;
-			snprintf(buf, sizeof(buf), "0x%04X (%i)", i, i);
-			r.val = buf;
-			r.col = COL_INFOBAR_TEXT;
-			v.push_back(r);
-		}
+	//vpid
+	ypos+= sheight;
+	if ( g_RemoteControl->current_PIDs.PIDs.vpid > 0 ){
+		sprintf(buf, "0x%04X (%i)", g_RemoteControl->current_PIDs.PIDs.vpid, g_RemoteControl->current_PIDs.PIDs.vpid );
+	} else {
+		sprintf(buf, "%s", g_Locale->getText(LOCALE_STREAMINFO_NOT_AVAILABLE));
+	}
+	g_Font[font_small]->RenderString(xpos, ypos, box_width, "Vpid:" , COL_INFOBAR_TEXT);
+	g_Font[font_small]->RenderString(xpos+spaceoffset, ypos, box_width, buf, COL_INFOBAR_TEXT);
 
-		// audio pids
-		if (!g_RemoteControl->current_PIDs.APIDs.empty()){
-			for (unsigned int li= 0; li < g_RemoteControl->current_PIDs.APIDs.size(); li++)
-			{
-				r.key = li ? "" : "Apid(s): ";
-				i = g_RemoteControl->current_PIDs.APIDs[li].pid;
-				std::string strpid = to_string(i);
-				std::string details(" ");
-				for (std::vector<std::map<std::string,std::string> >::iterator it = streamdata.begin(); it != streamdata.end(); ++it)
-					if ((*it)["pid"] == strpid) {
-						details = (*it)["language"];
-						if (details != " ")
-							details += ", ";
-						details += (*it)["codec"];
-						break;
-					}
-				if (details == " ")
-					details.clear();
-				snprintf(buf, sizeof(buf), "0x%04X (%i)%s", i, i, details.c_str());
-				r.val = buf;
-				r.col = (li == g_RemoteControl->current_PIDs.PIDs.selected_apid) ? COL_MENUHEAD_TEXT : COL_INFOBAR_TEXT;
-				v.push_back(r);
+	//apid
+	ypos+= sheight;
+	g_Font[font_small]->RenderString(xpos, ypos, box_width, "Apid(s):" , COL_INFOBAR_TEXT);
+	if (g_RemoteControl->current_PIDs.APIDs.empty()){
+		sprintf(buf, "%s", g_Locale->getText(LOCALE_STREAMINFO_NOT_AVAILABLE));
+	} else {
+		unsigned int sw=spaceoffset;
+		for (unsigned int li= 0; (li<g_RemoteControl->current_PIDs.APIDs.size()) && (li<10); li++)
+		{
+			sprintf(buf, "0x%04X (%i)", g_RemoteControl->current_PIDs.APIDs[li].pid, g_RemoteControl->current_PIDs.APIDs[li].pid );
+			if (li == g_RemoteControl->current_PIDs.PIDs.selected_apid){
+				g_Font[font_small]->RenderString(xpos+sw, ypos, box_width, buf, COL_MENUHEAD_TEXT);
+			}
+			else{
+				g_Font[font_small]->RenderString(xpos+sw, ypos, box_width, buf, COL_INFOBAR_TEXT);
+			}
+			sw = g_Font[font_small]->getRenderWidth(buf)+sw+10;
+			if (((li+1)%3 == 0) &&(g_RemoteControl->current_PIDs.APIDs.size()-1 > li)){ // if we have lots of apids, put "intermediate" line with pids
+				ypos+= sheight;
+				sw=spaceoffset;
 			}
 		}
-
-		//vtxtpid
-		if (g_RemoteControl->current_PIDs.PIDs.vtxtpid) {
-			r.key = "VTXTpid: ";
-			i = g_RemoteControl->current_PIDs.PIDs.vtxtpid;
-			snprintf(buf, sizeof(buf), "0x%04X (%i)", i, i);
-			r.val = buf;
-			r.col = COL_INFOBAR_TEXT;
-			v.push_back(r);
-		}
-	}
-	spaceoffset = 0;
-	for (std::vector<row>::iterator it = v.begin(); it != v.end(); ++it)
-		spaceoffset = std::max(spaceoffset, f->getRenderWidth(it->key));
-
-	spaceoffset = std::max(spaceoffset, f->getRenderWidth(std::string(g_Locale->getText(LOCALE_STREAMINFO_BITRATE)) + ": "));
-
-	for (std::vector<row>::iterator it = v.begin(); it != v.end(); ++it) {
-		f->RenderString (xpos, ypos, spaceoffset, it->key, COL_INFOBAR_TEXT);
-		const char *text = it->val.c_str();
-		do {
-			text = f->RenderString (xpos + spaceoffset, ypos, box_width - spaceoffset, text, it->col);
-			ypos += sheight;
-		} while (*text);
 	}
 
+	//vtxtpid
+	ypos += sheight;
+	if ( g_RemoteControl->current_PIDs.PIDs.vtxtpid == 0 )
+        	sprintf(buf, "%s", g_Locale->getText(LOCALE_STREAMINFO_NOT_AVAILABLE));
+	else
+        	sprintf(buf, "0x%04X (%i)", g_RemoteControl->current_PIDs.PIDs.vtxtpid, g_RemoteControl->current_PIDs.PIDs.vtxtpid );
+	g_Font[font_small]->RenderString(xpos, ypos, box_width, "VTXTpid:" , COL_INFOBAR_TEXT);
+	g_Font[font_small]->RenderString(xpos+spaceoffset, ypos, box_width, buf, COL_INFOBAR_TEXT);
 	if(box_h == 0)
 		box_h = ypos - ypos1;
 	yypos = ypos;
-	if (!mp)
-		paintCASystem(xpos,ypos);
+	paintCASystem(xpos,ypos);
 }
 
 #define NUM_CAIDS 11
 void CStreamInfo2::paintCASystem(int xpos, int ypos)
 {
-	ypos += iheight*2;
-	int ypos1 = ypos;
-
-	if(box_h2 > 0)
-		frameBuffer->paintBoxRel (0, ypos, box_width, box_h2, COL_MENUHEAD_PLUS_0);
+	unsigned short i;
+	int box_width = width*2/3-10;
+	if (box_h2 > ypos+(iheight*2))
+		frameBuffer->paintBox(0, ypos+(iheight*2), box_width, box_h2, COL_MENUHEAD_PLUS_0);
 
 	std::string casys[NUM_CAIDS]={"Irdeto:","Betacrypt:","Seca:","Viaccess:","Nagra:","Conax: ","Cryptoworks:","Videoguard:","EBU:","XCrypt:","PowerVU:"};
 	bool caids[NUM_CAIDS];
@@ -938,8 +723,8 @@ void CStreamInfo2::paintCASystem(int xpos, int ypos)
 	if(!channel)
 		return;
 
-	for(int i = 0; i < NUM_CAIDS; i++) {
-		array[i] = g_Font[font_small]->getRenderWidth(casys[i]);
+	for(i = 0; i < NUM_CAIDS; i++) {
+		array[i] = g_Font[font_info]->getRenderWidth(casys[i]);
 		caids[i] = false;
 	}
 
@@ -948,7 +733,6 @@ void CStreamInfo2::paintCASystem(int xpos, int ypos)
 	if (f) {
 		char buf[80];
 		if (fgets(buf, sizeof(buf), f) != NULL) {
-			int i = 0;
 			while (buf[i] != '0')
 				i++;
 			sscanf(&buf[i], "%X", &acaid);
@@ -956,7 +740,7 @@ void CStreamInfo2::paintCASystem(int xpos, int ypos)
 		fclose(f);
 	}
 
-	int off = 0;
+	int spaceoffset = 0;
 
 	for(casys_map_iterator_t it = channel->camap.begin(); it != channel->camap.end(); ++it) {
 		int idx = -1;
@@ -1001,12 +785,13 @@ void CStreamInfo2::paintCASystem(int xpos, int ypos)
 			snprintf(tmp, sizeof(tmp)," 0x%04X", (*it));
 			casys[idx] += tmp;
 			caids[idx] = true;
-			if(off < array[idx])
-				off = array[idx];
+			if(spaceoffset < array[idx])
+				spaceoffset = array[idx];
 		}
 	}
 
-	off+=4;
+	spaceoffset+=4;
+	ypos += iheight*2;
 	bool cryptsysteme = true;
 	for(int ca_id = 0; ca_id < NUM_CAIDS; ca_id++){
 		if(caids[ca_id] == true){
@@ -1016,6 +801,10 @@ void CStreamInfo2::paintCASystem(int xpos, int ypos)
 				cryptsysteme = false;
 			}
 			ypos += sheight;
+			if (ypos > max_height) {
+				ypos -= sheight;
+				break;
+			}
 			int width_txt = 0, index = 0;
 			const char *tok = " ";
 			std::string::size_type last_pos = casys[ca_id].find_first_not_of(tok, 0);
@@ -1027,9 +816,9 @@ void CStreamInfo2::paintCASystem(int xpos, int ypos)
 					if (1 == sscanf(casys[ca_id].substr(last_pos, pos - last_pos).c_str(), "%X", &id) && acaid == id)
 						col = COL_MENUHEAD_TEXT;
 				}
-				g_Font[font_small]->RenderString(xpos + width_txt, ypos, box_width, casys[ca_id].substr(last_pos, pos - last_pos), col);
+				g_Font[font_small]->RenderString(xpos + width_txt, ypos, box_width, casys[ca_id].substr(last_pos, pos - last_pos).c_str() , COL_INFOBAR_TEXT);
 				if(index == 0)
-					width_txt = off;
+					width_txt = spaceoffset;
 				else
 					width_txt += g_Font[font_small]->getRenderWidth(casys[ca_id].substr(last_pos, pos - last_pos))+10;
 				index++;
@@ -1040,8 +829,8 @@ void CStreamInfo2::paintCASystem(int xpos, int ypos)
 			}
 		}
 	}
-	if(box_h2 == 0)
-		box_h2 = ypos - ypos1;
+	if (box_h2 < ypos)
+		box_h2 = ypos;
 }
 
 /*
@@ -1058,111 +847,69 @@ long delta_time_ms (struct timeval *tv, struct timeval *last_tv)
 	return timeval_to_ms (tv) - timeval_to_ms (last_tv);
 }
 
-bool CStreamInfo2::ts_setup ()
+static cDemux * dmx = NULL;
+
+int CStreamInfo2::ts_setup ()
 {
-	if (mp) {
-		mp->GetReadCount();
-	} else {
-		probebuf_length = 0;
-		probebuf_off = 0;
-		abort_probing = false;
-		probed = false;
-
-		dmx = new cDemux(0);
-		if(!dmx)
-			return false;
-
-		dmxbuf = new unsigned char[TS_BUF_SIZE];
-		if(!dmxbuf){
-			delete dmx;
-			dmx = NULL;
-			return false;
-		}
-		dmx->Open(DMX_TP_CHANNEL, NULL, (8 * 1024 * 1024 / TS_LEN) * TS_LEN);
-
-		std::vector<unsigned short> pids;
-
-		for (unsigned int i = 0; i < g_RemoteControl->current_PIDs.APIDs.size(); i++)
-			pids.push_back(g_RemoteControl->current_PIDs.APIDs[i].pid);
-		probebuf_size = 2 * ((100000 * pids.size()) / TS_LEN) * TS_LEN;
-
-		if (g_RemoteControl->current_PIDs.PIDs.vpid)
-			pids.push_back(g_RemoteControl->current_PIDs.PIDs.vpid);
 #if 0
-		if (g_RemoteControl->current_PIDs.PIDs.vtxtpid)
-			pids.push_back(g_RemoteControl->current_PIDs.PIDs.vtxtpid);
-
-		pids.push_back(0);
-		pids.push_back(g_RemoteControl->current_PIDs.PIDs.pmtpid);
-#else
-		if (pids.empty()) {
-			delete dmx;
-			dmx = NULL;
-			delete[] dmxbuf;
-			dmxbuf = NULL;
-			return false;
-		}
+	if (g_RemoteControl->current_PIDs.PIDs.vpid == 0)
+		return -1;
 #endif
-		std::vector<unsigned short>::iterator it = pids.begin();
-		dmx->pesFilter(*it);
-		++it;
-		for (; it != pids.end(); ++it)
-			dmx->addPid(*it);
-		probebuf = new unsigned char[probebuf_size];
+	unsigned short vpid, apid = 0;
 
-		dmx->Start(true);
-		if (pthread_create(&probe_thread, NULL, probeStreams, this)) {
-			fprintf(stderr, "creating probe_thread failed\n");
-			delete[] probebuf;
-			probebuf = NULL;
-		}
+	vpid = g_RemoteControl->current_PIDs.PIDs.vpid;
+	if( !g_RemoteControl->current_PIDs.APIDs.empty() )
+		apid = g_RemoteControl->current_PIDs.APIDs[g_RemoteControl->current_PIDs.PIDs.selected_apid].pid;
+
+	short ret = -1;
+	if(vpid == 0 && apid == 0)
+		return ret;
+
+	dmx = new cDemux(0);
+	if(!dmx)
+		return ret;
+#define TS_LEN			188
+#define TS_BUF_SIZE		(TS_LEN * 2048)	/* fix dmx buffer size */
+
+	dmxbuf = new unsigned char[TS_BUF_SIZE];
+	if(!dmxbuf){
+		delete dmx;
+		dmx = NULL;
+		return ret;
 	}
+	dmx->Open(DMX_TP_CHANNEL, NULL, 8 * 3 * 3008 * 62);
+
+	if(vpid > 0) {
+		dmx->pesFilter(vpid);
+		if(apid > 0)
+			dmx->addPid(apid);
+	} else
+		dmx->pesFilter(apid);
+
+	dmx->Start(true);
 
 	gettimeofday (&first_tv, NULL);
 	last_tv.tv_sec = first_tv.tv_sec;
 	last_tv.tv_usec = first_tv.tv_usec;
-	b_total = 0;
-	return true;
+	ret = b_total = 0;
+	return ret;
 }
 
-bool CStreamInfo2::update_rate ()
+int CStreamInfo2::update_rate ()
 {
 
-	if(!mp && !dmx)
+	if(!dmx)
 		return 0;
 
+	int ret = 0;
 	int timeout = 100;
 
-	int b_len;
-	if (mp) {
-		usleep(timeout * 1000);
-		b_len = mp->GetReadCount();
-	} else {
-		b_len = dmx->Read(dmxbuf, TS_BUF_SIZE, timeout);
-		if (probebuf && b_len > TS_LEN - 1 && probebuf_length < probebuf_size) {
-			OpenThreads::ScopedLock<OpenThreads::Mutex> lock(probe_mutex);
-			if (probebuf) {
-				int len = (b_len / TS_LEN) * TS_LEN;
-				uint16_t vpid = g_RemoteControl->current_PIDs.PIDs.vpid;
-				if (vpid) {
-					unsigned char *p = dmxbuf, *p_end = dmxbuf + len;
-					for (; probebuf_size - TS_LEN > probebuf_length && p < p_end; p += TS_LEN)
-						if (vpid != (0x1fff & (p[1] << 8 | p[2]))) {
-							memcpy(probebuf + probebuf_length, p, TS_LEN);
-							probebuf_length += TS_LEN;
-						}
-				} else {
-					int n = std::min(len, (int) probebuf_size - (int) probebuf_length);
-					memcpy(probebuf + probebuf_length, dmxbuf, n);
-					probebuf_length += n;
-				}
-			}
-		}
-	}
+	int b_len = dmx->Read(dmxbuf, TS_BUF_SIZE, timeout);
+	//printf("ts: read %d\n", b_len);
 
 	long b = b_len;
 	if (b <= 0)
-		return false;
+		return 0;
 
 	gettimeofday (&tv, NULL);
 
@@ -1186,23 +933,18 @@ bool CStreamInfo2::update_rate ()
 
 	last_tv.tv_sec = tv.tv_sec;
 	last_tv.tv_usec = tv.tv_usec;
-	return true;
+	ret = 1;
+	return ret;
 }
 
 int CStreamInfo2::ts_close ()
 {
-	abort_probing = true;
-	if (probe_thread)
-		pthread_join(probe_thread, NULL);
-
-	if(dmx) {
+	if(dmx)
 		delete dmx;
-		dmx = NULL;
-	}
-	if(dmxbuf) {
+	dmx = NULL;
+	if(dmxbuf)
 		delete [] dmxbuf;
-		dmxbuf = NULL;
-	}
+	dmxbuf = NULL;
 	return 0;
 }
 

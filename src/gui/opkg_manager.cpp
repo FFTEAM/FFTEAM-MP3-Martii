@@ -1,40 +1,32 @@
 /*
-	Experimental OPKG-Manager - Neutrino-GUI
+	Based up Neutrino-GUI - Tuxbox-Project
+	Copyright (C) 2001 by Steffen Hehn 'McClean'
 
-	Based upon Neutrino-GUI 
-	Copyright (C) 2001 Steffen Hehn 'McClean'
-	and some other guys
-	Homepage: http://dbox.cyberphoria.org/
+	OPKG-Manager Class for Neutrino-GUI
 
-	Implementation: 
+	Implementation:
 	Copyright (C) 2012 T. Graf 'dbt'
-	Homepage: http://www.dbox2-tuning.net/
+	www.dbox2-tuning.net
 
+	Adaptions:
 	Copyright (C) 2013 martii
+	gitorious.org/neutrino-mp/martiis-neutrino-mp
+	Copyright (C) 2015 Stefan Seyfried
 
-        License: GPL
+	License: GPL
 
-        This library is free software; you can redistribute it and/or
-	modify it under the terms of the GNU Library General Public
+	This program is free software; you can redistribute it and/or
+	modify it under the terms of the GNU General Public
 	License as published by the Free Software Foundation; either
 	version 2 of the License, or (at your option) any later version.
 
-	This library is distributed in the hope that it will be useful,
+	This program is distributed in the hope that it will be useful,
 	but WITHOUT ANY WARRANTY; without even the implied warranty of
 	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-	Library General Public License for more details.
+	General Public License for more details.
 
-	You should have received a copy of the GNU Library General Public
-	License along with this library; if not, write to the
-	Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
-	Boston, MA  02110-1301, USA.
-
-		
-	NOTE for ignorant distributors:
-	It's not allowed to distribute any compiled parts of this code, if you don't accept the terms of GPL.
-	Please read it and understand it right!
-	This means for you: Hold it, if not, leave it! You could face legal action! 
-	Otherwise ask the copyright owners, anything else would be theft!
+	You should have received a copy of the GNU General Public License
+	along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 #ifdef HAVE_CONFIG_H
@@ -54,13 +46,16 @@
 
 #include <system/debug.h>
 #include <system/helpers.h>
-
+#include <unistd.h>
 #include <stdio.h>
 #include <poll.h>
 #include <fcntl.h>
 #include <alloca.h>
 
-enum 
+/* later this can be changed to just "opkg" */
+#define OPKG_CL "opkg-cl"
+
+enum
 {
 	OM_LIST,
 	OM_LIST_INSTALLED,
@@ -87,7 +82,7 @@ static const std::string pkg_types[OM_MAX] =
 
 COPKGManager::COPKGManager()
 {
-	width = w_max (40, 10); //%
+	width = w_max (80, 10); //%
 	pkg_map.clear();
 	list_installed_done = false;
 	list_upgradeable_done = false;
@@ -105,7 +100,7 @@ int COPKGManager::exec(CMenuTarget* parent, const std::string &actionKey)
 	if (actionKey == "") {
 		if (parent)
 			parent->hide();
-		return showMenu(); 
+		return showMenu();
 	}
 	int selected = menu->getSelected() - menu_offset;
 	if (expert_mode && actionKey == "rc_spkr") {
@@ -178,16 +173,16 @@ int COPKGManager::exec(CMenuTarget* parent, const std::string &actionKey)
 
 #define COPKGManagerFooterButtonCount 3
 static const struct button_label COPKGManagerFooterButtons[COPKGManagerFooterButtonCount] = {
-	{ NEUTRINO_ICON_BUTTON_MENU_SMALL, LOCALE_OPKG_BUTTON_EXPERT_ON },
+	{ NEUTRINO_ICON_BUTTON_YELLOW, LOCALE_OPKG_BUTTON_EXPERT_ON },
 	{ NEUTRINO_ICON_BUTTON_INFO_SMALL, LOCALE_OPKG_BUTTON_INFO },
 	{ NEUTRINO_ICON_BUTTON_OKAY,	   LOCALE_OPKG_BUTTON_INSTALL }
 };
 #define COPKGManagerFooterButtonCountExpert 4
 static const struct button_label COPKGManagerFooterButtonsExpert[COPKGManagerFooterButtonCountExpert] = {
-	{ NEUTRINO_ICON_BUTTON_MENU_SMALL, LOCALE_OPKG_BUTTON_EXPERT_OFF },
+	{ NEUTRINO_ICON_BUTTON_YELLOW, LOCALE_OPKG_BUTTON_EXPERT_OFF },
 	{ NEUTRINO_ICON_BUTTON_INFO_SMALL, LOCALE_OPKG_BUTTON_INFO },
 	{ NEUTRINO_ICON_BUTTON_OKAY,	   LOCALE_OPKG_BUTTON_INSTALL },
-	{ NEUTRINO_ICON_BUTTON_MUTE_SMALL, LOCALE_OPKG_BUTTON_UNINSTALL }
+	{ NEUTRINO_ICON_BUTTON_RED, LOCALE_OPKG_BUTTON_UNINSTALL }
 };
 
 void COPKGManager::updateMenu()
@@ -196,7 +191,7 @@ void COPKGManager::updateMenu()
 	getPkgData(OM_LIST_INSTALLED);
 	getPkgData(OM_LIST_UPGRADEABLE);
 	for (std::map<string, struct pkg>::iterator it = pkg_map.begin(); it != pkg_map.end(); it++) {
-		it->second.forwarder->iconName_Info_right = NULL;
+		it->second.forwarder->iconName_Info_right = "";
 		it->second.forwarder->setActive(true);
 		if (it->second.upgradable) {
 			it->second.forwarder->iconName_Info_right = NEUTRINO_ICON_WARNING;
@@ -251,8 +246,8 @@ int COPKGManager::showMenu()
 	menu_offset = menu->getItemsCount();
 
 	menu->addKey(CRCInput::RC_info, this, "rc_info");
-	menu->addKey(CRCInput::RC_spkr, this, "rc_spkr");
-	menu->addKey(CRCInput::RC_setup, this, "rc_setup");
+	menu->addKey(CRCInput::RC_red, this, "rc_spkr");
+	menu->addKey(CRCInput::RC_yellow, this, "rc_setup");
 
 	pkg_vec.clear();
 	for (std::map<string, struct pkg>::iterator it = pkg_map.begin(); it != pkg_map.end(); it++) {
@@ -326,7 +321,7 @@ void COPKGManager::getPkgData(const int pkg_content_id)
 		DisplayInfoMessage("Command failed");
 		return;
 	}
-	
+
 	char buf[256];
 
 	while (fgets(buf, sizeof(buf), f))
@@ -335,7 +330,7 @@ void COPKGManager::getPkgData(const int pkg_content_id)
 		trim(line);
 
 		std::string name = getBlankPkgName(line);
-						
+
 		switch (pkg_content_id) {
 			case OM_LIST: {
 				pkg_map[name] = pkg(name, line);
@@ -359,7 +354,7 @@ void COPKGManager::getPkgData(const int pkg_content_id)
 		}
 	}
 
- 	pclose(f);
+	pclose(f);
 }
 
 std::string COPKGManager::getBlankPkgName(const std::string& line)

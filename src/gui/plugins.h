@@ -32,8 +32,6 @@
 #ifndef __plugins__
 #define __plugins__
 
-#include <gui/widget/menue.h>
-
 #include <driver/framebuffer.h>
 #include <system/localize.h>
 
@@ -56,6 +54,18 @@ class CPlugins
 	}
 	p_type_t;
 
+	typedef enum i_type
+	{
+		I_TYPE_DISABLED		= 0x1,
+		/*
+		I_TYPE_MAIN		= 0x2,
+		*/
+		I_TYPE_MULTIMEDIA	= 0x4,
+		I_TYPE_SETTING		= 0x8,
+		I_TYPE_SERVICE		= 0x10,
+		I_TYPE_INFORMATION	= 0x20
+	}
+	i_type_t;
 
 	private:
 
@@ -65,7 +75,7 @@ class CPlugins
 		{
 			int index;
 			std::string filename;
-			int key;
+			neutrino_msg_t key;
 			std::string cfgfile;
 			std::string pluginfile;
 			std::string plugindir;
@@ -75,7 +85,8 @@ class CPlugins
 			std::string description;         // UTF-8 encoded
 			std::string depend;
 			CPlugins::p_type_t type;
-			
+			CPlugins::i_type_t integration;
+#if 0
 			bool fb;
 			bool rc;
 			bool lcd;
@@ -83,6 +94,8 @@ class CPlugins
 			int posx, posy, sizex, sizey;
 			bool showpig;
 			bool needoffset;
+#endif
+			bool shellwindow;
 			bool hide;
 			bool operator< (const plugin& a) const
 			{
@@ -101,6 +114,8 @@ class CPlugins
 		bool plugin_exists(const std::string & filename);
 		int find_plugin(const std::string & filename);
 		CPlugins::p_type_t getPluginType(int type);
+		CPlugins::i_type_t getPluginIntegration(int integration);
+		neutrino_msg_t getPluginKey(std::string key="auto");
 	public:
 		CPlugins();
 		~CPlugins();
@@ -122,9 +137,10 @@ class CPlugins
 		inline const char *        getFileName         (const int number) const { return plugin_list[number].filename.c_str()  ; }
 		inline const std::string & getDescription      (const int number) const { return plugin_list[number].description       ; }
 		inline       int           getType             (const int number) const { return plugin_list[number].type              ; }
+		inline       int           getIntegration      (const int number) const { return plugin_list[number].integration       ; }
 		inline       bool          isHidden            (const int number) const { return plugin_list[number].hide              ; }
 		inline       int           getIndex            (const int number) const { return plugin_list[number].index             ; }
-		inline     neutrino_msg_t  getKey              (const int number) const { return (neutrino_msg_t)plugin_list[number].key; }
+		inline      neutrino_msg_t getKey              (const int number) const { return plugin_list[number].key               ; }
 
 		void setType (const int number, int t) { plugin_list[number].type = (CPlugins::p_type_t) t ; }
 		bool overrideType(plugin *plugin_data, std::string &setting, p_type type);
@@ -133,6 +149,7 @@ class CPlugins
 		void startPlugin(const char * const filename);		// start plugins by filename
 		void startPlugin_by_name(const std::string & name);	// start plugins by "name=" in .cfg
 		void startScriptPlugin(int number);
+		void popenScriptPlugin(const char * script);
 		void startLuaPlugin(int number);
 		bool hasPlugin(CPlugins::p_type_t type);
 

@@ -67,7 +67,6 @@
 #include <system/settings.h>
 #include <system/fsmounter.h>
 #include <system/helpers.h>
-#include <system/localize_bouquetnames.h>
 
 #include <global.h>
 #include <neutrino.h>
@@ -1188,7 +1187,6 @@ int CTimerList::newTimer()
 	CMenuWidget mctv(LOCALE_TIMERLIST_BOUQUETSELECT, NEUTRINO_ICON_SETTINGS);
 	CMenuWidget mcradio(LOCALE_TIMERLIST_BOUQUETSELECT, NEUTRINO_ICON_SETTINGS);
 
-	localizeBouquetNames();
 	for (int i = 0; i < (int) g_bouquetManager->Bouquets.size(); i++) {
 		if (!g_bouquetManager->Bouquets[i]->bHidden) {
 			CMenuWidget* mwtv = new CMenuWidget(LOCALE_TIMERLIST_CHANNELSELECT, NEUTRINO_ICON_SETTINGS);
@@ -1200,20 +1198,20 @@ int CTimerList::newTimer()
 			g_bouquetManager->Bouquets[i]->getTvChannels(channels);
 			for (int j = 0; j < (int) channels.size(); j++) {
 				char cChannelId[3+16+1+1];
-				sprintf(cChannelId, "SC:" PRINTF_CHANNEL_ID_TYPE_NO_LEADING_ZEROS ",", channels[j]->channel_id);
+				sprintf(cChannelId, "SC:" PRINTF_CHANNEL_ID_TYPE_NO_LEADING_ZEROS ",", channels[j]->getChannelID());
 				mwtv->addItem(new CMenuForwarder(channels[j]->getName(), true, NULL, this, (std::string(cChannelId) + channels[j]->getName()).c_str(), CRCInput::RC_nokey, NULL, channels[j]->scrambled ? NEUTRINO_ICON_SCRAMBLED : (channels[j]->getUrl().empty() ? NULL : NEUTRINO_ICON_STREAMING)));
 			}
 			if (!channels.empty())
-				mctv.addItem(new CMenuForwarder(g_bouquetManager->Bouquets[i]->lName, true, NULL, mwtv));
+				mctv.addItem(new CMenuForwarder(g_bouquetManager->Bouquets[i]->Name, true, NULL, mwtv));
 
 			g_bouquetManager->Bouquets[i]->getRadioChannels(channels);
 			for (int j = 0; j < (int) channels.size(); j++) {
 				char cChannelId[3+16+1+1];
-				sprintf(cChannelId, "SC:" PRINTF_CHANNEL_ID_TYPE_NO_LEADING_ZEROS ",", channels[j]->channel_id);
+				sprintf(cChannelId, "SC:" PRINTF_CHANNEL_ID_TYPE_NO_LEADING_ZEROS ",", channels[j]->getChannelID());
 				mwradio->addItem(new CMenuForwarder(channels[j]->getName(), true, NULL, this, (std::string(cChannelId) + channels[j]->getName()).c_str(), CRCInput::RC_nokey, NULL, channels[j]->scrambled ? NEUTRINO_ICON_SCRAMBLED : (channels[j]->getUrl().empty() ? NULL : NEUTRINO_ICON_STREAMING)));
 			}
 			if (!channels.empty())
-				mcradio.addItem(new CMenuForwarder(g_bouquetManager->Bouquets[i]->lName, true, NULL, mwradio));
+				mcradio.addItem(new CMenuForwarder(g_bouquetManager->Bouquets[i]->Name, true, NULL, mwradio));
 		}
 	}
 

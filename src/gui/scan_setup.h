@@ -42,7 +42,9 @@
 
 #define scansettings CNeutrinoApp::getInstance()->getScanSettings()
 
-//#define ENABLE_FASTSCAN //don't define this to remove fast scan menu
+#ifdef ENABLE_FASTSCAN
+#define ENABLE_FASTSCAN //don't define this to remove fast scan menu
+#endif
 
 class CScanSetup : public CMenuTarget, public CChangeObserver
 {
@@ -79,6 +81,7 @@ class CScanSetup : public CMenuTarget, public CChangeObserver
 		/* frontend link to number */
 		int femaster;
 
+		std::vector<std::string> satoptions;
 		std::vector<CMenuForwarder*> satmf;
 
 		/* flag to allow any operations which can damage recordings */
@@ -90,7 +93,6 @@ class CScanSetup : public CMenuTarget, public CChangeObserver
 
 		bool is_wizard;
 		
-		int freq_length;
 		int r_system;
 
 		neutrino_locale_t satprov_locale;
@@ -106,6 +108,7 @@ class CScanSetup : public CMenuTarget, public CChangeObserver
 		int showScanMenuSatFind();
 		void fillSatSelect(CMenuOptionStringChooser *select);
 		void fillCableSelect(CMenuOptionStringChooser *select);
+		void fillTerrSelect(CMenuOptionStringChooser *select);
 
 		neutrino_locale_t getModeLocale(int mode);
 		int showScanMenuFrontendSetup();
@@ -125,8 +128,6 @@ class CScanSetup : public CMenuTarget, public CChangeObserver
 		void saveScanSetup();
 
 		CScanSetup(bool wizard_mode = SCAN_SETUP_MODE_WIZARD_NO);
-		char zapit_lat[20];
-		char zapit_long[20];
 	public:	
 		enum SCAN_SETUP_MODE
 		{

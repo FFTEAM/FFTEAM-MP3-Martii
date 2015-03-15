@@ -108,8 +108,6 @@ class CComponents : public COSDFader
 
 		///container: contains saved pixel buffer with position and dimensions
 		comp_screen_data_t saved_screen; 	
-		///cleans saved pixel buffer
-		void clearSavedScreen();
 		
 	public:
 		///basic component class constructor.
@@ -181,7 +179,7 @@ class CComponents : public COSDFader
 		inline virtual fb_pixel_t getColorBody(){return col_body;};
 		///get shadow color
 		inline virtual fb_pixel_t getColorShadow(){return col_shadow;};
-		
+
 		///set corner types
 		///Possible corner types are defined in CFrameBuffer (see: driver/framebuffer.h)
 		///Note: default values are given from settings
@@ -216,6 +214,9 @@ class CComponents : public COSDFader
 		virtual void allowPaint(bool allow){cc_allow_paint = allow; is_painted = cc_allow_paint ? false : true;};
 		///returns visibility mode
 		virtual bool paintAllowed(){return cc_allow_paint;};
+
+		///cleans saved pixel buffer
+		virtual void clearSavedScreen();
 };
 
 class CComponentsItem : public CComponents

@@ -18,19 +18,14 @@
 	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-
 #ifndef __psisetup__
 #define __psisetup__
 
-
 #include <gui/widget/menue.h>
 #include <gui/components/cc_item_progressbar.h>
-
 #include <driver/framebuffer.h>
 #include <system/localize.h>
-
 #include <string>
-
 
 class CPSISetup : public CMenuTarget, public CChangeObserver
 {

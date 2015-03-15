@@ -46,7 +46,6 @@
 #include <gui/widget/messagebox.h>
 #include <gui/widget/stringinput.h>
 #include <gui/widget/keyboard_input.h>
-#include <system/localize_bouquetnames.h>
 #include <zapit/client/zapittools.h>
 
 extern CBouquetManager *g_bouquetManager;
@@ -66,7 +65,6 @@ CBEBouquetWidget::CBEBouquetWidget()
 	selected = 0;
 	liststart = 0;
 	state = beDefault;
-	blueFunction = beRename;
 	Bouquets = NULL;
 	iheight = 0;
 	ButtonHeight = 0;
@@ -97,15 +95,22 @@ void CBEBouquetWidget::paintItem(int pos)
 
 	if(current < Bouquets->size()) {
 		if ((current == selected) && (state == beMoving))
-			frameBuffer->paintIcon(NEUTRINO_ICON_BUTTON_YELLOW, x + 10, ypos, iheight);
-
-		if ((*Bouquets)[current]->bLocked != g_settings.parentallock_defaultlocked)
-			frameBuffer->paintIcon(NEUTRINO_ICON_LOCK, x + 10, ypos, iheight);
+			frameBuffer->paintIcon(NEUTRINO_ICON_BUTTON_YELLOW, x + 5, ypos, iheight);
 
 		if ((*Bouquets)[current]->bHidden)
-			frameBuffer->paintIcon(NEUTRINO_ICON_HIDDEN, x + 10, ypos, iheight);
+			frameBuffer->paintIcon(NEUTRINO_ICON_HIDDEN, x + 26, ypos, iheight);
 
-		g_Font[SNeutrinoSettings::FONT_TYPE_CHANNELLIST]->RenderString(x+iconoffset+20, ypos + iheight - (iheight-fheight)/2, width-iconoffset-20, (*Bouquets)[current]->lName, color);
+		if ((*Bouquets)[current]->bLocked != g_settings.parentallock_defaultlocked)
+			frameBuffer->paintIcon(NEUTRINO_ICON_LOCK, x + 18 + iconoffset, ypos, iheight);
+
+		if (!(*Bouquets)[current]->tvChannels.empty() ) {
+			frameBuffer->paintIcon(NEUTRINO_ICON_VIDEO, x + 20 + 2*iconoffset - 2, ypos, iheight);
+		}
+
+		if (!(*Bouquets)[current]->radioChannels.empty()) {
+			frameBuffer->paintIcon(NEUTRINO_ICON_AUDIO, x + 20+ 3*iconoffset - 4, ypos, iheight);
+		}
+		g_Font[SNeutrinoSettings::FONT_TYPE_CHANNELLIST]->RenderString(x +20 + 4*iconoffset, ypos + iheight - (iheight-fheight)/2, width-iconoffset-20, (*Bouquets)[current]->bFav ? g_Locale->getText(LOCALE_FAVORITES_BOUQUETNAME) : (*Bouquets)[current]->Name, color);
 	}
 }
 
@@ -137,37 +142,19 @@ void CBEBouquetWidget::paintHead()
 	header.paint(CC_SAVE_SCREEN_NO);
 }
 
-const struct button_label CBEBouquetWidgetButtons[4] =
+const struct button_label CBEBouquetWidgetButtons[6] =
 {
 	{ NEUTRINO_ICON_BUTTON_RED   , LOCALE_BOUQUETEDITOR_DELETE },
 	{ NEUTRINO_ICON_BUTTON_GREEN , LOCALE_BOUQUETEDITOR_ADD    },
-	{ NEUTRINO_ICON_BUTTON_YELLOW, LOCALE_BOUQUETEDITOR_MOVE   },
-	{ NEUTRINO_ICON_BUTTON_BLUE  , NONEXISTANT_LOCALE /*dummy*/}
+	{ NEUTRINO_ICON_BUTTON_YELLOW, LOCALE_BOUQUETEDITOR_MOVE  },
+	{ NEUTRINO_ICON_BUTTON_BLUE  , LOCALE_BOUQUETEDITOR_RENAME},
+        { NEUTRINO_ICON_BUTTON_PAUSE  , LOCALE_BOUQUETEDITOR_HIDE   },
+        { NEUTRINO_ICON_BUTTON_STOP  , LOCALE_BOUQUETEDITOR_LOCK     }
 };
 
 void CBEBouquetWidget::paintFoot()
 {
-	struct button_label Button[4];
-
-	Button[0] = CBEBouquetWidgetButtons[0];
-	Button[1] = CBEBouquetWidgetButtons[1];
-	Button[2] = CBEBouquetWidgetButtons[2];
-	Button[3] = CBEBouquetWidgetButtons[3];
-
-	switch( blueFunction)
-	{
-		case beRename:
-			Button[3].locale = LOCALE_BOUQUETEDITOR_RENAME;
-		break;
-		case beHide:
-			Button[3].locale = LOCALE_BOUQUETEDITOR_HIDE;
-		break;
-		case beLock:
-			Button[3].locale = LOCALE_BOUQUETEDITOR_LOCK;
-		break;
-	}
-
-	::paintButtons(x, y+height, width, 4, Button, width, ButtonHeight);
+	::paintButtons(x, y+height, width, 6, CBEBouquetWidgetButtons, width, ButtonHeight);
 }
 
 void CBEBouquetWidget::hide()
@@ -232,7 +219,6 @@ int CBEBouquetWidget::exec(CMenuTarget* parent, const std::string & /*actionKey*
         x = getScreenStartX(width);
         y = getScreenStartY(height + ButtonHeight);
 
-	localizeBouquetNames();
 	Bouquets = &g_bouquetManager->Bouquets;
 	paintHead();
 	paint();
@@ -349,36 +335,25 @@ int CBEBouquetWidget::exec(CMenuTarget* parent, const std::string & /*actionKey*
 			if (selected < Bouquets->size()) /* Bouquets->size() might be 0 */
 			{
 				if (state == beDefault)
-					switch (blueFunction)
-					{
-					case beRename:
 						renameBouquet();
-						break;
-					case beHide:
-						switchHideBouquet();
-						break;
-					case beLock:
-						switchLockBouquet();
-						break;
-					}
 			}
 		}
-		else if(msg==CRCInput::RC_setup)
+
+		else if(msg==CRCInput::RC_pause)
 		{
-			if (state == beDefault)
-			switch (blueFunction)
+			if (selected < Bouquets->size()) /* Bouquets->size() might be 0 */
 			{
-				case beRename:
-					blueFunction = beHide;
-				break;
-				case beHide:
-					blueFunction = beLock;
-				break;
-				case beLock:
-					blueFunction = beRename;
-				break;
+				if (state == beDefault)
+						switchHideBouquet();
 			}
-			paintFoot();
+		}
+		else if(msg==CRCInput::RC_stop)
+		{
+			if (selected < Bouquets->size()) /* Bouquets->size() might be 0 */
+			{
+				if (state == beDefault)
+						switchLockBouquet();
+			}
 		}
 		else if(msg==CRCInput::RC_ok)
 		{
@@ -386,7 +361,17 @@ int CBEBouquetWidget::exec(CMenuTarget* parent, const std::string & /*actionKey*
 			{
 				if (selected < Bouquets->size()) /* Bouquets->size() might be 0 */
 				{
-					CBEChannelWidget* channelWidget = new CBEChannelWidget((*Bouquets)[selected]->lName, selected);
+					std::string ChannelWidgetCaption=(*Bouquets)[selected]->bFav ? g_Locale->getText(LOCALE_FAVORITES_BOUQUETNAME) : (*Bouquets)[selected]->Name;
+					if (!(*Bouquets)[selected]->tvChannels.empty() ) {
+						ChannelWidgetCaption = ChannelWidgetCaption+ "  =>  TV";
+						if (!(*Bouquets)[selected]->radioChannels.empty())
+							ChannelWidgetCaption = ChannelWidgetCaption+ "/Radio";
+					}
+					else if (!(*Bouquets)[selected]->radioChannels.empty()) {
+						ChannelWidgetCaption = ChannelWidgetCaption+ "  =>     Radio";
+					}
+
+					CBEChannelWidget* channelWidget = new CBEChannelWidget(ChannelWidgetCaption, selected);
 					channelWidget->exec( this, "");
 					if (channelWidget->hasChanged())
 						bouquetsChanged = true;
@@ -433,18 +418,8 @@ void CBEBouquetWidget::deleteBouquet()
 	if (selected >= Bouquets->size()) /* Bouquets->size() might be 0 */
 		return;
 
-	if (ShowMsg(LOCALE_FILEBROWSER_DELETE, (*Bouquets)[selected]->lName, CMessageBox::mbrNo, CMessageBox::mbYes|CMessageBox::mbNo)!=CMessageBox::mbrYes)
+	if (ShowMsg(LOCALE_FILEBROWSER_DELETE, (*Bouquets)[selected]->bFav ? g_Locale->getText(LOCALE_FAVORITES_BOUQUETNAME) : (*Bouquets)[selected]->Name, CMessageBox::mbrNo, CMessageBox::mbYes|CMessageBox::mbNo)!=CMessageBox::mbrYes)
 		return;
-
-	if ((*Bouquets)[selected]->bLocked) {
-		ZapitChannelList *channels = &(*Bouquets)[selected]->tvChannels;
-		for(unsigned int i = 0; i < channels->size(); i++)
-			((*channels)[i])->bLockCount--;
-
-		channels = &(*Bouquets)[selected]->radioChannels;
-		for(unsigned int i = 0; i < channels->size(); i++)
-			((*channels)[i])->bLockCount--;
-	}
 
 	g_bouquetManager->deleteBouquet(selected);
 	Bouquets = &g_bouquetManager->Bouquets;
@@ -482,7 +457,7 @@ void CBEBouquetWidget::finishMoveBouquet()
 	if (newPosition != origPosition)
 	{
 		Bouquets = &g_bouquetManager->Bouquets;
-		bouquetsChanged = true;
+		bouquetsChanged = bouquetsChanged | true;
 	}
 	paint();
 }
@@ -491,7 +466,7 @@ void CBEBouquetWidget::cancelMoveBouquet()
 {
 	state = beDefault;
 	internalMoveBouquet( newPosition, origPosition);
-	bouquetsChanged = false;
+	bouquetsChanged = bouquetsChanged | false;
 }
 
 void CBEBouquetWidget::internalMoveBouquet( unsigned int fromPosition, unsigned int toPosition)
@@ -501,7 +476,7 @@ void CBEBouquetWidget::internalMoveBouquet( unsigned int fromPosition, unsigned 
 
 	g_bouquetManager->moveBouquet(fromPosition, toPosition);
 	Bouquets = &g_bouquetManager->Bouquets;
-	bouquetsChanged = true;
+	//bouquetsChanged = true;
 	selected = toPosition;
 	newPosition = toPosition;
 	paint();
@@ -510,8 +485,6 @@ void CBEBouquetWidget::internalMoveBouquet( unsigned int fromPosition, unsigned 
 void CBEBouquetWidget::renameBouquet()
 {
 	if ((*Bouquets)[selected]->bFav)
-		return;
-	if((*Bouquets)[selected]->Name.find("extra.zapit_bouquetname_") == 0)
 		return;
 
 	std::string newName = inputName((*Bouquets)[selected]->Name.c_str(), LOCALE_BOUQUETEDITOR_NEWBOUQUETNAME);
@@ -536,18 +509,8 @@ void CBEBouquetWidget::switchHideBouquet()
 void CBEBouquetWidget::switchLockBouquet()
 {
 	bouquetsChanged = true;
-	(*Bouquets)[selected]->bLocked = !(*Bouquets)[selected]->bLocked;
+	g_bouquetManager->setBouquetLock((*Bouquets)[selected], !(*Bouquets)[selected]->bLocked);
 	paint();
-
-	int add = (*Bouquets)[selected]->bLocked * 2 - 1;
-
-	ZapitChannelList *channels = &(*Bouquets)[selected]->tvChannels;
-	for(unsigned int i = 0; i < channels->size(); i++)
-		((*channels)[i])->bLockCount += add;
-
-	channels = &(*Bouquets)[selected]->radioChannels;
-	for(unsigned int i = 0; i < channels->size(); i++)
-		((*channels)[i])->bLockCount += add;
 }
 
 std::string CBEBouquetWidget::inputName(const char * const defaultName, const neutrino_locale_t caption)

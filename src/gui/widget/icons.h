@@ -194,9 +194,7 @@
 #define NEUTRINO_ICON_HINT_TIMERS	"hint_timers"
 #define NEUTRINO_ICON_HINT_MEDIA	"hint_media"
 #define NEUTRINO_ICON_HINT_GAMES	"hint_games"
-#define NEUTRINO_ICON_HINT_PLUGINS	"hint_plugins"
 #define NEUTRINO_ICON_HINT_SCRIPTS	"hint_scripts"
-#define NEUTRINO_ICON_HINT_TOOLS	"hint_tools"
 #define NEUTRINO_ICON_HINT_SETTINGS	"hint_settings"
 #define NEUTRINO_ICON_HINT_SERVICE	"hint_service"
 #define NEUTRINO_ICON_HINT_SLEEPTIMER	"hint_sleeptimer"
@@ -254,6 +252,12 @@
 #define NEUTRINO_ICON_HINT_BACKUP	"hint_backup"
 #define NEUTRINO_ICON_HINT_RESTORE	"hint_restore"
 #define NEUTRINO_ICON_HINT_FACTORY	"hint_factory"
+
+#define NEUTRINO_ICON_MOVIE		"movie"
+#define NEUTRINO_ICON_PICTURE	"picture"
+
+/* plugins */
+#define NEUTRINO_ICON_HINT_PLUGIN	"hint_plugin"
 
 /* opkg manager */
 #define NEUTRINO_ICON_CHECKMARK		"checkmark"
