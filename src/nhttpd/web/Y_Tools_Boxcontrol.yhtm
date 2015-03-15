@@ -16,8 +16,7 @@ function goUrl(_url){
 	$("out").update(res);
 }
 function standby(_standby){
-	var _checkCEC = document.getElementById('checkCEC');
-	var _cec = (_checkCEC && _checkCEC.checked) ? "on" : "off";
+	var _cec = (document.getElementById('checkCEC').checked == true) ? "on" : "off";
 	goUrl("/control/standby?"+_standby+"&cec="+_cec);
 }
 //]]>
@@ -30,7 +29,7 @@ function standby(_standby){
 	<div class="work_box_body">
 	<form action="">
 		<table class="y_invisible_table" cellpadding="5" width="100%">
-		<tr><td class="y_form_header">{=L:bc.control.box=}</td><td class="y_form_header">{=L:bc.control.standby_mode=}</td><td class="y_form_header">{=L:bc.control.remote=}</td></tr>
+		<tr><td class="y_form_header">{=L:bc.control.box=}</td><td class="y_form_header">{=L:bc.control.standby_mode=}</td></tr>
 		<tr>
 			<td>
 			<input type="button" value="{=L:bc.control.reboot=}" onclick='goUrl("/control/exec?Y_Tools&amp;yreboot");'/>
@@ -40,9 +39,7 @@ function standby(_standby){
 			<input type="button" value="{=L:on=}" onclick='standby("on");'/>
 			<input type="button" value="{=L:off=}" onclick='standby("off");'/>
 			<input type="button" value="{=L:bc.control.status=}" onclick='goUrl("/control/standby");'/>
-			{=comment:unsupported on spark~
 			CEC: <input id="checkCEC" name="checkCEC" type="checkbox" checked="checked"/>
-			=}
 			</td>
             <td>
             <input type="button" value="{=L:on=}" onclick='goUrl("/control/rc?unlock");'/>
@@ -92,7 +89,7 @@ function standby(_standby){
             <input type="button" value="reset" title="reset" onclick='goUrl("/control/exec?Y_Tools&amp;newcsreset");'/>
             </td>
         </tr>
-		<tr><td class="y_form_header">{=L:bc.control.playback=}</td><td class="y_form_header">{=L:bc.control.recording_mode=}</td><td class="y_form_header">{=L:bc.control.live_lock=}</td></tr>
+		<tr><td class="y_form_header">{=L:bc.control.playback=}</td><td class="y_form_header">{=L:bc.control.recording_mode=}</td></tr>
 		<tr>
 			<td>
 			<input type="button" value="{=L:on=}" onclick='goUrl("/control/zapto?startplayback");'/>

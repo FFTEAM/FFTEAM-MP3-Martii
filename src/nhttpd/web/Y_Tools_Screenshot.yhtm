@@ -1,6 +1,4 @@
-<!-- #ifndef MARTII
 {=var-set:fbshot={=if-file-exists:/bin/fbshot~true~{=if-file-exists:/var/bin/fbshot~true~false=}=}=}
-     #endif -->
 
 {=include-block:Y_Blocks.txt;head=}
 <script type="text/javascript" src="/Y_Baselib.js"></script>
@@ -22,6 +20,13 @@ function checkEnable() {
 function rcsim(_key) {
 	if(!checkEnable()) return;
 
+	if(_key == "KEY_POWER"){
+		var __result = trim(loadSyncURL("/control/standby"));
+		if (__result == "off")	{
+			if(confirm("{=L:bc.control.shutdown.ask=}") != true)
+			return;
+		}
+	}
 	loadSyncURL("/control/rcem?" + _key);
 	if (enableOSD == 1 && enableVideo == 0) {
 		do_snapshot();
@@ -32,12 +37,8 @@ function rcsim(_key) {
 function do_snapshot() {
 	if(!checkEnable()) return;
 
-/* #ifdef MARTII */
-{=var-set:fbshot=true=}
-/* #else
 	$('shot').hide();
 	$('shot').src = "";
-   #endif */
 	$('buttons').hide();
 	$('status').show();
 
@@ -124,13 +125,9 @@ function do_switchrc_txt(){
 		</div>
 		</div>
 
-		<table cellpadding="0">
+		<table cellpadding="0" class="screenshot">
 		<tr>
-<!-- #ifdef MARTII -->
-			<td id="remote">
-<!-- #else
 			<td id="remote" {=if-empty:{=noremote=}~~style="display: none"=}>
-     #endif -->
 				{=include-block:Y_Blocks.txt;remote=}
 			</td>
 			<td class="shot">

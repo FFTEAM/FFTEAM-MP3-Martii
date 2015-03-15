@@ -30,6 +30,15 @@ start-block~neutrino_form_helpbox
 </div>
 end-block~neutrino_form_helpbox
 
+# ------- Neutrino form submit buttons
+start-block~neutrino_form_submit
+	<button type="button" ytype="save" title="{=L:save_values_desc=}" onclick="do_submit()">{=L:save=}</button>
+	&nbsp;
+	<button type="button" ytype="refresh" title="{=L:apply_desc=}" onclick="reload_neutrino_conf()">{=L:apply=}</button>
+	&nbsp;
+	<a href="javascript:top.top_main.prim_menu.nav('info', 'Y_Info_Help.yhtm');" class="inlink">{=L:help=}</a>
+end-block~neutrino_form_submit
+
 # ------- Neutrino form-data: record -------------------------------
 start-block~neutrino_form-data_record
 <div class="work_box">
@@ -42,6 +51,13 @@ start-block~neutrino_form-data_record
 			<tr>
 				<td>{=L:directory=}</td>
 				<td><input type="text" name="network_nfs_recordingdir" size="60" value="{=ini-get:/var/tuxbox/config/neutrino.conf;network_nfs_recordingdir~open=}" /></td>
+			</tr>
+			<tr>
+				<td>{=L:set.rec.channeldir=}</td>
+				<td>
+					<input type="radio" name="recording_save_in_channeldir" value="false"/>{=L:off=}&nbsp;
+					<input type="radio" name="recording_save_in_channeldir" value="true"/>{=L:on=}
+				</td>
 			</tr>
 			<tr>
 				<td>{=L:set.rec.epg_end=}</td>
@@ -132,9 +148,7 @@ start-block~neutrino_form-data_record
 		<input type="hidden" name="tmpl" value="Y_Settings_neutrino_forms.yhtm"/>
 		<input type="hidden" name="execute" value="include-block:Y_neutrino_Blocks.txt;neutrino_record_save_settings;nix"/>
 		<input type="hidden" name="form" value="{=form=}"/>
-		<button type="button" ytype="save" title="{=L:save_values_desc=}s" onclick="do_submit()">{=L:save=}</button>
-		&nbsp;<button type="button" ytype="refresh" onclick="dbox_reload_neutrino()">{=L:set.reload_neutrino=}</button>
-		&nbsp;<a href="javascript:top.top_main.prim_menu.nav('info', 'Y_Info_Help.yhtm');" class="inlink">{=L:help=}</a>
+		{=include-block:Y_neutrino_Blocks.txt;neutrino_form_submit;nothing=}
 	</form>
 	</div>
 </div>
@@ -146,6 +160,7 @@ function form_init()
 
 	obj_set_radio_value('recording_zap_on_announce', "{=ini-get:/var/tuxbox/config/neutrino.conf;recording_zap_on_announce;false=}");
 	obj_set_radio_value('recording_epg_for_end', "{=ini-get:/var/tuxbox/config/neutrino.conf;recording_epg_for_end;false=}");
+	obj_set_radio_value('recording_save_in_channeldir', "{=ini-get:/var/tuxbox/config/neutrino.conf;recording_save_in_channeldir;false=}");
 	obj_set_radio_value('timeshift_pause', "{=ini-get:/var/tuxbox/config/neutrino.conf;timeshift_pause;0=}");
 	obj_set_radio_value('auto_delete', "{=ini-get:/var/tuxbox/config/neutrino.conf;auto_delete;true=}");
 	obj_set_radio_value('temp_timeshift', "{=ini-get:/var/tuxbox/config/neutrino.conf;temp_timeshift;0=}");
@@ -183,6 +198,7 @@ end-block~neutrino_form-data_record
 # ------- yWeb save Settings
 start-block~neutrino_record_save_settings
 {=ini-set:/var/tuxbox/config/neutrino.conf;network_nfs_recordingdir;{=network_nfs_recordingdir=}~open=}
+{=ini-set:/var/tuxbox/config/neutrino.conf;recording_save_in_channeldir;{=recording_save_in_channeldir=}~cache=}
 {=ini-set:/var/tuxbox/config/neutrino.conf;recording_zap_on_announce;{=recording_zap_on_announce=}~cache=}
 {=ini-set:/var/tuxbox/config/neutrino.conf;recording_epg_for_end;{=recording_epg_for_end=}~cache=}
 {=ini-set:/var/tuxbox/config/neutrino.conf;timeshiftdir;{=timeshiftdir=}~cache=}
@@ -216,9 +232,7 @@ start-block~neutrino_form-data_movieplayer
 		<input type="hidden" name="tmpl" value="Y_Settings_neutrino_forms.yhtm"/>
 		<input type="hidden" name="execute" value="include-block:Y_neutrino_Blocks.txt;neutrino_movieplayer_save_settings;nix"/>
 		<input type="hidden" name="form" value="{=form=}"/>
-		<button type="button" ytype="save" title="{=L:save_values_desc=}" onclick="do_submit()">{=L:save=}</button>
-		&nbsp;<button type="button" ytype="refresh" onclick="dbox_reload_neutrino()">{=L:set.reload_neutrino=}</button>
-		&nbsp;<a href="javascript:top.top_main.prim_menu.nav('info', 'Y_Info_Help.yhtm');" class="inlink">{=L:help=}</a>
+		{=include-block:Y_neutrino_Blocks.txt;neutrino_form_submit;nothing=}
 	</form>
 	</div>
 </div>
@@ -243,7 +257,6 @@ end-block~neutrino_form-data_movieplayer
 # ------- yWeb save Settings
 start-block~neutrino_movieplayer_save_settings
 {=ini-set:/var/tuxbox/config/neutrino.conf;network_nfs_moviedir;{=network_nfs_moviedir=}=}
-
 end-block~neutrino_movieplayer_save_settings
 
 
@@ -284,9 +297,7 @@ start-block~neutrino_form-data_parental
 		<input type="hidden" name="tmpl" value="Y_Settings_neutrino_forms.yhtm"/>
 		<input type="hidden" name="execute" value="include-block:Y_neutrino_Blocks.txt;neutrino_parental_save_settings;nix"/>
 		<input type="hidden" name="form" value="{=form=}"/>
-		<button type="button" ytype="save" title="{=L:save_values_desc=}s" onclick="do_submit()">{=L:save=}</button>
-		&nbsp;<button type="button" ytype="refresh" onclick="dbox_reload_neutrino()">{=L:set.reload_neutrino=}</button>
-		&nbsp;<a href="javascript:top.top_main.prim_menu.nav('info', 'Y_Info_Help.yhtm');" class="inlink">{=L:help=}</a>
+		{=include-block:Y_neutrino_Blocks.txt;neutrino_form_submit;nothing=}
 	</form>
 	</div>
 </div>
@@ -324,6 +335,140 @@ start-block~neutrino_parental_save_settings
 {=ini-set:/var/tuxbox/config/neutrino.conf;parentallock_lockage;{=parentallock_lockage=}~cache=}
 {=ini-set:/var/tuxbox/config/neutrino.conf;parentallock_pincode;{=parentallock_pincode=}~save=}
 end-block~neutrino_parental_save_settings
+
+# ------- Neutrino form-data: EPG -------------------------------
+start-block~neutrino_form-data_epg
+<div class="work_box">
+	<div class="work_box_head"><div class="work_box_head_h2">
+	{=var-set:help_url=Help-Settings-EPG=}{=var-set:menu={=L:set.menue.epg=}=}{=include-block:Y_Blocks.txt;work_menu=}</div></div>
+	<div class="work_box_body">
+	<form name="f" action="/y/cgi" class="y_form">
+		<table cellspacing="0" border="0" cellpadding="2" width="100%">
+			<tr>
+				<td colspan="2" width="35%" class="y_form_header">{=L:miscsettings.epg_head=}</td>
+			</tr>
+			<tr>
+				<td>{=L:miscsettings.epg_save=}</td>
+				<td>
+					<input type="radio" name="epg_save" value="false"/>{=L:off=}&nbsp;
+					<input type="radio" name="epg_save" value="true"/>{=L:on=}
+				</td>
+			</tr>
+			<tr>
+				<td>{=L:miscsettings.epg_save_standby=}</td>
+				<td>
+					<input type="radio" name="epg_save_standby" value="false"/>{=L:off=}&nbsp;
+					<input type="radio" name="epg_save_standby" value="true"/>{=L:on=}
+				</td>
+			</tr>
+			<tr>
+				<td>{=L:miscsettings.epg_save_frequently=}</td>
+				<td>
+					<input type="radio" name="epg_save_frequently" value="0"/>{=L:off=}&nbsp;
+					<input type="radio" name="epg_save_frequently" value="1"/>{=L:on=}
+				</td>
+			</tr>
+			<tr>
+				<td>{=L:miscsettings.epg_read=}</td>
+				<td>
+					<input type="radio" name="epg_read" value="false"/>{=L:off=}&nbsp;
+					<input type="radio" name="epg_read" value="true"/>{=L:on=}
+				</td>
+			</tr>
+			<tr>
+				<td>{=L:miscsettings.epg_dir=}</td>
+				<td><input type="text" name="epg_dir" size="40" value="{=ini-get:/var/tuxbox/config/neutrino.conf;epg_dir~open=}" title="" />&nbsp;e.g. /media/sda1/epg/</td>
+			</tr>
+			<tr>
+				<td colspan="2"><br/></td>
+			</tr>
+			<tr>
+				<td>{=L:miscsettings.epg_cache=}</td>
+				<td><input type="text" name="epg_cache_time" size="5" value="{=ini-get:/var/tuxbox/config/neutrino.conf;epg_cache_time~cache=}" title="" /></td>
+			</tr>
+			<tr>
+				<td>{=L:miscsettings.epg_extendedcache=}</td>
+				<td><input type="text" name="epg_extendedcache_time" size="5" value="{=ini-get:/var/tuxbox/config/neutrino.conf;epg_extendedcache_time~cache=}" title="" /></td>
+			</tr>
+			<tr>
+				<td>{=L:miscsettings.epg_old_events=}</td>
+				<td><input type="text" name="epg_old_events" size="5" value="{=ini-get:/var/tuxbox/config/neutrino.conf;epg_old_events~cache=}" title="" /></td>
+			</tr>
+			<tr>
+				<td>{=L:miscsettings.epg_max_events=}</td>
+				<td><input type="text" name="epg_max_events" size="5" value="{=ini-get:/var/tuxbox/config/neutrino.conf;epg_max_events~cache=}" title="" /></td>
+			</tr>
+			<tr>
+				<td colspan="2"><br/></td>
+			</tr>
+			<tr>
+				<td>{=L:miscsettings.epg_scan=}</td>
+				<td>
+					<select name="epg_scan_mode" title="">
+					<option value="0" selected="selected">{=L:off=}</option>
+					<option value="1">{=L:miscsettings.epg_scan_live=}</option>
+					<option value="2">{=L:miscsettings.epg_scan_standby=}</option>
+					<option value="3">{=L:miscsettings.epg_scan_always=}</option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td>{=L:miscsettings.epg_scan_bouquets=}</td>
+				<td>
+					<select name="epg_scan" title="">
+					<option value="1" selected="selected">{=L:miscsettings.epg_scan_bq=}</option>
+					<option value="2">{=L:miscsettings.epg_scan_fav=}</option>
+					<option value="3">{=L:miscsettings.epg_scan_sel=}</option>
+					</select>
+				</td>
+			</tr>
+		</table>
+		<br/>
+		<input type="hidden" name="tmpl" value="Y_Settings_neutrino_forms.yhtm"/>
+		<input type="hidden" name="execute" value="include-block:Y_neutrino_Blocks.txt;neutrino_epg_save_settings;nix"/>
+		<input type="hidden" name="form" value="{=form=}"/>
+		{=include-block:Y_neutrino_Blocks.txt;neutrino_form_submit;nothing=}
+	</form>
+	</div>
+</div>
+<script type="text/javascript">
+//<![CDATA[
+function form_init()
+{
+	obj_set_radio_value('epg_save', "{=ini-get:/var/tuxbox/config/neutrino.conf;epg_save;false=}");
+	obj_set_radio_value('epg_save_standby', "{=ini-get:/var/tuxbox/config/neutrino.conf;epg_save_standby;false~cache=}");
+	obj_set_radio_value('epg_save_frequently', "{=ini-get:/var/tuxbox/config/neutrino.conf;epg_save_frequently;0~cache=}");
+	obj_set_radio_value('epg_read', "{=ini-get:/var/tuxbox/config/neutrino.conf;epg_read;false~cache=}");
+	val = "{=ini-get:/var/tuxbox/config/neutrino.conf;epg_scan_mode;0~cache=}";
+		document.f.epg_scan_mode.selectedIndex = val;
+	val = "{=ini-get:/var/tuxbox/config/neutrino.conf;epg_scan;1~cache=}";
+		document.f.epg_scan.selectedIndex = (val-1);
+}
+
+function do_submit()
+{
+	show_waitbox(true);
+	document.f.submit();
+}
+form_init();
+//]]>
+</script>
+end-block~neutrino_form-data_epg
+
+# ------- yWeb save EPG
+start-block~neutrino_epg_save_settings
+{=ini-set:/var/tuxbox/config/neutrino.conf;epg_save;{=epg_save=}~open=}
+{=ini-set:/var/tuxbox/config/neutrino.conf;epg_save_standby;{=epg_save_standby=}~cache=}
+{=ini-set:/var/tuxbox/config/neutrino.conf;epg_save_frequently;{=epg_save_frequently=}~cache=}
+{=ini-set:/var/tuxbox/config/neutrino.conf;epg_read;{=epg_read=}~cache=}
+{=ini-set:/var/tuxbox/config/neutrino.conf;epg_dir;{=epg_dir=}~cache=}
+{=ini-set:/var/tuxbox/config/neutrino.conf;epg_cache_time;{=epg_cache_time=}~cache=}
+{=ini-set:/var/tuxbox/config/neutrino.conf;epg_extendedcache_time;{=epg_extendedcache_time=}~cache=}
+{=ini-set:/var/tuxbox/config/neutrino.conf;epg_max_events;{=epg_max_events=}~cache=}
+{=ini-set:/var/tuxbox/config/neutrino.conf;epg_old_events;{=epg_old_events=}~cache=}
+{=ini-set:/var/tuxbox/config/neutrino.conf;epg_scan_mode;{=epg_scan_mode=}~cache=}
+{=ini-set:/var/tuxbox/config/neutrino.conf;epg_scan;{=epg_scan=}~save=}
+end-block~neutrino_epg_save_settings
 
 # ------- Neutrino form-data: diverse -------------------------------
 start-block~neutrino_form-data_diverse
@@ -483,29 +628,6 @@ start-block~neutrino_form-data_diverse
 				</td>
 			</tr>
 			<tr>
-				<td colspan="2" width="35%" class="y_form_header">EPG-Einstellungen</td>
-			</tr>
-			<tr>
-				<td>EPG-Cache (Tage)</td>
-				<td><input type="text" name="epg_cache_time" size="5" value="{=ini-get:/var/tuxbox/config/neutrino.conf;epg_cache_time~cache=}" title="EPG cache"/></td>
-			</tr>
-			<tr>
-				<td>EPG-Langtext (Stunden)</td>
-				<td><input type="text" name="epg_extendedcache_time" size="5" value="{=ini-get:/var/tuxbox/config/neutrino.conf;epg_extendedcache_time~cache=}" title="EPG extended cache"/></td>
-			</tr>
-			<tr>
-				<td>EPG verwerfen nach (Std.)</td>
-				<td><input type="text" name="epg_old_events" size="5" value="{=ini-get:/var/tuxbox/config/neutrino.conf;epg_old_events~cache=}" title=""/></td>
-			</tr>
-			<tr>
-				<td>Max. Events</td>
-				<td><input type="text" name="epg_max_events" size="5" value="{=ini-get:/var/tuxbox/config/neutrino.conf;epg_max_events~cache=}" title=""/></td>
-			</tr>
-			<tr>
-				<td>EPG Verzeichnis</td>
-				<td><input type="text" name="epg_dir" size="40" value="{=ini-get:/var/tuxbox/config/neutrino.conf;epg_dir~cache=}" title="epg dircetory"/>&nbsp;e.g. /mnt/mmc/epg/</td>
-			</tr>
-			<tr>
 				<td colspan="2" width="35%" class="y_form_header">Zapit (Hinweis: pzapit -kill vorm Speichern ausf&uuml;hren)</td>
 			</tr>
 				<tr title="save last channel: on/off">
@@ -577,9 +699,7 @@ start-block~neutrino_form-data_diverse
 		<input type="hidden" name="tmpl" value="Y_Settings_neutrino_forms.yhtm"/>
 		<input type="hidden" name="execute" value="include-block:Y_neutrino_Blocks.txt;neutrino_diverse_save_settings;nix"/>
 		<input type="hidden" name="form" value="{=form=}"/>
-		<button type="button" ytype="save" title="{=L:save_values_desc=}s" onclick="do_submit()">{=L:save=}</button>
-		&nbsp;<button type="button" ytype="refresh" onclick="dbox_reload_neutrino()">reload Neutrino</button>
-		&nbsp;<a href="javascript:top.top_main.prim_menu.nav('info', 'Y_Info_Help.yhtm');" class="inlink">{=L:help=}</a>
+		{=include-block:Y_neutrino_Blocks.txt;neutrino_form_submit;nothing=}
 	</form>
 	</div>
 </div>
@@ -643,11 +763,6 @@ end-block~neutrino_form-data_diverse
 start-block~neutrino_diverse_save_settings
 {=ini-set:/var/tuxbox/config/neutrino.conf;channellist_epgtext_align_right;{=epgtext_align_right=}~open=}
 {=ini-set:/var/tuxbox/config/neutrino.conf;channellist_extended;{=channellist_extended=}~cache=}
-{=ini-set:/var/tuxbox/config/neutrino.conf;epg_cache_time;{=epg_cache_time=}~cache=}
-{=ini-set:/var/tuxbox/config/neutrino.conf;epg_dir;{=epg_dir=}~cache=}
-{=ini-set:/var/tuxbox/config/neutrino.conf;epg_extendedcache_time;{=epg_extendedcache_time=}~cache=}
-{=ini-set:/var/tuxbox/config/neutrino.conf;epg_max_events;{=epg_max_events=}~cache=}
-{=ini-set:/var/tuxbox/config/neutrino.conf;epg_old_events;{=epg_old_events=}~cache=}
 {=ini-set:/var/tuxbox/config/neutrino.conf;filebrowser_showrights;{=filebrowser_showrights=}~cache=}
 {=ini-set:/var/tuxbox/config/neutrino.conf;filebrowser_denydirectoryleave;{=filebrowser_denydirectoryleave=}~cache=}
 {=ini-set:/var/tuxbox/config/neutrino.conf;filesystem_is_utf8;{=filesystem_is_utf8=}~cache=}
@@ -673,7 +788,6 @@ start-block~neutrino_diverse_save_settings
 {=ini-set:/var/tuxbox/config/zapit/zapit.conf;startChannelTV;{=startchannel_tv=}~cache=}
 {=ini-set:/var/tuxbox/config/zapit/zapit.conf;makeRemainingChannelsBouquet;{=bouquet_others=}~save=}
 end-block~neutrino_diverse_save_settings
-
 
 # ------- Neutrino form-data: bootoptions -------------------------------
 start-block~neutrino_form-data_bootoptions
@@ -866,9 +980,7 @@ start-block~neutrino_form-data_pictureviewer
 		<input type="hidden" name="tmpl" value="Y_Settings_neutrino_forms.yhtm"/>
 		<input type="hidden" name="execute" value="include-block:Y_neutrino_Blocks.txt;neutrino_pictureviewer_save_settings;nix"/>
 		<input type="hidden" name="form" value="{=form=}"/>
-		<button type="button" ytype="save" title="{=L:save_values_desc=}s" onclick="do_submit()">{=L:save=}</button>
-		&nbsp;<button type="button" ytype="refresh" onclick="dbox_reload_neutrino()">{=L:set.reload_neutrino=}</button>
-		&nbsp;<a href="javascript:top.top_main.prim_menu.nav('info', 'Y_Info_Help.yhtm');" class="inlink">{=L:help=}</a>
+		{=include-block:Y_neutrino_Blocks.txt;neutrino_form_submit;nothing=}
 	</form>
 	</div>
 </div>
@@ -896,7 +1008,7 @@ end-block~neutrino_form-data_pictureviewer
 start-block~neutrino_pictureviewer_save_settings
 {=ini-set:/var/tuxbox/config/neutrino.conf;picviewer_scaling;{=picviewer_scaling=}~open=}
 {=ini-set:/var/tuxbox/config/neutrino.conf;picviewer_slide_time;{=picviewer_slide_time=}~cache=}
-{=ini-set:/var/tuxbox/config/neutrino.conf;network_nfs_picturedir;{=network_nfs_picturedir=}~cache=}
+{=ini-set:/var/tuxbox/config/neutrino.conf;network_nfs_picturedir;{=network_nfs_picturedir=}~save=}
 end-block~neutrino_pictureviewer_save_settings
 
 # ------- Neutrino form-data: audioplayer -------------------------------
@@ -971,9 +1083,7 @@ start-block~neutrino_form-data_audioplayer
 		<input type="hidden" name="tmpl" value="Y_Settings_neutrino_forms.yhtm"/>
 		<input type="hidden" name="execute" value="include-block:Y_neutrino_Blocks.txt;neutrino_audioplayer_save_settings;nix"/>
 		<input type="hidden" name="form" value="{=form=}"/>
-		<button type="button" ytype="save" title="{=L:save_values_desc=}s" onclick="do_submit()">{=L:save=}</button>
-		&nbsp;<button type="button" ytype="refresh" onclick="dbox_reload_neutrino()">{=L:set.reload_neutrino=}</button>
-		&nbsp;<a href="javascript:top.top_main.prim_menu.nav('info', 'Y_Info_Help.yhtm');" class="inlink">{=L:help=}</a>
+		{=include-block:Y_neutrino_Blocks.txt;neutrino_form_submit;nothing=}
 	</form>
 	</div>
 </div>
@@ -1142,9 +1252,7 @@ start-block~neutrino_form-data_direct_recording
 		<input type="hidden" name="tmpl" value="Y_Settings_neutrino_forms.yhtm"/>
 		<input type="hidden" name="execute" value="include-block:Y_neutrino_Blocks.txt;neutrino_direct_recording_save_settings;nix"/>
 		<input type="hidden" name="form" value="{=form=}"/>
-		<button type="button" ytype="save" title="{=L:save_values_desc=}s" onclick="do_submit()">{=L:save=}</button>
-		&nbsp;<button type="button" ytype="refresh" onclick="dbox_reload_neutrino()">reload Neutrino</button>
-		&nbsp;<a href="javascript:top.top_main.prim_menu.nav('info', 'Y_Info_Help.yhtm');" class="inlink">{=L:help=}</a>
+		{=include-block:Y_neutrino_Blocks.txt;neutrino_form_submit;nothing=}
 	</form>
 	</div>
 </div>
@@ -1197,52 +1305,6 @@ start-block~neutrino_direct_recording_save_settings
 {=ini-set:/var/tuxbox/config/neutrino.conf;recording_dir_9;{=recording_dir_9=}~cache=}
 {=ini-set:/var/tuxbox/config/neutrino.conf;recording_dir_permissions_0;{=recording_dir_permissions_0=}~save=}
 end-block~neutrino_direct_recording_save_settings
-
-# ------- Neutrino form-data: esound -------------------------------
-start-block~neutrino_form-data_esound
-<div class="work_box">
-	<div class="work_box_head"><div class="work_box_head_h2">
-	{=var-set:help_url=Help-Settings-Esound_Soundserver=}{=var-set:menu=Esound Soundserver=}{=include-block:Y_Blocks.txt;work_menu=}</div></div>
-	<div class="work_box_body">
-	<form name="f" action="/y/cgi">
-		<table cellspacing="0" border="0" cellpadding="2" width="100%">
-			<tr>
-				<td width="35%">Esound Port</td>
-				<td><input type="text" name="esound_port" size="5" maxlength="5" value="{=ini-get:/var/tuxbox/config/neutrino.conf;esound_port~open=}" title="esound port"/>&nbsp;default: 16001</td>
-			</tr>
-		</table>
-		<br/>
-		<input type="hidden" name="tmpl" value="Y_Settings_neutrino_forms.yhtm"/>
-		<input type="hidden" name="execute" value="include-block:Y_neutrino_Blocks.txt;neutrino_esound_save_settings;nix"/>
-		<input type="hidden" name="form" value="{=form=}"/>
-		<button type="button" ytype="save" title="{=L:save_values_desc=}s" onclick="do_submit()">{=L:save=}</button>
-		&nbsp;<button type="button" ytype="refresh" onclick="dbox_reload_neutrino()">reload Neutrino</button>
-		&nbsp;<a href="javascript:top.top_main.prim_menu.nav('info', 'Y_Info_Help.yhtm');" class="inlink">{=L:help=}</a>
-	</form>
-	</div>
-</div>
-
-<script type="text/javascript">
-//<![CDATA[
-function form_init()
-{
-}
-
-function do_submit()
-{
-	show_waitbox(true);
-	document.f.submit();
-}
-form_init();
-//]]>
-</script>
-end-block~neutrino_form-data_esound
-
-# ------- yWeb save Settings
-start-block~neutrino_esound_save_settings
-{=ini-set:/var/tuxbox/config/neutrino.conf;esound_port;{=esound_port=}=}
-
-end-block~neutrino_esound_save_settings
 
 # ------- list possible directorys for records
 start-block~neutrino_list_record_dirs

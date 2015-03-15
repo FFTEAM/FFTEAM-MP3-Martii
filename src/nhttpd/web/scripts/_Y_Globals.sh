@@ -8,7 +8,7 @@
 # -----------------------------------------------------------
 # Definitions
 # -----------------------------------------------------------
-boxtype="coolstream"
+boxtype="spark"
 # #ifdef MARTII
 # leave "boxtype" alone (it differentiates between N and N-HD,
 # but set "boxhardware" to a somewhat meaningful value.
@@ -18,7 +18,7 @@ boxhardware="spark"
 # -----------------------------------------------------------
 # Pathes
 # -----------------------------------------------------------
-#y_path_httpd="/share/tuxbox/neutrino/httpd-y"
+y_path_httpd="/share/tuxbox/neutrino/httpd"
 y_path_httpd=".."
 y_path_scripts="$y_path_httpd/scripts"
 y_path_usrbin="/var/bin"
