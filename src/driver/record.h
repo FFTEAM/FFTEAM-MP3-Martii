@@ -38,9 +38,11 @@
 
 #if HAVE_COOL_HARDWARE
 #include <record_cs.h>
+#include <driver/vfd.h>
 #endif
 #if HAVE_TRIPLEDRAGON || USE_STB_HAL
 #include <record_td.h>
+#include <driver/display.h>
 #endif
 
 #include <OpenThreads/Mutex>
@@ -56,9 +58,11 @@
 #endif
 
 #define TSHIFT_MODE_OFF		0
-#define TSHIFT_MODE_TEMPORARY	1
-#define TSHIFT_MODE_PERMANENT	2
-#define TSHIFT_MODE_PAUSE	3
+#define TSHIFT_MODE_ON		1
+#define TSHIFT_MODE_PAUSE	2
+#define TSHIFT_MODE_REWIND	3
+
+class CFrontend;
 
 //FIXME
 enum record_error_msg_t
@@ -97,7 +101,7 @@ class CRecordInstance
 		bool		autoshift;
 
 		std::string	Directory;
-		std::string	filename;
+		char		filename[FILENAMEBUFFERSIZE];
 		std::string	rec_stop_msg;
 
 		CMovieInfo *	cMovieInfo;
@@ -128,7 +132,7 @@ class CRecordInstance
 		std::string GetEpgTitle(void) { return epgTitle; };
 		MI_MOVIE_INFO * GetMovieInfo(void) { return recMovieInfo; };
 		void GetRecordString(std::string& str, std::string &dur);
-		const char * GetFileName() { return filename.c_str(); };
+		const char * GetFileName() { return filename; };
 		bool Timeshift() { return autoshift; };
 		int tshift_mode;
 		void SetStopMessage(const char* text) {rec_stop_msg = text;} ;
@@ -202,6 +206,7 @@ class CRecordManager : public CMenuTarget /*, public CChangeObserver*/
 		int  exec(CMenuTarget* parent, const std::string & actionKey);
 		bool StartAutoRecord();
 		bool StopAutoRecord(bool lock = true);
+		void StopAutoTimer();
 
 		MI_MOVIE_INFO * GetMovieInfo(const t_channel_id channel_id, bool timeshift = true);
 		const std::string GetFileName(const t_channel_id channel_id, bool timeshift = true);

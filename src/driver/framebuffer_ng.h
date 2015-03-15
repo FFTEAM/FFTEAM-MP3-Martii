@@ -23,8 +23,8 @@
 */
 
 
-#ifndef __framebuffer__
-#define __framebuffer__
+#ifndef __framebuffer_ng__
+#define __framebuffer_ng__
 #include <config.h>
 
 #include <stdint.h>
@@ -34,19 +34,21 @@
 #include <string>
 #include <map>
 #include <vector>
-#include <OpenThreads/Mutex>
-#include <OpenThreads/ScopedLock>
-#if HAVE_SPARK_HARDWARE
-#include <OpenThreads/Thread>
-#include <OpenThreads/Condition>
-
 #include <pthread.h>
-#endif
 
 #define fb_pixel_t uint32_t
 
 typedef struct fb_var_screeninfo t_fb_var_screeninfo;
 
+typedef struct gradientData_t
+{
+	fb_pixel_t* gradientBuf;
+	fb_pixel_t* boxBuf;
+	bool direction;
+	int mode;
+} gradientData_struct_t;
+
+#define CORNER_NONE		0x0
 #define CORNER_TOP_LEFT		0x1
 #define CORNER_TOP_RIGHT	0x2
 #define CORNER_TOP		0x3
@@ -69,75 +71,8 @@ typedef struct fb_var_screeninfo t_fb_var_screeninfo;
 #if HAVE_GENERIC_HARDWARE
 #define USE_OPENGL 1
 #endif
-#if HAVE_SPARK_HARDWARE
-#  include <linux/stmfb.h>
-#  define DEFAULT_XRES 1280
-#  define DEFAULT_YRES 720
-#endif
 
-class CFrameBuffer;
-class CFbAccel
-#if 0 //HAVE_SPARK_HARDWARE
-	: public OpenThreads::Thread
-#endif
-{
-	private:
-		CFrameBuffer *fb;
-		fb_pixel_t lastcol;
-		OpenThreads::Mutex mutex;
-#ifdef USE_NEVIS_GXA
-		int		  devmem_fd;	/* to access the GXA register we use /dev/mem */
-		unsigned int	  smem_start;	/* as aquired from the fbdev, the framebuffers physical start address */
-		volatile uint8_t *gxa_base;	/* base address for the GXA's register access */
-		void add_gxa_sync_marker(void);
-#endif /* USE_NEVIS_GXA */
-		void setColor(fb_pixel_t col);
-#if 0 //HAVE_SPARK_HARDWARE
-		void run(void);
-		void _blit(void);
-		bool blit_thread;
-		bool blit_pending;
-		OpenThreads::Condition blit_cond;
-		OpenThreads::Mutex blit_mutex;
-#endif
-	public:
-		fb_pixel_t *backbuffer;
-		fb_pixel_t *lbb;
-		CFbAccel(CFrameBuffer *fb);
-		~CFbAccel();
-		void paintPixel(int x, int y, const fb_pixel_t col);
-		void paintRect(const int x, const int y, const int dx, const int dy, const fb_pixel_t col);
-		void paintLine(int xa, int ya, int xb, int yb, const fb_pixel_t col);
-		void blit2FB(void *fbbuff, uint32_t width, uint32_t height, uint32_t xoff, uint32_t yoff, uint32_t xp, uint32_t yp, bool transp);
-		void waitForIdle(void);
-		void mark(int x, int y, int dx, int dy);
-		void blit();
-		void update();
-#ifdef USE_NEVIS_GXA
-		void setupGXA(void);
-#endif
-		int sX, sY, eX, eY;
-		int startX, startY, endX, endY;
-		t_fb_var_screeninfo s;
-		fb_pixel_t borderColor, borderColorOld;
-		void blitArea(int src_width, int src_height, int fb_x, int fb_y, int width, int height);
-		void resChange(void);
-		void blitBB2FB(int fx0, int fy0, int fx1, int fy1, int tx0, int ty0, int tx1, int ty2);
-		void blitFB2FB(int fx0, int fy0, int fx1, int fy1, int tx0, int ty0, int tx1, int ty2);
-		void blitBoxFB(int x0, int y0, int x1, int y1, fb_pixel_t color);
-		void setBorder(int sx, int sy, int ex, int ey);
-		void getBorder(int &sx, int &sy, int &ex, int &ey) { sx = startX, sy = startY, ex = endX, ey = endY;};
-		void setBorderColor(fb_pixel_t col = 0);
-		fb_pixel_t getBorderColor(void) { return borderColor; };
-		void ClearFB(void);
-#if HAVE_SPARK_HARDWARE
-		enum BPApart { BPApart_vid = 0, BPApart_big = 2 };
-		bool allocBPAMem(int &bpa, unsigned char * &mem, size_t s, BPApart bpapart = BPApart_vid);
-		void freeBPAMem(int &bpa, unsigned char * &mem, size_t s);
-		void blitBPA2FB(unsigned char *mem, SURF_FMT fmt, int w, int h, int x = 0, int y = 0, int pan_x = -1, int pan_y = -1, int fb_x = -1, int fb_y = -1, int fb_w = -1, int fb_h = -1, bool transp = false);
-#endif
-};
-
+class CFbAccel;
 /** Ausfuehrung als Singleton */
 class CFrameBuffer
 {
@@ -196,9 +131,24 @@ class CFrameBuffer
 		int cache_size;
 		void * int_convertRGB2FB(unsigned char *rgbbuff, unsigned long x, unsigned long y, int transp, bool alpha);
 		int m_transparent_default, m_transparent;
+
+		inline void paintHLineRelInternal2Buf(const int& x, const int& dx, const int& y, const int& box_dx, const fb_pixel_t& col, fb_pixel_t* buf);
+
 		CFbAccel *accel;
 
 	public:
+		///gradient direction
+		enum {
+			gradientHorizontal,
+			gradientVertical
+		};
+
+		enum {
+			pbrg_noOption = 0x00,
+			pbrg_noPaint  = 0x01,
+			pbrg_noFree   = 0x02
+		};
+
 		fb_pixel_t realcolor[256];
 
 		~CFrameBuffer();
@@ -215,7 +165,7 @@ class CFrameBuffer
 		int getFileHandle() const; //only used for plugins (games) !!
 		t_fb_var_screeninfo *getScreenInfo();
 
-		fb_pixel_t * getFrameBufferPointer(bool real = false); // pointer to framebuffer
+		fb_pixel_t * getFrameBufferPointer() const; // pointer to framebuffer
 		fb_pixel_t * getBackBufferPointer() const;  // pointer to backbuffer
 		unsigned int getStride() const;             // size of a single line in the framebuffer (in bytes)
 		unsigned int getScreenWidth(bool real = false);
@@ -232,7 +182,7 @@ class CFrameBuffer
 		void setBlendMode(uint8_t mode = 1);
 		void setBlendLevel(int level);
 
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 		void setMixerColor(uint32_t mixer_background);
 #endif
 
@@ -248,6 +198,9 @@ class CFrameBuffer
 				*dest = realcolor[color];
 			};
 		void paintPixel(int x, int y, const fb_pixel_t col);
+
+		fb_pixel_t* paintBoxRel2Buf(const int dx, const int dy, const fb_pixel_t col, fb_pixel_t* buf = NULL, int radius = 0, int type = CORNER_ALL);
+		fb_pixel_t* paintBoxRel(const int x, const int y, const int dx, const int dy, const fb_pixel_t col, gradientData_t *gradientData, int radius = 0, int type = CORNER_ALL);
 
 		void paintBoxRel(const int x, const int y, const int dx, const int dy, const fb_pixel_t col, int radius = 0, int type = CORNER_ALL);
 		inline void paintBox(int xa, int ya, int xb, int yb, const fb_pixel_t col) { paintBoxRel(xa, ya, xb - xa, yb - ya, col); }
@@ -306,11 +259,9 @@ class CFrameBuffer
 		void* convertRGBA2FB(unsigned char *rgbbuff, unsigned long x, unsigned long y);
 		void displayRGB(unsigned char *rgbbuff, int x_size, int y_size, int x_pan, int y_pan, int x_offs, int y_offs, bool clearfb = true, int transp = 0xFF);
 		void blit2FB(void *fbbuff, uint32_t width, uint32_t height, uint32_t xoff, uint32_t yoff, uint32_t xp = 0, uint32_t yp = 0, bool transp = false);
-		bool blitToPrimary(unsigned int * data, int dx, int dy, int sw, int sh);
+		void blitBox2FB(const fb_pixel_t* boxBuf, uint32_t width, uint32_t height, uint32_t xoff, uint32_t yoff);
 
-		void mark(int x, int y, int dx, int dy) { accel->mark(x, y, dx, dy); };
-		void blit() { accel->blit(); };
-		void paintMuteIcon(bool paint, int ax, int ay, int dx, int dy, bool paintFrame=true);
+		void mark(int x, int y, int dx, int dy);
 
 		enum 
 			{
@@ -321,36 +272,23 @@ class CFrameBuffer
 			};
 		void SetTransparent(int t){ m_transparent = t; }
 		void SetTransparentDefault(){ m_transparent = m_transparent_default; }
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 		bool OSDShot(const std::string &name);
-
 		enum Mode3D { Mode3D_off = 0, Mode3D_SideBySide, Mode3D_TopAndBottom, Mode3D_Tile, Mode3D_SIZE };
 		void set3DMode(Mode3D);
 		Mode3D get3DMode(void);
-	private:
-		enum Mode3D mode3D;
-
-	public:
-		void blitArea(int src_width, int src_height, int fb_x, int fb_y, int width, int height);
-		void ClearFB(void);
-		void resChange(void);
-		void setBorder(int sx, int sy, int ex, int ey);
-		void getBorder(int &sx, int &sy, int &ex, int &ey);
-		void setBorderColor(fb_pixel_t col = 0);
-		fb_pixel_t getBorderColor(void);
-
-#if HAVE_SPARK_HARDWARE
 	private:
 		bool autoBlitStatus;
 		pthread_t autoBlitThreadId;
 		static void *autoBlitThread(void *arg);
 		void autoBlitThread();
+		enum Mode3D mode3D;
 
 	public:
+		void blitArea(int src_width, int src_height, int fb_x, int fb_y, int width, int height);
 		void autoBlit(bool b = true);
-
-		bool allocBPAMem(int &bpa, unsigned char * &mem, size_t s, CFbAccel::BPApart bpapart = CFbAccel::BPApart_vid) { return accel->allocBPAMem(bpa, mem, s, bpapart); };
-		void freeBPAMem(int &bpa, unsigned char * &mem, size_t s) { accel->freeBPAMem(bpa, mem, s); };
-		void blitBPA2FB(unsigned char *mem, SURF_FMT fmt, int w, int h, int x = 0, int y = 0, int pan_x = -1, int pan_y = -1, int fb_x = -1, int fb_y = -1, int fb_w = -1, int fb_h = -1, int transp = false) { accel->blitBPA2FB(mem, fmt, w, h, x, y, pan_x, pan_y, fb_x, fb_y, fb_w, fb_h, transp); };
+		void ClearFB(void);
+		void resChange(void);
 #endif
 
 // ## AudioMute / Clock ######################################
@@ -393,6 +331,8 @@ class CFrameBuffer
 		void setFbArea(int element, int _x=0, int _y=0, int _dx=0, int _dy=0);
 		void fbNoCheck(bool noCheck) { fb_no_check = noCheck; }
 		void doPaintMuteIcon(bool mode) { do_paint_mute_icon = mode; }
+
+		void blit();
 };
 
 #endif

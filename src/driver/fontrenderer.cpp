@@ -414,10 +414,6 @@ const char *Font::RenderString(int x, int y, const int width, const char *text, 
 	if (!frameBuffer->getActive())
 		return "";
 
-#if HAVE_SPARK_HARDWARE
-	if (x + width + y * DEFAULT_XRES >= DEFAULT_XRES * DEFAULT_YRES)
-		return "";
-#endif
 
 	frameBuffer->checkFbArea(x, y-height, width, height, true);
 

@@ -1004,10 +1004,6 @@ void CRCInput::getMsg_us(neutrino_msg_t * msg, neutrino_msg_data_t * data, uint6
 								*msg  = NeutrinoMessages::EVT_SCAN_REPORT_NUM_SCANNED_TRANSPONDERS;
 								*data = *(unsigned*) p;
 								break;
-							case CZapitClient::EVT_SCAN_REPORT_FREQUENCY:
-								*msg = NeutrinoMessages::EVT_SCAN_REPORT_FREQUENCY;
-								*data = *(unsigned*) p;
-								break;
 							case CZapitClient::EVT_SCAN_FOUND_A_CHAN:
 								*msg = NeutrinoMessages::EVT_SCAN_FOUND_A_CHAN;
 								break;
@@ -1086,6 +1082,10 @@ void CRCInput::getMsg_us(neutrino_msg_t * msg, neutrino_msg_data_t * data, uint6
 								break;
 							case CZapitClient::EVT_BACK_ZAP_COMPLETE:
 								*msg          = NeutrinoMessages::EVT_BACK_ZAP_COMPLETE;
+								*data = (neutrino_msg_data_t) p;
+								break;
+							case CZapitClient::EVT_WEBTV_ZAP_COMPLETE:
+								*msg          = NeutrinoMessages::EVT_WEBTV_ZAP_COMPLETE;
 								*data = (neutrino_msg_data_t) p;
 								break;
 							default:
@@ -1184,6 +1184,13 @@ void CRCInput::getMsg_us(neutrino_msg_t * msg, neutrino_msg_data_t * data, uint6
 					}
 					else if (emsg.initiatorID == CEventServer::INITID_NEUTRINO)
 					{
+						printf("CRCInput::getMsg_us: INITID_NEUTRINO: msg %x size %d data %p\n", (int) emsg.eventID, emsg.dataSize, p);
+						if (emsg.eventID == NeutrinoMessages::EVT_HOTPLUG) {
+							printf("EVT_HOTPLUG: [%s]\n", (char *) p);
+							*msg  = emsg.eventID;
+							*data = (neutrino_msg_data_t) p;
+							dont_delete_p = true;
+						}
 #if 0
 						if ((emsg.eventID == NeutrinoMessages::EVT_RECORDING_ENDED) &&
 								(read_bytes == sizeof(stream2file_status2_t)))

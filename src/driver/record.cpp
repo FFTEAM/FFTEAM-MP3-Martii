@@ -136,6 +136,7 @@ void CRecordInstance::WaitRecMsg(time_t StartTime, time_t WaitTime)
 		usleep(100000);
 }
 
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 void recordingFailureHelper(void *data)
 {
 	CRecordInstance *inst = (CRecordInstance *) data;
@@ -145,6 +146,7 @@ void recordingFailureHelper(void *data)
 	sleep(3);
 	hintBox.hide();
 }
+#endif
 
 int CRecordInstance::GetStatus()
 {
@@ -256,6 +258,7 @@ record_error_msg_t CRecordInstance::Start(CZapitChannel * channel)
 
 	CCamManager::getInstance()->Start(channel->getChannelID(), CCamManager::RECORD);
 
+	//CVFD::getInstance()->ShowIcon(VFD_ICON_CAM1, true);
 	WaitRecMsg(msg_start_time, 2);
 	hintBox.hide();
 	return RECORD_OK;
@@ -266,10 +269,10 @@ bool CRecordInstance::Stop(bool remove_event)
 	char buf[FILENAMEBUFFERSIZE]={0};
 
 	struct stat test;
-	snprintf(buf,sizeof(buf), "%s.xml", filename.c_str());
+	snprintf(buf,sizeof(buf), "%s.xml", filename);
 	if(stat(buf, &test) == 0){
 		recMovieInfo->clear();
-		snprintf(buf,sizeof(buf), "%s.ts", filename.c_str());
+		snprintf(buf,sizeof(buf), "%s.ts", filename);
 		recMovieInfo->file.Name = buf;
 		cMovieInfo->loadMovieInfo(recMovieInfo);//restore user bookmark
 	}
@@ -282,7 +285,7 @@ bool CRecordInstance::Stop(bool remove_event)
 		hintBox.paint();
 
 	printf("%s: channel %" PRIx64 " recording_id %d\n", __func__, channel_id, recording_id);
-	printf("%s: file %s.ts\n", __FUNCTION__, filename.c_str());
+	printf("%s: file %s.ts\n", __FUNCTION__, filename);
 	SaveXml();
 	/* Stop do close fd - if started */
 	record->Stop();
@@ -293,9 +296,9 @@ bool CRecordInstance::Stop(bool remove_event)
         CCamManager::getInstance()->Stop(channel_id, CCamManager::RECORD);
 
         if((autoshift && g_settings.auto_delete) /* || autoshift_delete*/) {
-		snprintf(buf,sizeof(buf), "nice -n 20 rm -f \"%s.ts\" &", filename.c_str());
+		snprintf(buf,sizeof(buf), "nice -n 20 rm -f \"%s.ts\" &", filename);
 		my_system(3, "/bin/sh", "-c", buf);
-		snprintf(buf,sizeof(buf), "%s.xml", filename.c_str());
+		snprintf(buf,sizeof(buf), "%s.xml", filename);
                 //autoshift_delete = false;
                 unlink(buf);
         }
@@ -303,6 +306,7 @@ bool CRecordInstance::Stop(bool remove_event)
 		g_Timerd->stopTimerEvent(recording_id);
 		recording_id = 0;
 	}
+        //CVFD::getInstance()->ShowIcon(VFD_ICON_CAM1, false);
 	WaitRecMsg(end_time, 2);
 	hintBox.hide();
 	return true;
@@ -390,7 +394,7 @@ void CRecordInstance::GetPids(CZapitChannel * channel)
 	for (uint32_t  i = 0; i < channel->getAudioChannelCount(); i++) {
 		CZapitClient::responseGetAPIDs response;
 		response.pid = channel->getAudioPid(i);
-		cstrncpy(response.desc, channel->getAudioChannel(i)->description, sizeof(response.desc));
+		strncpy(response.desc, channel->getAudioChannel(i)->description.c_str(), DESC_MAX_LEN - 1);
 		response.is_ac3 = response.is_aac = response.is_eac3 = 0;
 		if (channel->getAudioChannel(i)->audioChannelType == CZapitAudioChannel::AC3) {
 			response.is_ac3 = 1;
@@ -415,7 +419,7 @@ void CRecordInstance::ProcessAPIDnames()
 			has_unresolved_ctags= true;
 
 		if ( strlen( allpids.APIDs[count].desc ) == 3 )
-			cstrncpy( allpids.APIDs[count].desc, getISO639Description( allpids.APIDs[count].desc ),DESC_MAX_LEN);
+			strncpy( allpids.APIDs[count].desc, getISO639Description( allpids.APIDs[count].desc ),DESC_MAX_LEN -1 );
 
 		if ( allpids.APIDs[count].is_ac3 && !strstr(allpids.APIDs[count].desc, " (AC3)"))
 			strncat(allpids.APIDs[count].desc, " (AC3)", DESC_MAX_LEN - strlen(allpids.APIDs[count].desc) -1);
@@ -432,7 +436,7 @@ void CRecordInstance::ProcessAPIDnames()
 				for(unsigned int j=0; j< allpids.APIDs.size(); j++) {
 					if(allpids.APIDs[j].component_tag == tags[i].componentTag) {
 						if(!tags[i].component.empty()) {
-							cstrncpy(allpids.APIDs[j].desc, tags[i].component, DESC_MAX_LEN);
+							strncpy(allpids.APIDs[j].desc, tags[i].component.c_str(), DESC_MAX_LEN -1);
 							if (allpids.APIDs[j].is_ac3 && !strstr(allpids.APIDs[j].desc, " (AC3)"))
 								strncat(allpids.APIDs[j].desc, " (AC3)", DESC_MAX_LEN - strlen(allpids.APIDs[j].desc)-1);
 							else if (allpids.APIDs[j].is_aac && !strstr(allpids.APIDs[j].desc, " (AAC)"))
@@ -653,9 +657,11 @@ record_error_msg_t CRecordInstance::MakeFileName(CZapitChannel * channel)
 	std::string ext_channel_name;
 	unsigned int pos;
 
+	safe_mkdir(Directory.c_str());
 	if(check_dir(Directory.c_str())) {
 		/* check if Directory and network_nfs_recordingdir the same */
 		if(g_settings.network_nfs_recordingdir != Directory) {
+			safe_mkdir(g_settings.network_nfs_recordingdir.c_str());
 			/* not the same, check network_nfs_recordingdir and return error if not ok */
 			if(check_dir(g_settings.network_nfs_recordingdir.c_str()))
 				return RECORD_INVALID_DIRECTORY;
@@ -668,20 +674,50 @@ record_error_msg_t CRecordInstance::MakeFileName(CZapitChannel * channel)
 
 	// Create filename for recording
 	pos = Directory.size();
-	filename = Directory;
-	if (pos && filename.at(pos - 1) != '/') {
-		filename += "/";
+	strcpy(filename, Directory.c_str());
+
+	if ((pos == 0) || (filename[pos - 1] != '/')) {
+		filename[pos] = '/';
 		pos++;
+		filename[pos] = '\0';
 	}
+	pos = strlen(filename);
+
+	ext_channel_name = channel->getName();
+
+	if (!(ext_channel_name.empty())) {
+		strcpy(&(filename[pos]), UTF8_TO_FILESYSTEM_ENCODING(ext_channel_name.c_str()));
+		ZapitTools::replace_char(&filename[pos]);
+
+		if (!autoshift && g_settings.recording_save_in_channeldir) {
+			struct stat statInfo;
+			int res = stat(filename,&statInfo);
+			if (res == -1) {
+				if (errno == ENOENT) {
+					res = safe_mkdir(filename);
+					if (res == 0)
+						strncat(filename,"/",FILENAMEBUFFERSIZE - strlen(filename) -1);
+					else
+						perror("[vcrcontrol] mkdir");
+				} else
+					perror("[vcrcontrol] stat");
+			} else
+				// directory exists
+				strncat(filename,"/",FILENAMEBUFFERSIZE - strlen(filename)-1);
+		} else
+			strncat(filename, "_",FILENAMEBUFFERSIZE - strlen(filename)-1);
+	}
+
+	pos = strlen(filename) - ((!autoshift && g_settings.recording_save_in_channeldir) ? 0 : (ext_channel_name.length() /*remove last "_"*/ +1));
 
 	std::string ext_file_name = g_settings.recording_filename_template;
 	MakeExtFileName(channel, ext_file_name);
-	filename += ext_file_name;
+	strcpy(&(filename[pos]), UTF8_TO_FILESYSTEM_ENCODING(ext_file_name.c_str()));
 
-	if (autoshift)
-		filename += "_temp";
+	pos = strlen(filename);
 
-	mkdirhier(filename.substr(0, filename.find_last_of('/')).c_str(), 0755);
+	if(autoshift)
+		strncat(filename, "_temp",FILENAMEBUFFERSIZE - strlen(filename)-1);
 
 	return RECORD_OK;
 }
@@ -713,9 +749,9 @@ void CRecordInstance::MakeExtFileName(CZapitChannel * channel, std::string &File
 
 	std::string channel_name = channel->getName();
 	if (!(channel_name.empty())) {
-		std::string b = UTF8_TO_FILESYSTEM_ENCODING(channel_name);
-		ZapitTools::replace_char(b);
-		StringReplace(FilenameTemplate,"%C",b);
+		snprintf(buf, sizeof(buf), UTF8_TO_FILESYSTEM_ENCODING(channel_name.c_str()));
+		ZapitTools::replace_char(buf);
+		StringReplace(FilenameTemplate,"%C",buf);
 	}
 	else
 		StringReplace(FilenameTemplate,"%C","no_channel");
@@ -723,17 +759,17 @@ void CRecordInstance::MakeExtFileName(CZapitChannel * channel, std::string &File
 	CShortEPGData epgdata;
 	if(CEitManager::getInstance()->getEPGidShort(epgid, &epgdata)) {
 		if (!(epgdata.title.empty())) {
-			std::string b = epgdata.title;
-			ZapitTools::replace_char(b);
-			StringReplace(FilenameTemplate,"%T",b);
+			snprintf(buf, sizeof(buf), epgdata.title.c_str());
+			ZapitTools::replace_char(buf);
+			StringReplace(FilenameTemplate,"%T",buf);
 		}
 		else
 			StringReplace(FilenameTemplate,"%T","no_title");
 
 		if (!(epgdata.info1.empty())) {
-			std::string b = epgdata.info1;
-			ZapitTools::replace_char(b);
-			StringReplace(FilenameTemplate,"%I",b);
+			snprintf(buf, sizeof(buf), epgdata.info1.c_str());
+			ZapitTools::replace_char(buf);
+			StringReplace(FilenameTemplate,"%I",buf);
 		}
 		else
 			StringReplace(FilenameTemplate,"%I","no_info");
@@ -751,14 +787,16 @@ void CRecordInstance::GetRecordString(std::string &str, std::string &dur)
 		str = "Unknown channel : " + GetEpgTitle();
 		return;
 	}
+	char stime[15];
 	int err = GetStatus();
+	strftime(stime, sizeof(stime), "%H:%M:%S ", localtime(&start_time));
 	time_t duration = (time(0) - start_time) / 60;
 	char dtime[20];
 	int h = duration / 60;
 	int m = duration - (h * 60);
 	snprintf(dtime, sizeof(dtime), "(%d %s %02d %s)", h, h == 1 ? g_Locale->getText(LOCALE_RECORDING_TIME_HOUR) : g_Locale->getText(LOCALE_RECORDING_TIME_HOURS), 
 							  m, g_Locale->getText(LOCALE_RECORDING_TIME_MIN));
-	str = strftime("%H:%M:%S ", localtime(&start_time)) + channel->getName() + ": " + GetEpgTitle() + ((err & REC_STATUS_OVERFLOW) ? "  [!] " : " ");
+	str = stime + channel->getName() + ": " + GetEpgTitle() + ((err & REC_STATUS_OVERFLOW) ? "  [!] " : " ");
 	dur = dtime;
 }
 
@@ -797,6 +835,9 @@ CRecordManager::~CRecordManager()
 	}
 	nextmap.clear();
 	durations.clear();
+	sm.lock();
+	manager = NULL;
+	sm.unlock();
 }
 
 CRecordManager * CRecordManager::getInstance()
@@ -903,7 +944,7 @@ bool CRecordManager::Record(const t_channel_id channel_id, const char * dir, boo
 	if (CEitManager::getInstance()->getActualEPGServiceKey(channel_id, &epgData )) {
 		eventinfo.epgID = epgData.eventID;
 		eventinfo.epg_starttime = epgData.epg_times.startzeit;
-		cstrncpy(eventinfo.epgTitle, epgData.title, EPG_TITLE_MAXLEN);
+		strncpy(eventinfo.epgTitle, epgData.title.c_str(), EPG_TITLE_MAXLEN-1);
 		eventinfo.epgTitle[EPG_TITLE_MAXLEN-1]=0;
 	}
 	else {
@@ -928,10 +969,10 @@ bool CRecordManager::Record(const CTimerd::RecordingInfo * const eventinfo, cons
 	printf("%s channel_id %" PRIx64 " epg: %" PRIx64 ", apidmode 0x%X\n", __func__,
 	       eventinfo->channel_id, eventinfo->epgID, eventinfo->apids);
 
-	if (g_settings.recording_type == CNeutrinoApp::RECORDING_OFF)
+	if (g_settings.recording_type == CNeutrinoApp::RECORDING_OFF || IS_WEBTV(eventinfo->channel_id))
 		return false;
 
-#if 0 // FIXME test
+#if 1 // FIXME test
 	StopSectionsd = false;
 	if( !recmap.empty() )
 		StopSectionsd = true;
@@ -1038,12 +1079,17 @@ bool CRecordManager::StopAutoRecord(bool lock)
 	return (inst != NULL);
 }
 
+void CRecordManager::StopAutoTimer()
+{
+	g_RCInput->killTimer (shift_timer);
+}
+
 void CRecordManager::StartNextRecording()
 {
 	CTimerd::RecordingInfo * eventinfo = NULL;
 	printf("%s: pending count %d\n", __func__, (int)nextmap.size());
 
-	for(nextmap_iterator_t it = nextmap.begin(); it != nextmap.end();) {
+	for(nextmap_iterator_t it = nextmap.begin(); it != nextmap.end(); it++) {
 		eventinfo = *it;
 		CZapitChannel * channel = CServiceManager::getInstance()->FindChannel(eventinfo->channel_id);
 		if (channel && CFEManager::getInstance()->canTune(channel))
@@ -1052,11 +1098,11 @@ void CRecordManager::StartNextRecording()
 			bool ret = Record(eventinfo);
 			if(ret) {
 				delete[] (unsigned char *) eventinfo;
-				it = nextmap.erase(it);
-				continue;
+				it = nextmap.erase(it++);
+				if (it == nextmap.end())
+					break;
 			}
 		}
-		it++;
 	}
 }
 
@@ -1112,6 +1158,7 @@ void CRecordManager::StopInstance(CRecordInstance * inst, bool remove_event)
 
 	if(inst->Timeshift())
 		autoshift = false;
+		CVFD::getInstance()->ShowIcon(FP_ICON_TIMESHIFT, false);
 
 	delete inst;
 }
@@ -1221,7 +1268,8 @@ int CRecordManager::handleMsg(const neutrino_msg_t msg, neutrino_msg_data_t data
 	else if ((msg == NeutrinoMessages::EVT_TIMER)) {
 		if(data == shift_timer) {
 			shift_timer = 0;
-			StartAutoRecord();
+			if (!FindTimeshift())
+				StartAutoRecord();
 			return messages_return::handled;
 		}
 		else if(data == check_timer) {
@@ -1256,11 +1304,14 @@ void CRecordManager::StartTimeshift()
 		std::string tmode = "ptimeshift"; // already recording, pause
 		bool res = true;
 		t_channel_id live_channel_id = CZapit::getInstance()->GetCurrentChannelID();
+		CVFD::getInstance()->ShowIcon(FP_ICON_TIMESHIFT, true);
+		bool tstarted = false;
 		/* start temporary timeshift if enabled and not running, but dont start second record */
 		if (g_settings.temp_timeshift) {
 			if (!FindTimeshift()) {
 				res = StartAutoRecord();
 				tmode = "timeshift"; // record just started
+				tstarted = true;
 			}
 		}
 		else if (!RecordingStatus(live_channel_id)) {
@@ -1271,9 +1322,7 @@ void CRecordManager::StartTimeshift()
 		if(res)
 		{
 			CMoviePlayerGui::getInstance().exec(NULL, tmode);
-			if(g_settings.temp_timeshift)
-				Stop(live_channel_id);
-			else if (!(g_settings.auto_timeshift && autoshift))
+			if(g_settings.temp_timeshift && tstarted && autoshift)
 				ShowMenu();
 		}
 	}
@@ -1409,12 +1458,12 @@ bool CRecordManager::ShowMenu(void)
 			sprintf(cnt, "%d", i);
 			//define stop key if only one record is running, otherwise define shortcuts
 			neutrino_msg_t rc_key = CRCInput::convertDigitToKey(shortcut++);
-			const char *btn_icon = NEUTRINO_ICON_BUTTON_OKAY;
+			const char * btn_icon = NEUTRINO_ICON_BUTTON_OKAY;
 			if (rec_count == 1){
 				rc_key = CRCInput::RC_stop;
 				btn_icon = NEUTRINO_ICON_BUTTON_STOP;
 			}
-			item = new CMenuForwarder(title, true, durations[i].c_str(), selector, cnt, rc_key, NULL, mode_icon);
+			item = new CMenuForwarder(title.c_str(), true, durations[i].c_str(), selector, cnt, rc_key, NULL, mode_icon);
 			item->setItemButton(btn_icon, true);
 
 			//if only one recording is running, set the focus to this menu item
@@ -1575,18 +1624,19 @@ bool CRecordManager::CutBackNeutrino(const t_channel_id channel_id, CFrontend * 
 
 		/* if allocateFE was successful, full zapTo_serviceID 
 		 * needed, if record frontend same as live, and its on different TP */
-		bool found = (live_fe != frontend) || SAME_TRANSPONDER(live_channel_id, channel_id);
+		bool found = (live_fe != frontend) || IS_WEBTV(live_channel_id) || SAME_TRANSPONDER(live_channel_id, channel_id);
+
+		/* stop all streams on that fe, if we going to change transponder */
+		if (!frontend->sameTsidOnid(channel->getTransponderId()))
+			CStreamManager::getInstance()->StopStream(frontend);
+
 		if(found) {
-			/* stop stream for this channel */
-			CStreamManager::getInstance()->StopStream(channel_id);
 			ret = g_Zapit->zapTo_record(channel_id) > 0;
 			printf("%s found same tp, zapTo_record channel_id %" PRIx64 " result %d\n", __func__, channel_id, ret);
 		}
 		else {
 			printf("%s mode %d last_mode %d getLastMode %d\n", __FUNCTION__, mode, last_mode, CNeutrinoApp::getInstance()->getLastMode());
 			StopAutoRecord(false);
-			/* stop all streams */
-			CStreamManager::getInstance()->StopStream();
 			if (mode != last_mode && (last_mode != NeutrinoMessages::mode_standby || mode != CNeutrinoApp::getInstance()->getLastMode())) {
 				CNeutrinoApp::getInstance()->handleMsg( NeutrinoMessages::CHANGEMODE , mode | NeutrinoMessages::norezap );
 				mode_changed = true;
