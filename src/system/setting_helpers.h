@@ -78,7 +78,7 @@ class CSectionsdConfigNotifier : public CChangeObserver
                 bool changeNotify(const neutrino_locale_t, void * );
 };
 
-#if 0
+#if 1
 class CTouchFileNotifier : public CChangeObserver
 {
 	const char * filename;

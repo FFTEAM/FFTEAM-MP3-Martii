@@ -384,7 +384,7 @@ int CSubtitleChangeExec::exec(CMenuTarget* /*parent*/, const std::string & actio
 			tuxtx_set_pid(pid, page, ptr);
 			tuxtx_main(pid, page);
 		}
-	} else if(is_mp && !strncmp(actionKey.c_str(), "SUB", 3)){
+	} else if (is_mp && !strncmp(actionKey.c_str(), "SUB", 3)) {
 		tuxtx_stop_subtitle();
 		dvbsub_stop();
 		playback->SetSubtitlePid(0);
@@ -424,14 +424,6 @@ int CStreamFeaturesChangeExec::exec(CMenuTarget* parent, const std::string & act
 	if(actionKey == "teletext") {
 		g_RCInput->postMsg(CRCInput::RC_timeout, 0);
 		g_RCInput->postMsg(CRCInput::RC_text, 0);
-#if 0
-		g_RCInput->clearRCMsg();
-		tuxtx_main(frameBuffer->getFrameBufferPointer(), g_RemoteControl->current_PIDs.PIDs.vtxtpid);
-		frameBuffer->paintBackground();
-		if(!g_settings.cacheTXT)
-			tuxtxt_stop();
-		g_RCInput->clearRCMsg();
-#endif
 	}
 	else if (sel>=0)
 	{

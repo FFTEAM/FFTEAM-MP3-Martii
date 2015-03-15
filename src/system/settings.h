@@ -183,6 +183,7 @@ struct SNeutrinoSettings
 	int infobar_show_tuner;
 	int infobar_show_dd_available;
 	int show_background_picture;
+	int wzap_time;
 	//audio
 	int audio_AnalogMode;
 	int audio_DolbyDigital;
@@ -218,6 +219,7 @@ struct SNeutrinoSettings
 	int make_new_list;
 	int make_removed_list;
 	int keep_channel_numbers;
+	int show_empty_favorites;
 	int avsync;
 	int clockrec;
 	int rounded_corners;
@@ -226,7 +228,12 @@ struct SNeutrinoSettings
 	int ci_ignore_messages;
 	int radiotext_enable;
 	std::string radiotext_rass_dir;
-	
+
+	//screen saver
+	int screensaver_delay;
+	std::string screensaver_dir;
+	int screensaver_timeout;
+
 	//vcr
 	int vcr_AutoSwitch;
 
@@ -274,60 +281,65 @@ struct SNeutrinoSettings
 	std::string network_ntprefresh;
 	int network_ntpenable;
 	std::string ifname;
-	
+
 #ifdef ENABLE_GRAPHLCD
-        int		glcd_enable;
-        uint32_t	glcd_color_fg;
-        uint32_t	glcd_color_bg;
-        uint32_t	glcd_color_bar;
-        std::string	glcd_font;
-        int		glcd_percent_channel;
-        int		glcd_percent_epg;
-        int		glcd_percent_bar;
-        int		glcd_percent_time;
-        int		glcd_percent_time_standby;
-        int		glcd_percent_logo;
-        int		glcd_mirror_osd;
-        int		glcd_mirror_video;
-        int		glcd_time_in_standby;
-        int		glcd_show_logo;
-        int		glcd_brightness;
-        int		glcd_brightness_standby;
-        int		glcd_scroll_speed;
+	int glcd_enable;
+	uint32_t glcd_color_fg;
+	uint32_t glcd_color_bg;
+	uint32_t glcd_color_bar;
+	std::string glcd_font;
+	int glcd_percent_channel;
+	int glcd_percent_epg;
+	int glcd_percent_bar;
+	int glcd_percent_time;
+	int glcd_percent_time_standby;
+	int glcd_percent_logo;
+	int glcd_mirror_osd;
+	int glcd_mirror_video;
+	int glcd_time_in_standby;
+	int glcd_show_logo;
+	int glcd_brightness;
+	int glcd_brightness_standby;
+	int glcd_scroll_speed;
 #endif
+
 	//personalize
 	enum PERSONALIZE_SETTINGS  //settings.h
 	{
 		P_MAIN_PINSTATUS,
-		
+
 		//user menu
 		P_MAIN_BLUE_BUTTON,
 		P_MAIN_YELLOW_BUTTON,
 		P_MAIN_GREEN_BUTTON,
 		P_MAIN_RED_BUTTON,
-		
+
 		//main menu
 		P_MAIN_TV_MODE,
 		P_MAIN_TV_RADIO_MODE, //togglemode
 		P_MAIN_RADIO_MODE,
 		P_MAIN_TIMER,
 		P_MAIN_MEDIA,
-		
-		P_MAIN_GAMES,
-		P_MAIN_SCRIPTS,
+
 		P_MAIN_SETTINGS,
 		P_MAIN_SERVICE,
 		P_MAIN_BLUEPANEL,
+		P_MAIN_LUA,
+		P_MAIN_TOOLS,
+		P_MAIN_SCRIPTS,
+		P_MAIN_GAMES,
 		P_MAIN_SLEEPTIMER,
+		P_MAIN_STANDBY,
 		P_MAIN_REBOOT,
 		P_MAIN_SHUTDOWN,
 		P_MAIN_INFOMENU,
 		P_MAIN_CISETTINGS,
-		
+
 		//settings menu
 		P_MSET_SETTINGS_MANAGER,
 		P_MSET_VIDEO,
 		P_MSET_AUDIO,
+		P_MSET_PARENTALLOCK,
 		P_MSET_NETWORK,
 		P_MSET_RECORDING,
 		P_MSET_OSDLANG,
@@ -338,22 +350,22 @@ struct SNeutrinoSettings
 		P_MSET_KEYBINDING,
 		P_MSET_MEDIAPLAYER,
 		P_MSET_MISC,
-		
+
 		//service menu
 		P_MSER_TUNER,
 		P_MSER_SCANTS,
 		P_MSER_RELOAD_CHANNELS,
 		P_MSER_BOUQUET_EDIT,
 		P_MSER_RESET_CHANNELS,
-		P_MSER_RESTART,
-		P_MSER_RELOAD_PLUGINS,
-		P_MSER_SCRIPTS,
 		P_MSER_RESTART_TUNER,
 		P_MSER_RESTART_CAM,
-		P_MSER_BOOT_SPARK,
-		P_MSER_SERVICE_INFOMENU,
+		P_MSER_RELOAD_PLUGINS,
+		P_MSER_SCRIPTS,
 		P_MSER_SOFTUPDATE,
-		
+		P_MSER_RESTART,
+		P_MSER_SERVICE_INFOMENU,
+		P_MSER_BOOT_SPARK,
+
 		//media menu
 		P_MEDIA_MENU,
 		P_MEDIA_AUDIO,
@@ -361,27 +373,33 @@ struct SNeutrinoSettings
 		P_MEDIA_MPLAYER,
 		P_MEDIA_PVIEWER,
 		P_MEDIA_UPNP,
-		
+
 		//movieplayer menu
 		P_MPLAYER_MBROWSER,
 		P_MPLAYER_FILEPLAY,
 		P_MPLAYER_INETPLAY,
 		P_MPLAYER_YTPLAY,
 		P_MPLAYER_NKPLAY,
-		
+
 		//feature keys
 		P_FEAT_KEY_FAVORIT,
 		P_FEAT_KEY_TIMERLIST,
 		P_FEAT_KEY_VTXT,
 		P_FEAT_KEY_RC_LOCK,
-		
+
 		//user menu
 		P_UMENU_SHOW_CANCEL,
 
- 		P_SETTINGS_MAX
+		//plugins types
+		P_UMENU_PLUGIN_TYPE_LUA,
+		P_UMENU_PLUGIN_TYPE_TOOLS,
+		P_UMENU_PLUGIN_TYPE_SCRIPTS,
+		P_UMENU_PLUGIN_TYPE_GAMES,
+
+		P_SETTINGS_MAX
 	};
 
- 	int  personalize[P_SETTINGS_MAX];
+	int  personalize[P_SETTINGS_MAX];
 	std::string personalize_pincode;
 
 	//timing
@@ -396,7 +414,7 @@ struct SNeutrinoSettings
 		TIMING_VOLUMEBAR	= 6,
 		TIMING_FILEBROWSER	= 7,
 		TIMING_NUMERICZAP	= 8,
-		
+
 		TIMING_SETTING_COUNT
 	};
 
@@ -410,6 +428,7 @@ struct SNeutrinoSettings
 	int colored_events_channellist;
 	int colored_events_infobar;
 	int contrast_fonts;
+	int gradiant;
 
 	//network
 #define NETWORK_NFS_NR_OF_ENTRIES 8
@@ -449,6 +468,7 @@ struct SNeutrinoSettings
 	int recording_choose_direct_rec_dir;
 	int recording_epg_for_filename;
 	int recording_epg_for_end;
+	int recording_save_in_channeldir;
 	int recording_zap_on_announce;
 	int recording_slow_warning;
 	int recording_startstop_msg;
@@ -459,7 +479,7 @@ struct SNeutrinoSettings
 	// default plugin for ts-movieplayer (red button)
 	std::string movieplayer_plugin;
 	std::string plugin_hdd_dir;
-	
+
 	std::string logo_hdd_dir;
 	int logo_rename_to_channelname;
 
@@ -576,6 +596,7 @@ struct SNeutrinoSettings
 	int channellist_foot;
 	int channellist_new_zap_mode;
 	int channellist_sort_mode;
+	int channellist_hdicon;
 	int channellist_numeric_adjust;
 	int channellist_show_channellogo;
 	int channellist_show_numbers;
@@ -602,12 +623,6 @@ struct SNeutrinoSettings
 	int screen_StartY_lcd;
 	int screen_EndX_lcd;
 	int screen_EndY_lcd;
-#if HAVE_SPARK_HARDWARE
-	int screen_StartX_int;
-	int screen_StartY_int;
-	int screen_EndX_int;
-	int screen_EndY_int;
-#endif
 	int screen_preset;
 	int screen_width;
 	int screen_height;
@@ -721,10 +736,10 @@ struct SNeutrinoSettings
 	int backlight_standby;
 	int backlight_deepstandby;
 	int lcd_scroll;
-//#define FILESYSTEM_ENCODING_TO_UTF8(a) (g_settings.filesystem_is_utf8 ? (a) : ZapitTools::Latin1_to_UTF8(a).c_str())
-#define FILESYSTEM_ENCODING_TO_UTF8(a) (isUTF8(a) ? (a) : ZapitTools::Latin1_to_UTF8(a))
-#define UTF8_TO_FILESYSTEM_ENCODING(a) (g_settings.filesystem_is_utf8 ? (a) : ZapitTools::UTF8_to_Latin1(a))
-//#define FILESYSTEM_ENCODING_TO_UTF8_STRING(a) (g_settings.filesystem_is_utf8 ? (a) : ZapitTools::Latin1_to_UTF8(a))
+	//#define FILESYSTEM_ENCODING_TO_UTF8(a) (g_settings.filesystem_is_utf8 ? (a) : ZapitTools::Latin1_to_UTF8(a).c_str())
+#define FILESYSTEM_ENCODING_TO_UTF8(a) (isUTF8(a) ? (a) : ZapitTools::Latin1_to_UTF8(a).c_str())
+#define UTF8_TO_FILESYSTEM_ENCODING(a) (g_settings.filesystem_is_utf8 ? (a) : ZapitTools::UTF8_to_Latin1(a).c_str())
+	//#define FILESYSTEM_ENCODING_TO_UTF8_STRING(a) (g_settings.filesystem_is_utf8 ? (a) : ZapitTools::Latin1_to_UTF8(a))
 #define FILESYSTEM_ENCODING_TO_UTF8_STRING(a) (isUTF8(a) ? (a) : ZapitTools::Latin1_to_UTF8(a))
 
 	// pictureviewer
@@ -783,7 +798,7 @@ struct SNeutrinoSettings
 		BUTTON_GREEN = 1,
 		BUTTON_YELLOW = 2,
 		BUTTON_BLUE = 3,
-		BUTTON_MAX
+		BUTTON_MAX   // MUST be always the last in the list
 	} USER_BUTTON;
 	typedef enum
 	{
@@ -802,16 +817,13 @@ struct SNeutrinoSettings
 		ITEM_FAVORITS = 12,
 		ITEM_TECHINFO = 13,
 		ITEM_REMOTE = 14,
-		ITEM_PLUGIN = 15,
+		ITEM_PLUGIN_TYPES = 15,
 		ITEM_IMAGEINFO = 16,
 		ITEM_BOXINFO = 17,
 		ITEM_CAM = 18,
 		ITEM_CLOCK = 19,
 		ITEM_GAMES = 20,
 		ITEM_SCRIPTS = 21,
-#if 0
-		ITEM_MOVIEPLAYER_TS,
-#endif
                 ITEM_ADZAP = 22,
                 ITEM_EMU_RESTART = 23,
                 ITEM_TUNER_RESTART = 24,
@@ -824,10 +836,15 @@ struct SNeutrinoSettings
 		ITEM_HDDMENU = 31,
 		ITEM_AUDIOPLAY = 32,
 		ITEM_INETPLAY = 33,
-		ITEM_TOOLS =34,
+		ITEM_TOOLS = 34,
+		ITEM_LUA = 35,
+		ITEM_NETSETTINGS = 36,
+		ITEM_SWUPDATE = 37,
+#if 0
+		ITEM_MOVIEPLAYER_TS,
+#endif
 		ITEM_MAX   // MUST be always the last in the list
 	} USER_ITEM;
-
 	typedef struct {
 		unsigned int key;
 		std::string items;
@@ -948,20 +965,32 @@ class CScanSettings
 		int		sat_TP_pol;
 		std::string	sat_TP_freq;
 		std::string	sat_TP_rate;
+		int		sat_TP_delsys;
+		int		sat_TP_mod;
+		int		sat_TP_pilot;
 
 		std::string	cableName;
 		int		cable_TP_mod;
 		int		cable_TP_fec;
 		std::string	cable_TP_freq;
 		std::string	cable_TP_rate;
+		int		cable_TP_delsys;
 
-		std::string	terrName;
-		std::string	terr_TP_freq;
+		std::string	terrestrialName;
+		std::string	terrestrial_TP_freq;
+		int		terrestrial_TP_constel;
+		int		terrestrial_TP_bw;
+		int		terrestrial_TP_coderate_HP;
+		int		terrestrial_TP_coderate_LP;
+		int		terrestrial_TP_guard;
+		int		terrestrial_TP_hierarchy;
+		int		terrestrial_TP_transmit_mode;
+		int		terrestrial_TP_delsys;
+
 		CScanSettings();
 
 		bool loadSettings(const char * const fileName);
 		bool saveSettings(const char * const fileName);
 };
-
 
 #endif

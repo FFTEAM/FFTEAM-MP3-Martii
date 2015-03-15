@@ -17,6 +17,7 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir)/lib/libmd5sum \
 	-I$(top_srcdir)/lib/xmltree \
 	-I$(top_srcdir)/lib/jsoncpp/include \
+	@SIGC_CFLAGS@ \
 	@FREETYPE_CFLAGS@ \
 	@HWLIB_CFLAGS@
 
@@ -40,5 +41,4 @@ libneutrino_system_a_SOURCES = \
 	ytparser.cpp \
 	nkparser.cpp \
 	setting_helpers.cpp \
-	localize_bouquetnames.cpp \
 	safe_system.c

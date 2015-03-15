@@ -45,12 +45,15 @@ const struct personalize_settings_t personalize_settings[SNeutrinoSettings::P_SE
 	{"personalize_radio_mode"		, CPersonalizeGui::PERSONALIZE_MODE_VISIBLE}, 
 	{"personalize_timer"			, CPersonalizeGui::PERSONALIZE_MODE_VISIBLE}, 
 	{"personalize_media"			, CPersonalizeGui::PERSONALIZE_MODE_VISIBLE}, 
-	{"personalize_games"			, CPersonalizeGui::PERSONALIZE_MODE_NOTVISIBLE},	
-	{"personalize_scripts"			, CPersonalizeGui::PERSONALIZE_MODE_NOTVISIBLE},
 	{"personalize_settings"			, CPersonalizeGui::PERSONALIZE_PROTECT_MODE_NOT_PROTECTED},
 	{"personalize_service"			, CPersonalizeGui::PERSONALIZE_PROTECT_MODE_NOT_PROTECTED},
 	{"personalize_bluepanel"		, CPersonalizeGui::PERSONALIZE_MODE_VISIBLE},
+	{"personalize_lua"			, CPersonalizeGui::PERSONALIZE_MODE_NOTVISIBLE},
+	{"personalize_tools"			, CPersonalizeGui::PERSONALIZE_MODE_NOTVISIBLE},
+	{"personalize_scripts"			, CPersonalizeGui::PERSONALIZE_MODE_NOTVISIBLE},
+	{"personalize_games"			, CPersonalizeGui::PERSONALIZE_MODE_NOTVISIBLE},	
 	{"personalize_sleeptimer"		, CPersonalizeGui::PERSONALIZE_MODE_VISIBLE}, 
+	{"personalize_standby"			, CPersonalizeGui::PERSONALIZE_MODE_VISIBLE},
 	{"personalize_reboot"			, CPersonalizeGui::PERSONALIZE_MODE_VISIBLE},
 	{"personalize_shutdown"			, CPersonalizeGui::PERSONALIZE_MODE_VISIBLE},
 	{"personalize_infomenu_main"		, CPersonalizeGui::PERSONALIZE_MODE_VISIBLE},
@@ -60,6 +63,7 @@ const struct personalize_settings_t personalize_settings[SNeutrinoSettings::P_SE
 	{"personalize_settingsmager"		, CPersonalizeGui::PERSONALIZE_MODE_VISIBLE},
 	{"personalize_video"			, CPersonalizeGui::PERSONALIZE_MODE_VISIBLE},
 	{"personalize_audio"			, CPersonalizeGui::PERSONALIZE_MODE_VISIBLE},
+	{"personalize_parentallock"		, CPersonalizeGui::PERSONALIZE_MODE_VISIBLE},
 	{"personalize_network"			, CPersonalizeGui::PERSONALIZE_MODE_VISIBLE},
 	{"personalize_recording"		, CPersonalizeGui::PERSONALIZE_MODE_VISIBLE},
 	{"personalize_osdlang"			, CPersonalizeGui::PERSONALIZE_MODE_VISIBLE},
@@ -77,16 +81,15 @@ const struct personalize_settings_t personalize_settings[SNeutrinoSettings::P_SE
 	{"personalize_reload_channels"		, CPersonalizeGui::PERSONALIZE_MODE_VISIBLE},
 	{"personalize_bouquet_edit"		, CPersonalizeGui::PERSONALIZE_MODE_VISIBLE},
 	{"personalize_reset_channels"		, CPersonalizeGui::PERSONALIZE_MODE_VISIBLE}, 
-	{"personalize_restart"			, CPersonalizeGui::PERSONALIZE_MODE_VISIBLE},
-	{"personalize_reload_plugins"		, CPersonalizeGui::PERSONALIZE_MODE_VISIBLE},
-
-	{"personalize_service_scripts"		, CPersonalizeGui::PERSONALIZE_MODE_VISIBLE},
 	{"personalize_restart_tuner"		, CPersonalizeGui::PERSONALIZE_MODE_VISIBLE},
 	{"personalize_restart_cam"		, CPersonalizeGui::PERSONALIZE_MODE_VISIBLE},
-	{"personalize_boot_spark"		, CPersonalizeGui::PERSONALIZE_MODE_VISIBLE},
 
-	{"personalize_infomenu_service"		, CPersonalizeGui::PERSONALIZE_MODE_NOTVISIBLE},
+	{"personalize_reload_plugins"		, CPersonalizeGui::PERSONALIZE_MODE_VISIBLE},
+	{"personalize_service_scripts"		, CPersonalizeGui::PERSONALIZE_MODE_VISIBLE},
 	{"personalize_softupdate"		, CPersonalizeGui::PERSONALIZE_MODE_VISIBLE},
+	{"personalize_restart"			, CPersonalizeGui::PERSONALIZE_MODE_VISIBLE},
+	{"personalize_infomenu_service"		, CPersonalizeGui::PERSONALIZE_MODE_NOTVISIBLE},
+	{"personalize_boot_spark"		, CPersonalizeGui::PERSONALIZE_MODE_VISIBLE},
 	
 	//media menu
 	{"personalize_media_menu"		, CPersonalizeGui::PERSONALIZE_PROTECT_MODE_NOT_PROTECTED},
@@ -111,6 +114,12 @@ const struct personalize_settings_t personalize_settings[SNeutrinoSettings::P_SE
 	
 	//user menu
 	{"personalize_usermenu_show_cancel"	, true},
+
+	//plugin types
+	{"personalize_usermenu_plugin_type_lua"		, false},
+	{"personalize_usermenu_plugin_type_tools"	, false},
+	{"personalize_usermenu_plugin_type_scripts"	, false},
+	{"personalize_usermenu_plugin_type_games"	, false},
 };
 
 CScanSettings::CScanSettings(void)
@@ -140,14 +149,30 @@ bool CScanSettings::loadSettings(const char * const fileName)
 	satName     = configfile.getString("satName", satName);
 	sat_TP_fec  = configfile.getInt32("sat_TP_fec", 1);
 	sat_TP_pol  = configfile.getInt32("sat_TP_pol", 0);
-	sat_TP_freq = configfile.getString("sat_TP_freq", "10100000");
+	sat_TP_freq = configfile.getString("sat_TP_freq", "10700000");
 	sat_TP_rate = configfile.getString("sat_TP_rate", "27500000");
+	sat_TP_mod = configfile.getInt32("sat_TP_mod", QPSK);
+	sat_TP_delsys = configfile.getInt32("sat_TP_delsys", DVB_S);
+	sat_TP_pilot = configfile.getInt32("sat_TP_pilot", ZPILOT_AUTO_SW);
 
 	cableName     = configfile.getString("cableName", cableName);
-	cable_TP_mod  = configfile.getInt32("cable_TP_mod", 3);
+	cable_TP_mod  = configfile.getInt32("cable_TP_mod", QAM_64);
 	cable_TP_fec  = configfile.getInt32("cable_TP_fec", 1);
 	cable_TP_freq = configfile.getString("cable_TP_freq", "369000");
 	cable_TP_rate = configfile.getString("cable_TP_rate", "6875000");
+	cable_TP_delsys = configfile.getInt32("cable_TP_delsys", DVB_C);
+
+	terrestrialName			= configfile.getString("terrestrialName", terrestrialName);
+	terrestrial_TP_constel		= configfile.getInt32("terrestrial_TP_constel", QAM_AUTO);
+	terrestrial_TP_bw		= configfile.getInt32("terrestrial_TP_bw", BANDWIDTH_AUTO);
+	terrestrial_TP_coderate_HP	= configfile.getInt32("terrestrial_TP_coderate_HP", FEC_AUTO);
+	terrestrial_TP_coderate_LP	= configfile.getInt32("terrestrial_TP_coderate_LP", FEC_AUTO);
+	terrestrial_TP_freq		= configfile.getString("terrestrial_TP_freq", "369000");
+	terrestrial_TP_guard		= configfile.getInt32("terrestrial_TP_guard", GUARD_INTERVAL_AUTO);
+	terrestrial_TP_hierarchy	= configfile.getInt32("terrestrial_TP_hierarchy", HIERARCHY_AUTO);
+	terrestrial_TP_transmit_mode	= configfile.getInt32("terrestrial_TP_transmit_mode", TRANSMISSION_MODE_AUTO);
+	terrestrial_TP_delsys		= configfile.getInt32("terrestrial_TP_delsys", DVB_T);
+
 #if 1
 	if(sat_TP_fec == 4) sat_TP_fec = 5;
 #endif
@@ -181,12 +206,27 @@ bool CScanSettings::saveSettings(const char * const fileName)
 	configfile.setInt32("sat_TP_pol", sat_TP_pol);
 	configfile.setString("sat_TP_freq", sat_TP_freq);
 	configfile.setString("sat_TP_rate", sat_TP_rate);
+	configfile.setInt32("sat_TP_delsys", sat_TP_delsys);
+	configfile.setInt32("sat_TP_mod", sat_TP_mod);
+	configfile.setInt32("sat_TP_pilot", sat_TP_pilot);
 
 	configfile.setString("cableName", cableName);
 	configfile.setInt32("cable_TP_fec", cable_TP_fec);
 	configfile.setInt32("cable_TP_mod", cable_TP_mod);
 	configfile.setString("cable_TP_freq", cable_TP_freq);
 	configfile.setString("cable_TP_rate", cable_TP_rate);
+	configfile.setInt32("cable_TP_delsys", cable_TP_delsys);
+
+	configfile.setString("terrestrialName", terrestrialName);
+	configfile.setInt32("terrestrial_TP_constel", terrestrial_TP_constel);
+	configfile.setInt32("terrestrial_TP_bw", terrestrial_TP_bw);
+	configfile.setInt32("terrestrial_TP_coderate_HP", terrestrial_TP_coderate_HP);
+	configfile.setInt32("terrestrial_TP_coderate_LP", terrestrial_TP_coderate_LP);
+	configfile.setString("terrestrial_TP_freq", terrestrial_TP_freq);
+	configfile.setInt32("terrestrial_TP_hierarchy", terrestrial_TP_hierarchy);
+	configfile.setInt32("terrestrial_TP_guard", terrestrial_TP_guard);
+	configfile.setInt32("terrestrial_TP_transmit_mode", terrestrial_TP_transmit_mode);
+	configfile.setInt32("terrestrial_TP_delsys", terrestrial_TP_delsys);
 
 	if(configfile.getModifiedFlag())
 		configfile.saveConfig(fileName);
