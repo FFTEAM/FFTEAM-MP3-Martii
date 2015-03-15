@@ -13,6 +13,7 @@
 #include <stdio.h>
 
 #include <system/set_threadname.h>
+#include <system/helpers.h>
 // yhttpd
 #include "yconfig.h"
 #include <ylogging.h>
@@ -274,7 +275,7 @@ bool Cyhttpd::Configure() {
 		std::string groupname= ConfigList["server.group_name"];
 
 		// get user data
-		if(username != "")
+		if(!username.empty())
 		{
 			if((pwd = getpwnam(username.c_str())) == NULL)
 			{
@@ -283,7 +284,7 @@ bool Cyhttpd::Configure() {
 			}
 		}
 		// get group data
-		if(groupname != "")
+		if(!groupname.empty())
 		{
 			if((grp = getgrnam(groupname.c_str())) == NULL)
 			{
@@ -312,7 +313,7 @@ bool Cyhttpd::Configure() {
 		}
 #endif
 #ifdef Y_CONFIG_FEATURE_HTTPD_USER
-		if(username != "" && pwd != NULL && grp != NULL)
+		if(!username.empty() && pwd != NULL && grp != NULL)
 		{
 			log_level_printf(2, "set user and groups\n");
 
@@ -320,7 +321,7 @@ bool Cyhttpd::Configure() {
 			setgid(grp->gr_gid);
 			setgroups(0, NULL);
 			// set user group
-			if(groupname != "")
+			if(!groupname.empty())
 			initgroups(username.c_str(), grp->gr_gid);
 			// set user
 			if(setuid(pwd->pw_uid) == -1)
@@ -337,7 +338,7 @@ bool Cyhttpd::Configure() {
 // Main Webserver call
 //-----------------------------------------------------------------------------
 void Cyhttpd::run() {
-	set_threadname("Cyhttpd::run");
+	set_threadname(__func__);
 	if (webserver) {
 		if (flag_threading_off)
 			webserver->is_threading = false;
@@ -480,7 +481,7 @@ void Cyhttpd::ReadConfig(void) {
 					HTTPD_STANDARD_PORT));
 			Config->setString("WebsiteMain.directory", OrgConfig.getString(
 					"PrivatDocRoot", PRIVATEDOCUMENTROOT));
-			if (OrgConfig.getString("PublicDocRoot", "") != "")
+			if (!OrgConfig.getString("PublicDocRoot", "").empty())
 				Config->setString("WebsiteMain.override_directory",
 						OrgConfig.getString("PublicDocRoot",
 								PRIVATEDOCUMENTROOT));
@@ -511,7 +512,7 @@ void Cyhttpd::ReadConfig(void) {
 			Config->setInt32("configfile.version", CONF_VERSION);
 			Config->setString("Language.selected", HTTPD_DEFAULT_LANGUAGE);
 			Config->setString("Language.directory", HTTPD_LANGUAGEDIR);
-			if (Config->getString("WebsiteMain.hosted_directory", "") == "")
+			if (Config->getString("WebsiteMain.hosted_directory", "").empty())
 				Config->setString("WebsiteMain.hosted_directory", HOSTEDDOCUMENTROOT);
 			Config->saveConfig(HTTPD_CONFIGFILE);
 		}
@@ -548,7 +549,7 @@ void Cyhttpd::ReadConfig(void) {
 			"WebsiteMain.hosted_directory", HOSTEDDOCUMENTROOT);
 
 	// Check location of logos
-	if (Config->getString("Tuxbox.LogosURL", "") == "") {
+	if (Config->getString("Tuxbox.LogosURL", "").empty()) {
 		if (access(ConfigList["WebsiteMain.override_directory"] + "/logos", R_OK) == 0) {
 			Config->setString("Tuxbox.LogosURL", ConfigList["WebsiteMain.override_directory"] + "/logos");
 			have_config = false; //save config

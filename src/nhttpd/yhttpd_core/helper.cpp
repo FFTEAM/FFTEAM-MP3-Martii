@@ -11,8 +11,6 @@
 #include <sstream>
 #include <iomanip>
 
-#include <system/helpers.h>
-
 // yhttpd
 #include <yconfig.h>
 #include "ytypes_globals.h"
@@ -67,8 +65,12 @@ std::string itoa(unsigned int conv) {
 // convert timer_t to "<hour>:<minutes>" String
 //-------------------------------------------------------------------------
 std::string timeString(time_t time) {
+	char tmp[7] = { '\0' };
 	struct tm *tm = localtime(&time);
-	return strftime("%H:%M", tm);
+	if (strftime(tmp, 6, "%H:%M", tm))
+		return std::string(tmp);
+	else
+		return std::string("??:??");
 }
 //-------------------------------------------------------------------------
 // Printf and return formatet String. Buffer-save!
@@ -201,11 +203,9 @@ std::string decodeString(std::string encodedString) {
 			iStr = strtoul(hex, NULL, 16); /* convert to Hex char */
 			result += (char) iStr;
 			count += 3;
-#if 0
 		} else if (string[count] == '+') {
 			result += ' ';
 			count++;
-#endif
 		} else {
 			result += string[count];
 			count++;
@@ -217,7 +217,6 @@ std::string decodeString(std::string encodedString) {
 // HTMLEncode std::string
 //-----------------------------------------------------------------------------
 std::string encodeString(std::string decodedString) {
-#if 0
 	unsigned int len = sizeof(char) * decodedString.length() * 5 + 1;
 	std::string result(len, '\0');
 	char *newString = (char *) result.c_str();
@@ -240,19 +239,6 @@ std::string encodeString(std::string decodedString) {
 	} else {
 		return "";
 	}
-#else
-	std::string result;
-	for (const char *p = decodedString.c_str(); *p; p++) {
-		if (isalnum(*p))
-			result.push_back(*p);
-		else {
-			char tmp[40];
-			snprintf(tmp, sizeof(tmp), "&#%d;", *p);
-			result.append(tmp);
-		}
-	}
-	return result;
-#endif
 }
 
 //-----------------------------------------------------------------------------

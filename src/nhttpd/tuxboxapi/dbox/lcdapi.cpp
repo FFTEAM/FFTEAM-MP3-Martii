@@ -112,7 +112,7 @@ void CLCDAPI::DrawText(int px, int py, int psize, int pcolor, int pfont, char *p
 		printf("[nhttpd] Kein Font gefunden.\n");
 		return;
 	}
-	font->RenderString(px, py, 130, pmsg, color);
+	font->RenderString(px, py, 130, pmsg, color, 0, true); // UTF-8
 #endif
 }
 
@@ -195,7 +195,7 @@ CLCDAPI::CLCDAPI()
 	{
 		if(font=fontRenderer->getFont(font_name[i], style_name[i], 14))
 		{
-			font->RenderString(10, 10, 30, "X", CLCDDisplay::PIXEL_OFF);
+			font->RenderString(10, 10, 30, "X", CLCDDisplay::PIXEL_OFF, 0, true);
 		}
 	}
 */

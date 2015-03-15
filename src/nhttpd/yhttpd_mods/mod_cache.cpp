@@ -38,7 +38,7 @@ THandleStatus CmodCache::Hook_PrepareResponse(CyhookHandler *hh) {
 
 		// Check if modified
 		time_t if_modified_since = (time_t) - 1;
-		if (hh->HeaderList["If-Modified-Since"] != "") // Have If-Modified-Since Requested by Browser?
+		if (!hh->HeaderList["If-Modified-Since"].empty()) // Have If-Modified-Since Requested by Browser?
 		{
 			struct tm mod;
 			if (strptime(hh->HeaderList["If-Modified-Since"].c_str(),
@@ -86,6 +86,7 @@ THandleStatus CmodCache::Hook_SendResponse(CyhookHandler *hh) {
 				category); // create cache file and add to cache list
 		hh->cached = true;
 		hh->ContentLength = (hh->yresult).length();
+		hh->RangeEnd = (hh->yresult).length()-1;
 		hh->SendFile(CacheList[url].filename); // Send as file
 		hh->ResponseMimeType = CacheList[url].mime_type; // remember mime
 	} else if (hh->UrlData["path"] == "/y/") // /y/ commands
@@ -226,11 +227,11 @@ void CmodCache::yshowCacheInfo(CyhookHandler *hh) {
 //-------------------------------------------------------------------------
 void CmodCache::yCacheClear(CyhookHandler *hh) {
 	std::string result = "";
-	if (hh->ParamList["category"] != "") {
+	if (!hh->ParamList["category"].empty()) {
 		RemoveCategoryFromCache(hh->ParamList["category"]);
 		result = string_printf("Category (%s) removed from cache.</br>",
 				hh->ParamList["category"].c_str());
-	} else if (hh->ParamList["url"] != "") {
+	} else if (!hh->ParamList["url"].empty()) {
 		RemoveURLFromCache(hh->ParamList["url"]);
 		result = string_printf("URL (%s) removed from cache.</br>",
 				hh->ParamList["url"].c_str());

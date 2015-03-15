@@ -29,6 +29,7 @@
 #include <gui/color.h>
 #include <gui/widget/icons.h>
 #include <gui/customcolor.h>
+#include <gui/movieplayer.h>
 #include <daemonc/remotecontrol.h>
 #include <zapit/frontend_c.h>
 #include <video.h>
@@ -189,6 +190,7 @@ void CNeutrinoAPI::ZapToChannelId(t_channel_id channel_id)
 		return;
 	}
 
+	CMoviePlayerGui::getInstance().stopPlayBack();
 	if (Zapit->zapTo_serviceID(channel_id) != CZapitClient::ZAP_INVALID_PARAM)
 		Sectionsd->setServiceChanged(channel_id, false);
 }
@@ -202,6 +204,7 @@ void CNeutrinoAPI::ZapToSubService(const char * const target)
 		SCANF_CHANNEL_ID_TYPE,
 		&channel_id);
 
+	CMoviePlayerGui::getInstance().stopPlayBack();
 	if (Zapit->zapTo_subServiceID(channel_id) != CZapitClient::ZAP_INVALID_PARAM)
 		Sectionsd->setServiceChanged(channel_id, false);
 }
@@ -486,11 +489,24 @@ std::string CNeutrinoAPI::getCryptInfoAsString(void) {
 }
 
 //-------------------------------------------------------------------------
-std::string CNeutrinoAPI::getLogoFile(std::string _logoURL __attribute__((unused)), t_channel_id channelId) {
+std::string CNeutrinoAPI::getLogoFile(std::string _logoURL, t_channel_id channelId) {
+	std::string channelIdAsString = string_printf( PRINTF_CHANNEL_ID_TYPE_NO_LEADING_ZEROS , channelId & 0xFFFFFFFFFFFFULL);
 	std::string channelName = GetServiceName(channelId);
-	std::string logoString;
-	if (g_PicViewer->GetLogoName(channelId, channelName, logoString, NULL, NULL))
-		return logoString;
-	return "";
+//	replace(channelName, " ", "_");
+	_logoURL+="/";
+	if (access((_logoURL + channelName + ".png").c_str(), 4) == 0)
+		return _logoURL + channelName + ".png";
+	else if (access((_logoURL + channelName + ".jpg").c_str(), 4) == 0)
+		return _logoURL + channelName + ".jpg";
+	else if (access((_logoURL + channelName + ".gif").c_str(), 4) == 0)
+		return _logoURL + channelName + ".gif";
+	else if(access((_logoURL + channelIdAsString + ".png").c_str(), 4) == 0)
+		return _logoURL + channelIdAsString + ".png";
+	else if (access((_logoURL + channelIdAsString + ".jpg").c_str(), 4) == 0)
+		return _logoURL + channelIdAsString + ".jpg";
+	else if (access((_logoURL + channelIdAsString + ".gif").c_str(), 4) == 0)
+		return _logoURL + channelIdAsString + ".gif";
+	else
+		return "";
 }
 

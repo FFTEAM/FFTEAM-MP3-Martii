@@ -47,12 +47,12 @@
 //=============================================================================
 #ifndef __yhttpd_yhook_h__
 #define __yhttpd_yhook_h__
+#include <unistd.h>
 // C++
 #include <string>
 #include <list>
 // yhttpd
 #include <yconfig.h>
-#include <sys/types.h>
 #include "ytypes_globals.h"
 #include "ylogging.h"
 // tuxbox

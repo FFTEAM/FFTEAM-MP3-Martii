@@ -63,7 +63,7 @@ THandleStatus CmWebLog::Hook_ReadConfig(CConfigFile *Config, CStringList &) {
 }
 //-----------------------------------------------------------------------------
 bool CmWebLog::OpenLogFile() {
-	if (WebLogFilename == "")
+	if (WebLogFilename.empty())
 		return false;
 	if (WebLogFile == NULL) {
 		bool isNew = false;
@@ -337,7 +337,7 @@ void CmWebLog::AddLogEntry_ELF(CyhookHandler *hh)
 
 	std::string time_taken_request = hh->HookVarList["enlapsed_request"];
 	std::string time_taken_response = hh->HookVarList["enlapsed_response"];
-	long time_taken = atoi(time_taken_request) + atoi(time_taken_response);
+	long time_taken = atoi(time_taken_request.c_str()) + atoi(time_taken_response.c_str());
 
 	printf("%s %s %s \"%s\" %s %d %s %d %ld %s %s %lld\n",
 		c_ip.c_str(),

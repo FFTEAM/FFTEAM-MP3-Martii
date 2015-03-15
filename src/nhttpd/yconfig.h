@@ -46,7 +46,7 @@
 #define Y_CONFIG_USE_YPARSER y					// Add mod: "y-Parsing"
 #define Y_CONFIG_USE_AUTHHOOK y					// Add mod: "Authentication"
 #define Y_CONFIG_USE_WEBLOG y					// Add mod: "WebLogging"
-#define Y_CONFIG_USE_CACHE N					// Add mod: Can cache production pages
+#define Y_CONFIG_USE_CACHE y					// Add mod: Can cache production pages
 #define Y_CONFIG_USE_SENDFILE y					// Add mod: can send static files (mandantory)
 //-----------------------------------------------------------------------------
 // Features & Build
@@ -62,7 +62,7 @@
 //#define Y_CONFIG_FEATURE_CHROOT y				// Add Feature: Use Change Root for Security
 //#define Y_CONFIG_FEATURE_HTTPD_USER y			// Add Feature: Set User for yhttpd-Process
 #define Y_CONFIG_BUILD_AS_DAEMON y				// Build as a Daemon
-#define Y_CONFIG_FEATURE_THREADING y				// Build with possibility for multi threading
+//#define Y_CONFIG_FEATURE_THREADING y				// Build with possibility for multi threading
 //-----------------------------------------------------------------------------
 // Define/Undefine Features forced by CONFIG_SYSTEM_xxx
 // Dependencies
