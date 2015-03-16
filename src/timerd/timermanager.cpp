@@ -36,7 +36,6 @@
 #include <timerdclient/timerdmsg.h>
 #include <sectionsdclient/sectionsdclient.h>
 #include <eitd/sectionsd.h>
-#include <system/helpers.h>
 #include <system/set_threadname.h>
 
 #include <vector>
@@ -279,13 +278,22 @@ bool CTimerManager::stopEvent(int peventID)
 	return res;
 }
 
+int CTimerManager::lockEvents()
+{
+	return pthread_mutex_lock(&tm_eventsMutex);
+}
+
 //------------------------------------------------------------
+int CTimerManager::unlockEvents()
+{
+	return pthread_mutex_unlock(&tm_eventsMutex);
+}
+
 bool CTimerManager::listEvents(CTimerEventMap &Events)
 {
 	if(!&Events)
 		return false;
 
-	pthread_mutex_lock(&tm_eventsMutex);
 
 	Events.clear();
 	for (CTimerEventMap::iterator pos = events.begin(); pos != events.end(); ++pos)
@@ -293,7 +301,6 @@ bool CTimerManager::listEvents(CTimerEventMap &Events)
 		pos->second->Refresh();
 		Events[pos->second->eventID] = pos->second;
 	}
-	pthread_mutex_unlock(&tm_eventsMutex);
 	return true;
 }
 //------------------------------------------------------------
@@ -342,13 +349,19 @@ int CTimerManager::modifyEvent(int peventID, time_t announceTime, time_t alarmTi
 				break;
 			case CTimerd::TIMER_RECORD:
 			{
-				(static_cast<CTimerEvent_Record*>(event))->recordingDir = data.recordingDir;
-				(static_cast<CTimerEvent_Record*>(event))->getEpgId();
+				CTimerEvent_Record *event_record = static_cast<CTimerEvent_Record*>(event);
+				event_record->recordingDir = data.recordingDir;
+				event_record->eventInfo.epgID = 0;
+				event_record->eventInfo.epg_starttime = 0;
+				event_record->getEpgId();
 				break;
 			}
 			case CTimerd::TIMER_ZAPTO:
 			{
-				(static_cast<CTimerEvent_Zapto*>(event))->getEpgId(); 
+				CTimerEvent_Zapto *event_zapto = static_cast<CTimerEvent_Zapto*>(event);
+				event_zapto->eventInfo.epgID = 0;
+				event_zapto->eventInfo.epg_starttime = 0;
+				event_zapto->getEpgId();
 				break;
 			}
 			default:
@@ -417,10 +430,10 @@ void CTimerManager::loadEventsFromConfig()
 {
 	CConfigFile config(',');
 
-	if(!config.loadConfig(CONFIGFILE))
+	if(!config.loadConfig(TIMERDCONFIGFILE))
 	{
 		/* set defaults if no configuration file exists */
-		dprintf("%s not found\n", CONFIGFILE);
+		dprintf("%s not found\n", TIMERDCONFIGFILE);
 	}
 	else
 	{
@@ -627,13 +640,13 @@ void CTimerManager::loadRecordingSafety()
 {
 	CConfigFile config(',');
 
-	if(!config.loadConfig(CONFIGFILE))
+	if(!config.loadConfig(TIMERDCONFIGFILE))
 	{
 		/* set defaults if no configuration file exists */
-		dprintf("%s not found\n", CONFIGFILE);
+		dprintf("%s not found\n", TIMERDCONFIGFILE);
 		m_extraTimeStart = 300;
 		m_extraTimeEnd = 300;
-		config.saveConfig(CONFIGFILE);
+		config.saveConfig(TIMERDCONFIGFILE);
 	}
 	else
 	{
@@ -707,8 +720,8 @@ void CTimerManager::saveEventsToConfig()
 	dprintf("setting EXTRA_TIME_START to %d\n",m_extraTimeStart);
 	config.setInt32 ("EXTRA_TIME_END", m_extraTimeEnd);
 	dprintf("setting EXTRA_TIME_END to %d\n",m_extraTimeEnd);
-	dprintf("now saving config to %s...\n",CONFIGFILE);
-	config.saveConfig(CONFIGFILE);
+	dprintf("now saving config to %s...\n",TIMERDCONFIGFILE);
+	config.saveConfig(TIMERDCONFIGFILE);
 	dprintf("config saved!\n");
 	m_saveEvents=false;
 
@@ -781,7 +794,7 @@ void CTimerManager::shutdownOnWakeup(int currEventID)
 {
 	time_t nextAnnounceTime=0;
 	pthread_mutex_lock(&tm_eventsMutex);
-	if(!*wakeup) {
+	if(!wakeup) {
 		pthread_mutex_unlock(&tm_eventsMutex);
 		return;
 	}
@@ -810,7 +823,7 @@ void CTimerManager::shutdownOnWakeup(int currEventID)
 		dprintf("Programming shutdown event\n");
 		CTimerEvent_Shutdown* event = new CTimerEvent_Shutdown(now+120, now+180);
 		shutdown_eventID = addEvent(event);
-		*wakeup = false;
+		wakeup = false;
 	}
 	pthread_mutex_unlock(&tm_eventsMutex);
 }
@@ -822,7 +835,7 @@ void CTimerManager::cancelShutdownOnWakeup()
 		removeEvent(shutdown_eventID);
 		shutdown_eventID = -1;
 	}
-	*wakeup = false;
+	wakeup = false;
 	pthread_mutex_unlock(&tm_eventsMutex);
 }
 
@@ -1172,8 +1185,7 @@ CTimerEvent_Record::CTimerEvent_Record(time_t announce_Time, time_t alarm_Time, 
 				       event_id_t epgID,
 				       time_t epg_starttime, unsigned char apids,
 				       CTimerd::CTimerEventRepeat evrepeat,
-				       uint32_t repeatcount, const std::string &recDir,
-				       bool _recordingSafety, bool _autoAdjustToEPG) :
+				       uint32_t repeatcount, const std::string &recDir) :
 	CTimerEvent(getEventType(), announce_Time, alarm_Time, stop_Time, evrepeat, repeatcount)
 {
 	eventInfo.epgID = epgID;
@@ -1182,8 +1194,6 @@ CTimerEvent_Record::CTimerEvent_Record(time_t announce_Time, time_t alarm_Time, 
 	eventInfo.apids = apids;
 	recordingDir = recDir;
 	epgTitle="";
-	autoAdjustToEPG = _autoAdjustToEPG;
-	recordingSafety = _recordingSafety;
 	CShortEPGData epgdata;
 	if (CEitManager::getInstance()->getEPGidShort(epgID, &epgdata))
 		epgTitle=epgdata.title;
@@ -1213,23 +1223,15 @@ CTimerEvent_Record::CTimerEvent_Record(CConfigFile *config, int iId):
 
 	epgTitle = config->getString("EPG_TITLE_"+id);
 	dprintf("read EPG_TITLE_%s %s (%p)\n",id.c_str(),epgTitle.c_str(),&epgTitle);
-
-	recordingSafety = config->getInt32("RECORDING_SAFETY_"+id, true);
-	dprintf("read RECORDING_SAFETY_%s %d\n",id.c_str(), recordingSafety);
-
-	autoAdjustToEPG = config->getInt32("EPG_AUTO_ADJUST_"+id, true);
-	dprintf("read EPG_AUTO_ADJUST_TO_EPG_%s %d\n",id.c_str(), autoAdjustToEPG);
 }
 //------------------------------------------------------------
 void CTimerEvent_Record::fireEvent()
 {
-	if (adjustToCurrentEPG())
-		return;
 	Refresh();
 	CTimerd::RecordingInfo ri=eventInfo;
 	ri.eventID=eventID;
-	cstrncpy(ri.recordingDir, recordingDir, sizeof(ri.recordingDir));
-	cstrncpy(ri.epgTitle, epgTitle, sizeof(ri.epgTitle));
+	strcpy(ri.recordingDir, recordingDir.substr(0,sizeof(ri.recordingDir)-1).c_str());
+	strcpy(ri.epgTitle, epgTitle.substr(0,sizeof(ri.epgTitle)-1).c_str());
 	CTimerManager::getInstance()->getEventServer()->sendEvent(CTimerdClient::EVT_RECORD_START,
 								  CEventServer::INITID_TIMERD,
 								  &ri,
@@ -1239,14 +1241,11 @@ void CTimerEvent_Record::fireEvent()
 //------------------------------------------------------------
 void CTimerEvent_Record::announceEvent()
 {
-	if (adjustToCurrentEPG())
-		return;
 	Refresh();
 	CTimerd::RecordingInfo ri=eventInfo;
 	ri.eventID=eventID;
-	cstrncpy(ri.recordingDir, recordingDir, sizeof(ri.recordingDir));
-	cstrncpy(ri.epgTitle, epgTitle, sizeof(ri.epgTitle));
-	ri.epgTitle[sizeof(ri.epgTitle) - 1] = 0;
+	strcpy(ri.recordingDir, recordingDir.substr(0,sizeof(ri.recordingDir)-1).c_str());
+	strcpy(ri.epgTitle, epgTitle.substr(0,sizeof(ri.epgTitle)-1).c_str());
 	CTimerManager::getInstance()->getEventServer()->sendEvent(CTimerdClient::EVT_ANNOUNCE_RECORD, CEventServer::INITID_TIMERD,
 								  &ri,sizeof(CTimerd::RecordingInfo));
 	dprintf("Record announcement\n");
@@ -1290,12 +1289,6 @@ void CTimerEvent_Record::saveToConfig(CConfigFile *config)
 
 	config->setString("EPG_TITLE_"+id,epgTitle);
 	dprintf("set EPG_TITLE_%s to %s (%p)\n",id.c_str(),epgTitle.c_str(), &epgTitle);
-
-	config->setInt32("RECORDING_SAFETY_"+id, recordingSafety);
-	dprintf("set RECORDING_SAFETY_%s to %d\n",id.c_str(), recordingSafety);
-
-	config->setInt32("EPG_AUTO_ADJUST_"+id, autoAdjustToEPG);
-	dprintf("set EPG_AUTO_ADJUST_TO_EPG_%s to %d\n",id.c_str(), autoAdjustToEPG);
 }
 //------------------------------------------------------------
 void CTimerEvent_Record::Reschedule()
@@ -1337,47 +1330,6 @@ void CTimerEvent_Record::Refresh()
 	if (eventInfo.epgID == 0)
 		getEpgId();
 }
-//------------------------------------------------------------
-bool CTimerEvent_Record::adjustToCurrentEPG()
-{
-	if (!autoAdjustToEPG)
-		return false;
-
-	CChannelEventList evtlist;
-	CEitManager::getInstance()->getEventsServiceKey(eventInfo.channel_id, evtlist);
-
-	time_t now = time(NULL);
-	CChannelEventList::iterator first = evtlist.end();
-	for (CChannelEventList::iterator e = evtlist.begin(); e != evtlist.end(); ++e)
-	{
-		if (e->startTime <  now)
-			continue;
-		if (first == evtlist.end() || first->startTime > e->startTime)
-			first = e;
-		if (alarmTime <= e->startTime && e->startTime + (int)e->duration <= stopTime)
-			return false;
-	}
-	if (first == evtlist.end())
-		return false;
-
-	time_t _announceTime = first->startTime - (alarmTime - announceTime);
-	time_t _alarmTime = first->startTime;
-	time_t _stopTime = first->startTime + first->duration;
-	if (recordingSafety) {
-		int pre, post;
-		CTimerManager::getInstance()->getRecordingSafety(pre, post);
-		_alarmTime -= pre;
-		_stopTime += post;
-	}
-
-	CTimerEvent_Record *event= new CTimerEvent_Record(_announceTime, _alarmTime, _stopTime,
-						          eventInfo.channel_id, eventInfo.epgID, first->startTime, eventInfo.apids,
-				       			  CTimerd::TIMERREPEAT_ONCE, 1, recordingDir, recordingSafety, autoAdjustToEPG);
-	CTimerManager::getInstance()->addEvent(event,false);
-	setState(CTimerd::TIMERSTATE_HASFINISHED);
-
-	return true;
-}
 //=============================================================
 // Zapto Event
 //=============================================================
@@ -1387,7 +1339,7 @@ void CTimerEvent_Zapto::announceEvent()
 	CTimerd::RecordingInfo ri=eventInfo;
 	ri.eventID=eventID;
 	ri.recordingDir[0] = 0;
-	cstrncpy(ri.epgTitle, epgTitle, sizeof(ri.epgTitle));
+	strcpy(ri.epgTitle, epgTitle.substr(0,sizeof(ri.epgTitle)-1).c_str());
 
 	CTimerManager::getInstance()->getEventServer()->sendEvent(CTimerdClient::EVT_ANNOUNCE_ZAPTO,
 								  CEventServer::INITID_TIMERD,
@@ -1396,6 +1348,9 @@ void CTimerEvent_Zapto::announceEvent()
 //------------------------------------------------------------
 void CTimerEvent_Zapto::fireEvent()
 {
+	if(CTimerdClient::adzap_eventID == eventID)
+		CTimerdClient::adzap_eventID = 0;//reset adzap flag
+
 	CTimerManager::getInstance()->getEventServer()->sendEvent(CTimerdClient::EVT_ZAPTO,
 								  CEventServer::INITID_TIMERD,
 								  &eventInfo,
@@ -1520,7 +1475,8 @@ CTimerEvent_Remind::CTimerEvent_Remind(time_t announce_Time,
 				       uint32_t repeatcount) :
 	CTimerEvent(CTimerd::TIMER_REMIND, announce_Time, alarm_Time, (time_t) 0, evrepeat,repeatcount)
 {
-	cstrncpy(message, msg, sizeof(message));
+	memset(message, 0, sizeof(message));
+	strncpy(message, msg, sizeof(message)-1);
 }
 //------------------------------------------------------------
 CTimerEvent_Remind::CTimerEvent_Remind(CConfigFile *config, int iId):
@@ -1529,7 +1485,7 @@ CTimerEvent(CTimerd::TIMER_REMIND, config, iId)
 	std::stringstream ostr;
 	ostr << iId;
 	std::string id=ostr.str();
-	cstrncpy(message, config->getString("MESSAGE_"+id), sizeof(message));
+	strcpy(message, config->getString("MESSAGE_"+id).c_str());
 	dprintf("read MESSAGE_%s %s (%p)\n",id.c_str(),message,message);
 }
 //------------------------------------------------------------
@@ -1562,7 +1518,8 @@ CTimerEvent_ExecPlugin::CTimerEvent_ExecPlugin(time_t announce_Time,
 					       uint32_t repeatcount) :
 	CTimerEvent(CTimerd::TIMER_EXEC_PLUGIN, announce_Time, alarm_Time, (time_t) 0, evrepeat,repeatcount)
 {
-	cstrncpy(name, plugin, sizeof(name));
+	memset(name, 0, sizeof(name));
+	strncpy(name, plugin, sizeof(name)-1);
 }
 //------------------------------------------------------------
 CTimerEvent_ExecPlugin::CTimerEvent_ExecPlugin(CConfigFile *config, int iId):
@@ -1571,7 +1528,7 @@ CTimerEvent(CTimerd::TIMER_EXEC_PLUGIN, config, iId)
 	std::stringstream ostr;
 	ostr << iId;
 	std::string id=ostr.str();
-	cstrncpy(name, config->getString("NAME_"+id), sizeof(name));
+	strcpy(name, config->getString("NAME_"+id).c_str());
 	dprintf("read NAME_%s %s (%p)\n",id.c_str(),name,name);
 }
 //------------------------------------------------------------
@@ -1594,15 +1551,3 @@ void CTimerEvent_ExecPlugin::saveToConfig(CConfigFile *config)
 	dprintf("set NAME_%s to %s (%p)\n",id.c_str(),name,name);
 
 }
-
-//=============================================================
-// BatchEPG Event
-//=============================================================
-void CTimerEvent_BatchEPG::fireEvent()
-{
-	dprintf("BatchEPG Timer fired\n");
-	//event in neutrinos remoteq. schreiben
-	CTimerManager::getInstance()->getEventServer()->sendEvent(CTimerdClient::EVT_BATCHEPG,
-								  CEventServer::INITID_TIMERD);
-}
-//=============================================================

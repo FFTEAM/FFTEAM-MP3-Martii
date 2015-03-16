@@ -34,7 +34,6 @@
 #include <gui/infoviewer.h>
 #include <gui/epgplus.h>
 #include <gui/epgview.h>
-#include <gui/followscreenings.h>
 #include <sectionsdclient/sectionsdclient.h>
 #include <timerdclient/timerdclient.h>
 
@@ -1083,16 +1082,9 @@ int EpgPlus::exec (CChannelList * pchannelList, int selectedChannelIndex, CBouqu
 						{
 							TCChannelEventEntries::const_iterator It = this->getSelectedEvent();
 
-							time_t endtime = (*It)->channelEvent.startTime + (*It)->channelEvent.duration;
-XXX:
 							if ((It != this->selectedChannelEntry->channelEventEntries.end() - 1)
 									&& (It != this->selectedChannelEntry->channelEventEntries.end())) {
 								++It;
-								if((*It)->channelEvent.startTime < endtime) {
-									// overlapping epg entries. While the "goto" is certainly ugly, it's least invasive
-									++It;
-									goto XXX;
-								}
 
 								this->selectedTime = (*It)->channelEvent.startTime + (*It)->channelEvent.duration / 2;
 
@@ -1214,8 +1206,11 @@ void EpgPlus::paintChannelEntry (int position)
 
 std::string EpgPlus::getTimeString (const time_t & time, const std::string & format)
 {
+	char tmpstr[256];
 	struct tm *tmStartTime = localtime (&time);
-	return strftime (format.c_str(), tmStartTime);
+
+	strftime (tmpstr, sizeof (tmpstr), format.c_str(), tmStartTime);
+	return tmpstr;
 }
 
 void EpgPlus::paint()
@@ -1309,11 +1304,6 @@ EpgPlus::MenuTargetAddRecordTimer::MenuTargetAddRecordTimer (EpgPlus * pepgPlus)
 	this->epgPlus = pepgPlus;
 }
 
-static bool sortByDateTime (const CChannelEvent& a, const CChannelEvent& b)
-{
-	return a.startTime < b.startTime;
-}
-
 int EpgPlus::MenuTargetAddRecordTimer::exec (CMenuTarget * /*parent*/, const std::string & /*actionKey*/)
 {
 	TCChannelEventEntries::const_iterator It = this->epgPlus->getSelectedEvent();
@@ -1322,14 +1312,11 @@ int EpgPlus::MenuTargetAddRecordTimer::exec (CMenuTarget * /*parent*/, const std
 			&& (!(*It)->channelEvent.description.empty())
 	   ) {
 		if (g_Timerd->isTimerdAvailable()) {
-			CChannelEventList evtlist;
-			CEitManager::getInstance()->getEventsServiceKey(this->epgPlus->selectedChannelEntry->channel->channel_id, evtlist);
-			sort(evtlist.begin(),evtlist.end(),sortByDateTime);
-			CFollowScreenings m(this->epgPlus->selectedChannelEntry->channel->channel_id,
-				(*It)->channelEvent.startTime,
-				(*It)->channelEvent.startTime + (*It)->channelEvent.duration,
-				(*It)->channelEvent.description, (*It)->channelEvent.eventID, TIMERD_APIDS_CONF, true, "", &evtlist);
-			m.exec(NULL, "");
+
+			g_Timerd->addRecordTimerEvent (this->epgPlus->selectedChannelEntry->channel->getChannelID(), (*It)->channelEvent.startTime, (*It)->channelEvent.startTime + (*It)->channelEvent.duration, (*It)->channelEvent.eventID, (*It)->channelEvent.startTime, (*It)->channelEvent.startTime - (ANNOUNCETIME + 120)
+						       , TIMERD_APIDS_CONF, true);
+			ShowMsg (LOCALE_TIMER_EVENTRECORD_TITLE, g_Locale->getText (LOCALE_TIMER_EVENTRECORD_MSG)
+				    , CMessageBox::mbrBack, CMessageBox::mbBack, NEUTRINO_ICON_INFO);	// UTF-8
 		} else
 			printf ("timerd not available\n");
 	}

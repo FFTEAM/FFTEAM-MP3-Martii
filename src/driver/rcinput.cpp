@@ -157,6 +157,7 @@ CRCInput::CRCInput(bool &_timer_wakeup)
 	repeat_block = repeat_block_generic = 0;
 	open();
 	rc_last_key =  KEY_MAX;
+	firstKey = true;
 	longPressEnd = 0;
 
 	//select and setup remote control hardware
@@ -648,7 +649,7 @@ void CRCInput::getMsg_us(neutrino_msg_t * msg, neutrino_msg_data_t * data, uint6
 #ifdef KEYBOARD_INSTEAD_OF_REMOTE_CONTROL
 		if (FD_ISSET(fd_keyb, &rfds))
 		{
-			int trkey;
+			uint32_t trkey;
 			char key = 0;
 			read(fd_keyb, &key, sizeof(key));
 
@@ -1172,11 +1173,6 @@ void CRCInput::getMsg_us(neutrino_msg_t * msg, neutrino_msg_data_t * data, uint6
 								*data = (unsigned long) p;
 								dont_delete_p = true;
 								break;
-							case CTimerdClient::EVT_BATCHEPG :
-								*msg = NeutrinoMessages::EVT_BATCHEPG;
-								*data = 0;
-								break;
-
 							default :
 								printf("[neutrino] event INITID_TIMERD - unknown eventID 0x%x\n",  emsg.eventID );
 
@@ -1259,6 +1255,10 @@ void CRCInput::getMsg_us(neutrino_msg_t * msg, neutrino_msg_data_t * data, uint6
 				if (ev.type == EV_SYN)
 					continue; /* ignore... */
 				SHTDCNT::getInstance()->resetSleepTimer();
+				if (ev.value && firstKey) {
+					firstKey = false;
+					CTimerManager::getInstance()->cancelShutdownOnWakeup();
+				}
 				uint32_t trkey = translate(ev.code);
 #ifdef _DEBUG
 				printf("%d key: %04x value %d, translate: %04x -%s-\n", ev.value, ev.code, ev.value, trkey, getKeyName(trkey).c_str());
@@ -1316,7 +1316,7 @@ void CRCInput::getMsg_us(neutrino_msg_t * msg, neutrino_msg_data_t * data, uint6
 					if (trkey == rc_last_key) {
 						/* only allow selected keys to be repeated */
 						if (mayRepeat(trkey, bAllowRepeatLR) ||
-						    (g_settings.shutdown_real_rcdelay && (trkey == RC_standby) && (g_info.hw_caps->can_shutdown)))
+							(g_settings.shutdown_real_rcdelay && ((trkey == RC_standby) && (g_info.hw_caps->can_shutdown))))
 						{
 #ifdef ENABLE_REPEAT_CHECK
 							if (rc_last_repeat_key != trkey) {
@@ -1346,6 +1346,12 @@ void CRCInput::getMsg_us(neutrino_msg_t * msg, neutrino_msg_data_t * data, uint6
 						{
 							last_keypress = now_pressed;
 
+							FILE* rclocked = fopen("/tmp/rc.locked", "r");
+							if (rclocked)
+							{
+								fclose(rclocked);
+								continue;
+							}
 							*msg = trkey;
 							*data = 0; /* <- button pressed */
 							if(g_settings.key_click)

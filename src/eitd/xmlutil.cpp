@@ -129,7 +129,7 @@ bool checkNoDVBTimelist(t_channel_id channel_id)
 	return false;
 }
 
-static void addEPGFilter(t_original_network_id onid, t_transport_stream_id tsid, t_service_id sid)
+void addEPGFilter(t_original_network_id onid, t_transport_stream_id tsid, t_service_id sid)
 {
 	if (!checkEPGFilter(onid, tsid, sid))
 	{
@@ -141,6 +141,18 @@ static void addEPGFilter(t_original_network_id onid, t_transport_stream_id tsid,
 		node->next = CurrentEPGFilter;
 		CurrentEPGFilter = node;
 	}
+}
+
+void clearEPGFilter()
+{
+	EPGFilter *filterptr = CurrentEPGFilter;
+	while (filterptr)
+	{
+		EPGFilter *filternext = filterptr->next;
+		delete filterptr;
+		filterptr = filternext;
+	}
+	CurrentEPGFilter = NULL;
 }
 
 static void addBlacklist(t_original_network_id onid, t_transport_stream_id tsid, t_service_id sid)
@@ -181,7 +193,7 @@ static void addNoDVBTimelist(t_original_network_id onid, t_transport_stream_id t
 	}
 }
 
-void readEPGFilter(void)
+bool readEPGFilter(void)
 {
 	xmlDocPtr filter_parser = parseXmlFile(epg_filter_dir.c_str());
 
@@ -214,6 +226,7 @@ void readEPGFilter(void)
 		}
 	}
 	xmlFreeDoc(filter_parser);
+	return (CurrentEPGFilter != NULL);
 }
 
 void readDVBTimeFilter(void)
@@ -347,23 +360,25 @@ void *insertEventsfromFile(void * data)
 						e.setText(ZapitTools::UTF8_to_Latin1(xmlGetAttribute(node, "lang")), s);
 					node = node->xmlNextNode;
 				}
-#ifdef USE_ITEM_DESCRIPTION
 				node = event->xmlChildrenNode;
 				while ((node = xmlGetNextOccurence(node, "item"))) {
+#ifdef USE_ITEM_DESCRIPTION
 					char *s = xmlGetAttribute(node, "string");
 					if (s)
 						e.item = s;
+#endif
 					node = node->xmlNextNode;
 				}
 
 				node = event->xmlChildrenNode;
 				while ((node = xmlGetNextOccurence(node, "item_description"))) {
+#ifdef USE_ITEM_DESCRIPTION
 					char *s = xmlGetAttribute(node, "string");
 					if (s)
 						e.itemDescription = s;
+#endif
 					node = node->xmlNextNode;
 				}
-#endif
 				node = event->xmlChildrenNode;
 				while ((node = xmlGetNextOccurence(node, "extended_text"))) {
 					char *l = xmlGetAttribute(node, "lang");
@@ -430,11 +445,16 @@ void *insertEventsfromFile(void * data)
 					node = node->xmlNextNode;
 				}
 
-				if (contentClassification.size()) {
+				if (!contentClassification.empty()) {
+#ifdef FULL_CONTENT_CLASSIFICATION
 					ssize_t off = e.classifications.reserve(2 * contentClassification.size());
 					if (off > -1)
 						for (unsigned i = 0; i < contentClassification.size(); i++)
 							off = e.classifications.set(off, contentClassification.at(i), userClassification.at(i));
+#else
+					e.classifications.content = contentClassification.at(0);
+					e.classifications.user = userClassification.at(0);
+#endif
 				}
 				addEvent(e, 0);
 				ev_count++;
@@ -553,11 +573,11 @@ _done:
 	write_indexxml_footer(indexfile);
 	fclose(indexfile);
 
-	printf("[sectionsd] Writing Information finished\n");
-
 	filename  = (std::string)epgdir + "/index.xml";
-
 	rename(tmpname.c_str(), filename.c_str());
+
+	sync();
+	printf("[sectionsd] Writing Information finished\n");
 #if HAVE_SPARK_HARDWARE
 	safe_system("/bin/spark_fp -L2 >/dev/null 2>/dev/null&");
 #endif

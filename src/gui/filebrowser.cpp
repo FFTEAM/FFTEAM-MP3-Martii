@@ -77,7 +77,7 @@ typedef struct stat stat_struct;
 #endif
 
 #define SMSKEY_TIMEOUT 2000
-//------------------------------------------------------------------------
+
 size_t CurlWriteToString(void *ptr, size_t size, size_t nmemb, void *data)
 {
 	std::string* pStr = (std::string*) data;
@@ -85,15 +85,11 @@ size_t CurlWriteToString(void *ptr, size_t size, size_t nmemb, void *data)
 	return size*nmemb;
 }
 
-//------------------------------------------------------------------------
-//------------------------------------------------------------------------
-
 SMSKeyInput::SMSKeyInput()
 {
 	resetOldKey();
 	m_timeout = SMSKEY_TIMEOUT;
 }
-//------------------------------------------------------------------------
 
 unsigned char SMSKeyInput::handleMsg(const neutrino_msg_t msg)
 {
@@ -127,7 +123,6 @@ unsigned char SMSKeyInput::handleMsg(const neutrino_msg_t msg)
 	m_oldKey=*key;
 	return *key;
 }
-//------------------------------------------------------------------------
 
 void SMSKeyInput::resetOldKey()
 {
@@ -143,7 +138,7 @@ unsigned char SMSKeyInput::getOldKey() const
 #if 0
 const timeval* SMSKeyInput::getOldKeyTime() const
 {
- 	return &m_oldKeyTime;
+	return &m_oldKeyTime;
 }
 
 time_t SMSKeyInput::getOldKeyTimeSec() const
@@ -162,9 +157,6 @@ void SMSKeyInput::setTimeout(int timeout)
 	m_timeout = timeout;
 }
 
-
-//------------------------------------------------------------------------
-
 bool comparetolower(const char a, const char b)
 {
 	return tolower(a) < tolower(b);
@@ -180,18 +172,10 @@ bool sortByName (const CFile& a, const CFile& b)
 		return false;
 
 	return a.Mode < b.Mode;
-/*
-	int result = __gnu_cxx::lexicographical_compare_3way(a.Name.begin(), a.Name.end(), b.Name.begin(), b.Name.end(), comparetolower);
-
-	if (result == 0)
-		return a.Mode < b.Mode;
-	else
-		return result < 0;
-*/
 }
 
-bool sortByNameDirsFirst(const CFile& a, const CFile& b)
 // Sorts alphabetically with Directories first
+bool sortByNameDirsFirst(const CFile& a, const CFile& b)
 {
 	int typea, typeb;
 	typea = a.getType();
@@ -214,7 +198,7 @@ bool sortByNameDirsFirst(const CFile& a, const CFile& b)
 
 bool sortByType (const CFile& a, const CFile& b)
 {
-	if(a.Mode == b.Mode)
+	if (a.Mode == b.Mode)
 		return sortByName(a, b);
 	else
 		return a.Mode < b.Mode;
@@ -222,18 +206,18 @@ bool sortByType (const CFile& a, const CFile& b)
 
 bool sortByDate (const CFile& a, const CFile& b)
 {
-	if(a.getFileName()=="..")
+	if (a.getFileName() == "..")
 		return true;
-	if(b.getFileName()=="..")
+	if (b.getFileName() == "..")
 		return false;
 	return a.Time < b.Time ;
 }
 
 bool sortBySize (const CFile& a, const CFile& b)
 {
-	if(a.getFileName()=="..")
+	if (a.getFileName() == "..")
 		return true;
-	if(b.getFileName()=="..")
+	if (b.getFileName() == "..")
 		return false;
 	return a.Size < b.Size;
 }
@@ -256,8 +240,6 @@ const neutrino_locale_t sortByNames[FILEBROWSER_NUMBER_OF_SORT_VARIANTS] =
 	LOCALE_FILEBROWSER_SORT_SIZE
 };
 
-//------------------------------------------------------------------------
-
 CFileBrowser::CFileBrowser()
 {
 	commonInit();
@@ -279,7 +261,6 @@ void CFileBrowser::commonInit()
 	sc_init_dir = "/legacy/genrelist?k="  + g_settings.shoutcast_dev_id;
 
 	Filter = NULL;
-
 	Multi_Select = false;
 	Dirs_Selectable = false;
 	Dir_Mode = false;
@@ -312,18 +293,11 @@ void CFileBrowser::fontInit()
 	//recalc height
 	height = theight + listmaxshow * fheight + 2 * foheight;
 	y = getScreenStartY(height);
-
-
 }
-
-//------------------------------------------------------------------------
-
 
 CFileBrowser::~CFileBrowser()
 {
 }
-
-//------------------------------------------------------------------------
 
 CFile *CFileBrowser::getSelectedFile()
 {
@@ -333,12 +307,10 @@ CFile *CFileBrowser::getSelectedFile()
 		return NULL;
 }
 
-//------------------------------------------------------------------------
-
 void CFileBrowser::ChangeDir(const std::string & filename, int selection)
 {
 	std::string newpath;
-	if((m_Mode != ModeSC) && (filename == ".."))
+	if ((m_Mode != ModeSC) && (filename == ".."))
 	{
 		std::string::size_type pos = Path.substr(0,Path.length()-1).rfind('/');
 
@@ -346,9 +318,7 @@ void CFileBrowser::ChangeDir(const std::string & filename, int selection)
 		bool is_vlc = (strncmp(Path.c_str(), VLC_URI, strlen(VLC_URI)) == 0);
 #endif
 		if (pos == std::string::npos)
-		{
 			newpath = Path;
-		}
 		else
 		{
 #ifdef ENABLE_MOVIEPLAYER_VLC
@@ -368,10 +338,10 @@ void CFileBrowser::ChangeDir(const std::string & filename, int selection)
 	{
 		newpath=filename;
 	}
-	if(m_Mode != ModeSC && (newpath.rfind('/') != newpath.length()-1 || newpath.length() == 0))
-	{
+
+	if (m_Mode != ModeSC && (newpath.rfind('/') != newpath.length()-1 || newpath.length() == 0))
 		newpath += '/';
-	}
+
 	filelist.clear();
 	Path = newpath;
 	name = newpath;
@@ -381,28 +351,26 @@ void CFileBrowser::ChangeDir(const std::string & filename, int selection)
 	CFileList::iterator file = allfiles.begin();
 	for(; file != allfiles.end() ; file++)
 	{
-		if(Filter != NULL && (!S_ISDIR(file->Mode)) && g_settings.filebrowser_use_filter)
+		if (Filter != NULL && (!S_ISDIR(file->Mode)) && g_settings.filebrowser_use_filter)
 		{
-			if(!Filter->matchFilter(file->Name))
-			{
+			if (!Filter->matchFilter(file->Name))
 				continue;
-			}
-			if(Hide_records) {
+
+			if (Hide_records) {
 				int ext_pos = file->Name.rfind('.');
-				if( ext_pos > 0) {
+				if (ext_pos > 0) {
 					std::string extension = file->Name.substr(ext_pos + 1, name.length() - ext_pos);
-					if(strcasecmp(extension.c_str(), "ts") == 0) {
+					if (strcasecmp(extension.c_str(), "ts") == 0) {
 						std::string fname = file->Name.substr(0, ext_pos) + ".xml";
-						if(access(fname, F_OK) == 0)
+						if (access(fname, F_OK) == 0)
 							continue;
 					}
 				}
 			}
 		}
-		if(Dir_Mode && (!S_ISDIR(file->Mode)))
-		{
+		if (Dir_Mode && (!S_ISDIR(file->Mode)))
 			continue;
-		}
+
 		filelist.push_back(*file);
 	}
 	// sort result
@@ -417,11 +385,9 @@ void CFileBrowser::ChangeDir(const std::string & filename, int selection)
 	paintFoot();
 }
 
-//------------------------------------------------------------------------
 bool CFileBrowser::readDir(const std::string & dirname, CFileList* flist)
 {
 	bool ret;
-
 #ifdef ENABLE_INTERNETRADIO
 	if (m_Mode == ModeSC) {
 		ret = readDir_sc(dirname, flist);
@@ -720,7 +686,7 @@ bool CFileBrowser::readDir_std(const std::string & dirname, CFileList* flist)
 		perror(("Filebrowser scandir: "+dirname).c_str());
 		return false;
 	}
-	for(int i = 0; i < n;i++)
+	for (int i = 0; i < n; i++)
 	{
 		CFile file;
 		if(strcmp(namelist[i]->d_name,".") != 0)
@@ -746,7 +712,6 @@ bool CFileBrowser::readDir_std(const std::string & dirname, CFileList* flist)
 	return true;
 }
 
-//------------------------------------------------------------------------
 
 bool CFileBrowser::exec(const char * const dirname)
 {
@@ -766,7 +731,6 @@ bool CFileBrowser::exec(const char * const dirname)
 		name = "/";
 	else
 		name = dirname;
-
 	std::replace(name.begin(), name.end(), '\\', '/');
 
 	fontInit();
@@ -774,7 +738,7 @@ bool CFileBrowser::exec(const char * const dirname)
 	int selection = -1;
 	if (name == Path)
 		selection = selected;
-		
+
 	ChangeDir(name, selection);
 
 	unsigned int oldselected = selected;
@@ -788,7 +752,7 @@ bool CFileBrowser::exec(const char * const dirname)
 		g_RCInput->getMsgAbsoluteTimeout( &msg, &data, &timeoutEnd );
 		neutrino_msg_t msg_repeatok = msg & ~CRCInput::RC_Repeat;
 
-		if ( msg <= CRCInput::RC_MaxRC )
+		if (msg <= CRCInput::RC_MaxRC)
 			timeoutEnd = CRCInput::calcTimeoutEnd(g_settings.timing[SNeutrinoSettings::TIMING_FILEBROWSER]);
 
 		if(!CRCInput::isNumeric(msg))
@@ -823,7 +787,7 @@ bool CFileBrowser::exec(const char * const dirname)
 				else
 					selected = filelist.size() - 1;
 				liststart = (selected/listmaxshow)*listmaxshow;
-				if(prevliststart!=liststart)
+				if(prevliststart!= liststart)
 				{
 					paint();
 				}
@@ -858,7 +822,7 @@ bool CFileBrowser::exec(const char * const dirname)
 			selected = oldselected;
 			loop=false;
 		}
-		else if ( msg == CRCInput::RC_right )
+		else if (msg == CRCInput::RC_right)
 		{
 			if (!(filelist.empty()))
 			{
@@ -949,9 +913,7 @@ bool CFileBrowser::exec(const char * const dirname)
 				std::stringstream _msg;
 				_msg << g_Locale->getText(LOCALE_FILEBROWSER_DODELETE1) << " ";
 				if (filelist[selected].getFileName().length() > 25)
-				{
 					_msg << filelist[selected].getFileName().substr(0, 25) << "...";
-				}
 				else
 					_msg << filelist[selected].getFileName();
 
@@ -989,13 +951,6 @@ bool CFileBrowser::exec(const char * const dirname)
 							if (pos != std::string::npos) {
 								ChangeDir("..");
 							}
-#if 0 // quick fix for #253, i dont think we ever need to return "/" as selected -- focus
-							else {
-								loop = false;
-								res = true;
-								filelist[selected].Name = "/";
-							}
-#endif
 						}
 					}
 				}
@@ -1148,9 +1103,7 @@ void CFileBrowser::addRecursiveDir(CFileList * re_filelist, std::string rpath, b
 		return;
 
 	if ((m_Mode != ModeSC) && ((rpath.empty()) || ((*rpath.rbegin()) != '/')))
-	{
 		rpath += '/';
-	}
 
 	CFileList tmplist;
 	if(!readDir(rpath, &tmplist))
@@ -1161,24 +1114,18 @@ void CFileBrowser::addRecursiveDir(CFileList * re_filelist, std::string rpath, b
 	{
 		n = tmplist.size();
 		if(progress)
-		{
 			progress->showStatusMessageUTF(FILESYSTEM_ENCODING_TO_UTF8_STRING(rpath));
-		}
-		for(int i = 0; i < n;i++)
+		for (int i = 0; i < n; i++)
 		{
 			if(progress)
-			{
 				progress->showGlobalStatus(100/n*i);
-			}
 			std::string basename = tmplist[i].Name.substr(tmplist[i].Name.rfind('/')+1);
 			if( basename != ".." )
 			{
 				if(Filter != NULL && (!S_ISDIR(tmplist[i].Mode)) && g_settings.filebrowser_use_filter)
 				{
 					if(!Filter->matchFilter(tmplist[i].Name))
-					{
 						continue;
-					}
 				}
 				if(!S_ISDIR(tmplist[i].Mode))
 					re_filelist->push_back(tmplist[i]);
@@ -1189,16 +1136,11 @@ void CFileBrowser::addRecursiveDir(CFileList * re_filelist, std::string rpath, b
 	}
 }
 
-
-//------------------------------------------------------------------------
-
 void CFileBrowser::hide()
 {
 	frameBuffer->paintBackgroundBoxRel(x,y, width,height);
 	frameBuffer->blit();
 }
-
-//------------------------------------------------------------------------
 
 void CFileBrowser::paintItem(unsigned int pos)
 {
@@ -1264,6 +1206,18 @@ void CFileBrowser::paintItem(unsigned int pos)
 				break;
 
 			case CFile::FILE_PICTURE:
+				fileicon = NEUTRINO_ICON_PICTURE;
+				break;
+
+			case CFile::FILE_AVI:
+			case CFile::FILE_ASF:
+			case CFile::FILE_MKV:
+			case CFile::FILE_VOB:
+			case CFile::FILE_MPG:
+			case CFile::FILE_TS:
+				fileicon = NEUTRINO_ICON_MOVIE;
+				break;
+
 			case CFile::FILE_TEXT:
 			default:
 				fileicon = NEUTRINO_ICON_FILE;
@@ -1279,9 +1233,8 @@ void CFileBrowser::paintItem(unsigned int pos)
 				const char * attribute = "xwr";
 				char modestring[9 + 1];
 				for (int m = 8; m >= 0; m--)
-				{
 					modestring[8 - m] = (actual_file->Mode & (1 << m)) ? attribute[m % 3] : '-';
-				}
+
 				modestring[9] = 0;
 
 				fnt_item->RenderString(x + width - 25 - colwidth3 - colwidth2 , ypos+ fheight, colwidth2, modestring, color);
@@ -1334,8 +1287,6 @@ void CFileBrowser::paintItem(unsigned int pos)
 	}
 }
 
-//------------------------------------------------------------------------
-
 void CFileBrowser::paintHead()
 {
 	char *l_name;
@@ -1346,7 +1297,7 @@ void CFileBrowser::paintHead()
 		l = asprintf(&l_name, "%s %s", g_Locale->getText(LOCALE_AUDIOPLAYER_ADD_SC), FILESYSTEM_ENCODING_TO_UTF8_STRING(name).c_str());
 	else
 #endif
-		l = asprintf(&l_name, "%s %s", g_Locale->getText(LOCALE_FILEBROWSER_HEAD), FILESYSTEM_ENCODING_TO_UTF8_STRING(name).c_str());
+		l = asprintf(&l_name, "%s %s", g_Locale->getText(playlistmode ? LOCALE_FILEBROWSER_PM : LOCALE_FILEBROWSER_HEAD), FILESYSTEM_ENCODING_TO_UTF8_STRING(name).c_str());
 
 	if (l < 1) /* at least 1 for the " " space */
 	{
@@ -1374,7 +1325,7 @@ void CFileBrowser::paintHead()
 bool chooserDir(char *setting_dir, bool test_dir, const char *action_str, size_t str_leng, bool allow_tmp)
 {
 	std::string tmp_setting_dir = setting_dir;
-	if(chooserDir(tmp_setting_dir, test_dir, action_str,allow_tmp)){
+	if(chooserDir(tmp_setting_dir, test_dir, action_str,allow_tmp)) {
 		strncpy(setting_dir,tmp_setting_dir.c_str(), str_leng);
 		return true;
 	}
@@ -1384,27 +1335,25 @@ bool chooserDir(char *setting_dir, bool test_dir, const char *action_str, size_t
 bool chooserDir(std::string &setting_dir, bool test_dir, const char *action_str, bool allow_tmp)
 {
 	const char *wrong_str = "Wrong/unsupported";
-		CFileBrowser b;
-		b.Dir_Mode=true;
-		if (b.exec(setting_dir.c_str())) {
-			const char * newdir = b.getSelectedFile()->Name.c_str();
-			if(test_dir && check_dir(newdir,allow_tmp)){
-				printf("%s %s dir %s\n",wrong_str ,action_str, newdir);
-				return false;
-			}else {
-				setting_dir = b.getSelectedFile()->Name;
-				return true;
-			}
+	CFileBrowser b;
+	b.Dir_Mode=true;
+	if (b.exec(setting_dir.c_str())) {
+		const char * newdir = b.getSelectedFile()->Name.c_str();
+		if(test_dir && check_dir(newdir,allow_tmp)) {
+			printf("%s %s dir %s\n",wrong_str ,action_str, newdir);
+			return false;
+		} else {
+			setting_dir = b.getSelectedFile()->Name;
+			return true;
 		}
+	}
 	return false;
 }
-
-//------------------------------------------------------------------------
 
 const struct button_label FileBrowserFilterButton[2] =
 {
 	{ NEUTRINO_ICON_BUTTON_BLUE  , LOCALE_FILEBROWSER_FILTER_INACTIVE },
-	{ NEUTRINO_ICON_BUTTON_BLUE  , LOCALE_FILEBROWSER_FILTER_ACTIVE   },
+	{ NEUTRINO_ICON_BUTTON_BLUE  , LOCALE_FILEBROWSER_FILTER_ACTIVE   }
 };
 
 void CFileBrowser::paintFoot()
@@ -1474,21 +1423,17 @@ void CFileBrowser::paintSMSKey()
 
 	if(m_SMSKeyInput.getOldKey()!=0)
 	{
-		char cKey[2]={m_SMSKeyInput.getOldKey(),0};
+		char cKey[2] = {m_SMSKeyInput.getOldKey(), 0};
 		cKey[0] = toupper(cKey[0]);
 		int len = fnt_small->getRenderWidth(cKey, true);
 		fnt_small->RenderString(x + width - skwidth, y + height - foheight + (skheight/2), len, cKey, COL_MENUHEAD_TEXT, 0, true);
 	}
 }
 
-//------------------------------------------------------------------------
-
 void CFileBrowser::paint()
 {
 	liststart = (selected/listmaxshow)*listmaxshow;
 
-//	if (filelist[0].Name.length() != 0)
-//		frameBuffer->paintIcon(NEUTRINO_ICON_BUTTON_HELP, x+ width- 30, y+ 5 );
 	CVFD::getInstance()->setMode(CVFD::MODE_MENU_UTF8, g_Locale->getText(LOCALE_FILEBROWSER_HEAD));
 
 	for(unsigned int count=0;count<listmaxshow;count++)
@@ -1507,8 +1452,6 @@ void CFileBrowser::paint()
 	frameBuffer->paintBoxRel(x+ width- 13, ypos+ 2+ sbs*(sb-4)/sbc, 11, (sb-4)/sbc, COL_MENUCONTENT_PLUS_3, RADIUS_SMALL);
 }
 
-//------------------------------------------------------------------------
-
 void CFileBrowser::SMSInput(const neutrino_msg_t msg)
 {
 	unsigned char key = m_SMSKeyInput.handleMsg(msg);
@@ -1517,27 +1460,20 @@ void CFileBrowser::SMSInput(const neutrino_msg_t msg)
 	for(i=(selected+1) % filelist.size(); i != selected ; i= (i+1) % filelist.size())
 	{
 		if(tolower(filelist[i].getFileName()[0]) == key)
-		{
 			break;
-		}
 	}
 	int prevselected=selected;
 	selected=i;
 	paintItem(prevselected - liststart);
 	unsigned int oldliststart = liststart;
 	liststart = (selected/listmaxshow)*listmaxshow;
+
 	if(oldliststart!=liststart)
-	{
 		paint();
-	}
 	else
-	{
 		paintItem(selected - liststart);
-	}
 	paintSMSKey();
 }
-
-//------------------------------------------------------------------------
 
 void CFileBrowser::recursiveDelete(const char* file)
 {

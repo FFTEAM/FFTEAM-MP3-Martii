@@ -43,6 +43,7 @@
 
 extern CBouquetList * bouquetList;
 extern CBouquetList * TVfavList;
+extern CBouquetList * RADIOfavList;
 extern CBouquetList * TVbouquetList;
  
 CEpgScan::CEpgScan()
@@ -66,6 +67,33 @@ CEpgScan * CEpgScan::getInstance()
 	return inst;
 }
 
+void CEpgScan::ConfigureEIT()
+{
+	CEitManager::getInstance()->clearChannelFilters();
+	if (g_settings.epg_save_mode == 0)
+		return;
+
+	int count = 0;
+
+	for (unsigned j = 0; j < TVfavList->Bouquets.size(); ++j) {
+		CChannelList * clist = TVfavList->Bouquets[j]->channelList;
+		for (unsigned i = 0; i < clist->Size(); i++) {
+			CZapitChannel * chan = clist->getChannelFromIndex(i);
+			CEitManager::getInstance()->addChannelFilter(chan->getOriginalNetworkId(), chan->getTransportStreamId(), chan->getServiceId());
+			count++;
+		}
+	}
+	for (unsigned j = 0; j < RADIOfavList->Bouquets.size(); ++j) {
+		CChannelList * clist = RADIOfavList->Bouquets[j]->channelList;
+		for (unsigned i = 0; i < clist->Size(); i++) {
+			CZapitChannel * chan = clist->getChannelFromIndex(i);
+			CEitManager::getInstance()->addChannelFilter(chan->getOriginalNetworkId(), chan->getTransportStreamId(), chan->getServiceId());
+			count++;
+		}
+	}
+	INFO("added %d channels to EIT white list\n", count);
+}
+
 void CEpgScan::Clear()
 {
 	scanmap.clear();
@@ -85,7 +113,7 @@ void CEpgScan::AddBouquet(CChannelList * clist)
 {
 	for (unsigned i = 0; i < clist->Size(); i++) {
 		CZapitChannel * chan = clist->getChannelFromIndex(i);
-		if (scanned.find(chan->getTransponderId()) == scanned.end())
+		if (!IS_WEBTV(chan->getChannelID()) && scanned.find(chan->getTransponderId()) == scanned.end())
 			scanmap.insert(eit_scanmap_pair_t(chan->getTransponderId(), chan->getChannelID()));
 	}
 }
@@ -102,7 +130,7 @@ bool CEpgScan::AddFavorites()
 		CChannelList * clist = TVfavList->Bouquets[j]->channelList;
 		AddBouquet(clist);
 	}
-	INFO("scan map size: %d -> %d\n", old_size, scanmap.size());
+	INFO("scan map size: %d -> %zd\n", old_size, scanmap.size());
 	return (old_size != scanmap.size());
 }
 
@@ -126,7 +154,7 @@ bool CEpgScan::AddSelected()
 			AddBouquet(clist);
 		}
 	}
-	INFO("scan map size: %d -> %d\n", old_size, scanmap.size());
+	INFO("scan map size: %d -> %zd\n", old_size, scanmap.size());
 	return (old_size != scanmap.size());
 }
 
@@ -170,7 +198,7 @@ void CEpgScan::AddTransponders()
 			scanmap.clear();
 			current_bnum = bouquetList->getActiveBouquetNumber();
 			AddBouquet(bouquetList->Bouquets[current_bnum]->channelList);
-			INFO("Added bouquet #%d, scan map size: %d", current_bnum, scanmap.size());
+			INFO("Added bouquet #%d, scan map size: %zd", current_bnum, scanmap.size());
 		}
 	} else if (g_settings.epg_scan == SCAN_FAV) {
 		AddFavorites();
@@ -179,10 +207,11 @@ void CEpgScan::AddTransponders()
 
 bool CEpgScan::CheckMode()
 {
+	bool webtv = IS_WEBTV(CZapit::getInstance()->GetCurrentChannelID());
 	if ((g_settings.epg_scan_mode == CEpgScan::MODE_OFF)
 			|| (standby && !(g_settings.epg_scan_mode & MODE_STANDBY))
 			|| (!standby && !(g_settings.epg_scan_mode & MODE_LIVE))
-			|| (!standby && (CFEManager::getInstance()->getEnabledCount() <= 1))) {
+			|| (!standby && !webtv && (CFEManager::getInstance()->getEnabledCount() <= 1))) {
 		return false;
 	}
 	return true;
@@ -194,7 +223,7 @@ void CEpgScan::Start(bool instandby)
 	standby = instandby;
 	live_channel_id = CZapit::getInstance()->GetCurrentChannelID();
 	AddTransponders();
-	INFO("starting %s scan, scanning %d, scan map size: %d", standby ? "standby" : "live", scan_in_progress, scanmap.size());
+	INFO("starting %s scan, scanning %d, scan map size: %zd", standby ? "standby" : "live", scan_in_progress, scanmap.size());
 	if (standby || !scan_in_progress)
 		Next();
 }
@@ -243,7 +272,7 @@ int CEpgScan::handleMsg(const neutrino_msg_t msg, neutrino_msg_data_t data)
 		/* live channel changed, block scan channel change by timer */
 		scan_in_progress = true;
 		AddTransponders();
-		INFO("EVT_ZAP_COMPLETE, scan map size: %d\n", scanmap.size());
+		INFO("EVT_ZAP_COMPLETE, scan map size: %zd\n", scanmap.size());
 		return messages_return::handled;
 	}
 	else if (msg == NeutrinoMessages::EVT_EIT_COMPLETE) {
@@ -254,7 +283,7 @@ int CEpgScan::handleMsg(const neutrino_msg_t msg, neutrino_msg_data_t data)
 			scanned.insert(newchan->getTransponderId());
 			scanmap.erase(newchan->getTransponderId());
 		}
-		INFO("EIT read complete [" PRINTF_CHANNEL_ID_TYPE "], scan map size: %d", chid, scanmap.size());
+		INFO("EIT read complete [" PRINTF_CHANNEL_ID_TYPE "], scan map size: %zd", chid, scanmap.size());
 
 		Next();
 		return messages_return::handled;
@@ -303,8 +332,10 @@ void CEpgScan::EnterStandby()
 
 void CEpgScan::Next()
 {
-	bool locked = false;
-
+	bool llocked = false;
+#ifdef ENABLE_PIP
+	bool plocked = false;
+#endif
 	next_chid = 0;
 
 	if (!standby && CNeutrinoApp::getInstance()->getMode() == NeutrinoMessages::mode_standby)
@@ -331,13 +362,18 @@ void CEpgScan::Next()
 	CFrontend *pip_fe = NULL;
 #endif
 	if (!standby) {
-		locked = true;
-		live_fe = CZapit::getInstance()->GetLiveFrontend();
-		CFEManager::getInstance()->lockFrontend(live_fe);
+		bool webtv = IS_WEBTV(CZapit::getInstance()->GetCurrentChannelID());
+		if (!webtv) {
+			llocked = true;
+			live_fe = CZapit::getInstance()->GetLiveFrontend();
+			CFEManager::getInstance()->lockFrontend(live_fe);
+		}
 #ifdef ENABLE_PIP
 		pip_fe = CZapit::getInstance()->GetPipFrontend();
-		if (pip_fe && pip_fe != live_fe)
+		if (pip_fe /* && pip_fe != live_fe*/) {
+			plocked = true;
 			CFEManager::getInstance()->lockFrontend(pip_fe);
+		}
 #endif
 	}
 _repeat:
@@ -360,13 +396,13 @@ _repeat:
 	if (!next_chid && ((g_settings.epg_scan == SCAN_SEL) && AddSelected()))
 		goto _repeat;
 
-	if (locked) {
+	if (llocked)
 		CFEManager::getInstance()->unlockFrontend(live_fe);
 #ifdef ENABLE_PIP
-		if (pip_fe && pip_fe != live_fe)
-			CFEManager::getInstance()->unlockFrontend(pip_fe);
+	if (plocked)
+		CFEManager::getInstance()->unlockFrontend(pip_fe);
 #endif
-	}
+
 	CFEManager::getInstance()->Unlock();
 	if (next_chid)
 		g_Zapit->zapTo_epg(next_chid, standby);

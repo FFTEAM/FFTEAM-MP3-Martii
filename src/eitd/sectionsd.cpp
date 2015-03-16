@@ -48,6 +48,7 @@
 #include <driver/abstime.h>
 #include <system/set_threadname.h>
 #include <system/helpers.h>
+#include <OpenThreads/ScopedLock>
 
 #include "eitd.h"
 #include "sectionsd.h"
@@ -58,7 +59,6 @@
 //#define ENABLE_SDT //FIXME
 
 //#define DEBUG_SDT_THREAD
-//#define DEBUG_TIME_THREAD
 //#define DEBUG_TIME_THREAD
 
 //#define DEBUG_SECTION_THREADS
@@ -74,6 +74,7 @@ static bool notify_complete = false;
 /* period to clean cached sections and force restart sections read */
 #define META_HOUSEKEEPING_COUNT (24 * 60 * 60) / HOUSEKEEPING_SLEEP // meta housekeeping after XX housekeepings - every 24h -
 #define STANDBY_HOUSEKEEPING_COUNT (60 * 60) / HOUSEKEEPING_SLEEP
+#define EPG_SAVE_FREQUENTLY_COUNT (60 * 60) / HOUSEKEEPING_SLEEP
 
 // Timeout bei tcp/ip connections in ms
 #define READ_TIMEOUT_IN_SECONDS  2
@@ -85,6 +86,7 @@ static bool notify_complete = false;
 // number of timeouts after which we stop waiting for an EIT version number
 #define TIMEOUTS_EIT_VERSION_WAIT	(2 * CHECK_RESTART_DMX_AFTER_TIMEOUTS)
 
+static unsigned int epg_save_frequently;
 static long secondsToCache;
 static long secondsExtendedTextCache;
 static long oldEventsAre;
@@ -92,6 +94,7 @@ static int scanning = 1;
 
 extern bool epg_filter_is_whitelist;
 extern bool epg_filter_except_current_next;
+static bool xml_epg_filter;
 
 static bool messaging_zap_detected = false;
 /*static*/ bool dvb_time_update = false;
@@ -126,6 +129,7 @@ static CEventServer *eventServer;
 /*static*/ pthread_rwlock_t eventsLock = PTHREAD_RWLOCK_INITIALIZER; // Unsere (fast-)mutex, damit nicht gleichzeitig in die Menge events geschrieben und gelesen wird
 static pthread_rwlock_t servicesLock = PTHREAD_RWLOCK_INITIALIZER; // Unsere (fast-)mutex, damit nicht gleichzeitig in die Menge services geschrieben und gelesen wird
 static pthread_rwlock_t messagingLock = PTHREAD_RWLOCK_INITIALIZER;
+OpenThreads::Mutex filter_mutex;
 
 static CTimeThread threadTIME;
 static CEitThread threadEIT;
@@ -153,7 +157,6 @@ static time_t lockstart = 0;
 static int sectionsd_stop = 0;
 
 static bool slow_addevent = true;
-
 
 inline void readLockServices(void)
 {
@@ -255,7 +258,9 @@ static bool deleteEvent(const event_id_t uniqueKey)
 /* if cn == true (if called by cnThread), then myCurrentEvent and myNextEvent is updated, too */
 /*static*/ void addEvent(const SIevent &evt, const time_t zeit, bool cn = false)
 {
+	filter_mutex.lock();
 	bool EPG_filtered = checkEPGFilter(evt.original_network_id, evt.transport_stream_id, evt.service_id);
+	filter_mutex.unlock();
 
 	/* more readable in "plain english":
 	   if current/next are not to be filtered and table_id is current/next -> continue
@@ -280,11 +285,8 @@ static bool deleteEvent(const event_id_t uniqueKey)
 //xprintf("addEvent: current %012" PRIx64 " event %012" PRIx64 " messaging_got_CN %d\n", messaging_current_servicekey, evt.get_channel_id(), messaging_got_CN);
 		readLockMessaging();
 		// only if it is the current channel... and if we don't have them already.
-		if (evt.get_channel_id() == messaging_current_servicekey
-#if 0
-				&& (messaging_got_CN != 0x03)
-#endif
-			){ 
+		if (evt.get_channel_id() == messaging_current_servicekey && 
+				(messaging_got_CN != 0x03)) { 
 xprintf("addEvent: ch %012" PRIx64 " running %d (%s) got_CN %d\n", evt.get_channel_id(), evt.runningStatus(), evt.runningStatus() > 2 ? "curr" : "next", messaging_got_CN);
 
 			unlockMessaging();
@@ -377,12 +379,12 @@ xprintf("addEvent: ch %012" PRIx64 " running %d (%s) got_CN %d\n", evt.get_chann
 		si->second->item = evt.item;
 #endif
 		//si->second->vps = evt.vps;
-		if ((evt.getExtendedText().length() > 0) && !evt.times.empty() &&
+		if ((!evt.getExtendedText().empty()) && !evt.times.empty() &&
 				(evt.times.begin()->startzeit < zeit + secondsExtendedTextCache))
 			si->second->setExtendedText(0 /*"OFF"*/,evt.getExtendedText());
-		if (evt.getText().length() > 0)
+		if (!evt.getText().empty())
 			si->second->setText(0 /*"OFF"*/,evt.getText());
-		if (evt.getName().length() > 0)
+		if (!evt.getName().empty())
 			si->second->setName(0 /*"OFF"*/,evt.getName());
 	}
 	else {
@@ -482,7 +484,7 @@ xprintf("addEvent: ch %012" PRIx64 " running %d (%s) got_CN %d\n", evt.get_chann
 		// Damit in den nicht nach Event-ID sortierten Mengen
 		// Mehrere Events mit gleicher ID sind, diese vorher loeschen
 		deleteEvent(e->uniqueKey());
-		if ( !mySIeventsOrderUniqueKey.empty() && mySIeventsOrderUniqueKey.size() >= max_events && max_events != 0 ) {
+		if ( !mySIeventsOrderFirstEndTimeServiceIDEventUniqueKey.empty() && mySIeventsOrderUniqueKey.size() >= max_events && max_events != 0 ) {
 			MySIeventsOrderFirstEndTimeServiceIDEventUniqueKey::iterator lastEvent =
 				mySIeventsOrderFirstEndTimeServiceIDEventUniqueKey.begin();
 
@@ -493,7 +495,7 @@ xprintf("addEvent: ch %012" PRIx64 " running %d (%s) got_CN %d\n", evt.get_chann
 #else
 			time_t now = time(NULL);
 			bool back = false;
-			if (*lastEvent!=NULL && (*lastEvent)->times.size() == 1)
+			if ((*lastEvent)->times.size() == 1)
 			{
 				if ((*lastEvent)->times.begin()->startzeit + (long)(*lastEvent)->times.begin()->dauer >= now - oldEventsAre)
 					back = true;
@@ -514,9 +516,9 @@ xprintf("addEvent: ch %012" PRIx64 " running %d (%s) got_CN %d\n", evt.get_chann
 				}
 				unlockMessaging();
 			}
+			event_id_t uniqueKey = (*lastEvent)->uniqueKey();
 			// else fprintf(stderr, ">");
-			if(*lastEvent!=NULL)
-				deleteEvent((*lastEvent)->uniqueKey());
+			deleteEvent(uniqueKey);
 		}
 		// Pruefen ob es ein Meta-Event ist
 		MySIeventUniqueKeysMetaOrderServiceUniqueKey::iterator i = mySIeventUniqueKeysMetaOrderServiceUniqueKey.find(e->get_channel_id());
@@ -924,6 +926,7 @@ static void commandserviceChanged(int connfd, char *data, const unsigned dataLen
 	if (cmd->dnum) {
 		/* dont wakeup EIT, if we have max events allready */
 		if (max_events == 0  || (mySIeventsOrderUniqueKey.size() < max_events)) {
+			current_channel_id = uniqueServiceKey;
 			writeLockMessaging();
 			messaging_zap_detected = true;
 			unlockMessaging();
@@ -981,6 +984,17 @@ static void commandserviceChanged(int connfd, char *data, const unsigned dataLen
 	dprintf("[sectionsd] commandserviceChanged: Service changed to " PRINTF_CHANNEL_ID_TYPE "\n", uniqueServiceKey);
 }
 
+static void commandserviceStopped(int connfd, char * /* data */, const unsigned /* dataLength */)
+{
+	xprintf("[sectionsd] commandserviceStopped\n");
+	current_channel_id = 0;
+	sendEmptyResponse(connfd, NULL, 0);
+	threadEIT.stop();
+	threadCN.stop();
+	threadCN.stopUpdate();
+	xprintf("[sectionsd] commandserviceStopped done\n");
+}
+
 static void commandGetIsScanningActive(int connfd, char* /*data*/, const unsigned /*dataLength*/)
 {
 	struct sectionsd::msgResponseHeader responseHeader;
@@ -1030,6 +1044,7 @@ static void commandDumpStatusInformation(int /*connfd*/, char* /*data*/, const u
 		 "Current time: %s"
 		 "Hours to cache: %ld\n"
 		 "Hours to cache extended text: %ld\n"
+		 "Events to cache: %u\n"
 		 "Events are old %ldmin after their end time\n"
 		 "Number of cached services: %u\n"
 		 "Number of cached nvod-services: %u\n"
@@ -1046,7 +1061,7 @@ static void commandDumpStatusInformation(int /*connfd*/, char* /*data*/, const u
 		 ""
 #endif
 		 ,ctime(&zeit),
-		 secondsToCache / (60*60L), secondsExtendedTextCache / (60*60L), oldEventsAre / 60, anzServices, anzNVODservices, anzEvents, anzNVODevents, anzMetaServices
+		 secondsToCache / (60*60L), secondsExtendedTextCache / (60*60L), max_events, oldEventsAre / 60, anzServices, anzNVODservices, anzEvents, anzNVODevents, anzMetaServices
 		 //    resourceUsage.ru_maxrss, resourceUsage.ru_ixrss, resourceUsage.ru_idrss, resourceUsage.ru_isrss,
 		);
 	printf("%s\n", stati);
@@ -1110,6 +1125,7 @@ static void commandSetConfig(int connfd, char *data, const unsigned /*dataLength
 	oldEventsAre = (long)(pmsg->epg_old_events)*60L*60L;
 	secondsExtendedTextCache = (long)(pmsg->epg_extendedcache)*60L*60L;
 	max_events = pmsg->epg_max_events;
+	epg_save_frequently = pmsg->epg_save_frequently;
 	unlockEvents();
 
 	bool time_wakeup = false;
@@ -1249,6 +1265,7 @@ static s_cmd_table connectionCommands[sectionsd::numberOfCommands] = {
 	{	commandGetIsScanningActive,             "commandGetIsScanningActive"		},
 	{	commandGetIsTimeSet,                    "commandGetIsTimeSet"			},
 	{	commandserviceChanged,                  "commandserviceChanged"			},
+	{	commandserviceStopped,                  "commandserviceStopped"			},
 	{	commandRegisterEventClient,             "commandRegisterEventClient"		},
 	{	commandUnRegisterEventClient,           "commandUnRegisterEventClient"		},
 	{	commandFreeMemory,			"commandFreeMemory"			},
@@ -1466,7 +1483,6 @@ void CTimeThread::run()
 #else
 			time_t start = time_monotonic_ms();
 			/* speed up shutdown by looping around Read() */
-
 			struct pollfd ufds;
 			ufds.events = POLLIN|POLLPRI|POLLERR;
 			DMX::lock();
@@ -1609,8 +1625,12 @@ void CSectionThread::run()
 			xprintf("%s: skipping to next filter %d from %d (timeouts %d)\n",
 				name.c_str(), filter_index+1, (int)filters.size(), timeoutsDMX);
 #endif
+			if (timeoutsDMX == -3)
+				sendToSleepNow = true;
+			else
+				need_change = true;
+
 			timeoutsDMX = 0;
-			need_change = true;
 		}
 		if (zeit > lastChanged + skipTime) {
 #ifdef DEBUG_SECTION_THREADS
@@ -1763,7 +1783,7 @@ void CEitThread::beforeSleep()
 	writeLockMessaging();
 	messaging_zap_detected = false;
 	unlockMessaging();
-	if (scanning) {
+	if (scanning && current_channel_id) {
 		eventServer->sendEvent(CSectionsdClient::EVT_EIT_COMPLETE,
 				CEventServer::INITID_SECTIONSD,
 				&current_service,
@@ -1835,7 +1855,7 @@ void CCNThread::beforeWait()
 	update_mutex.unlock();
 }
 
-void CCNThread::afterWait()
+void CCNThread::stopUpdate()
 {
 	xprintf("%s: stop eit update filter (%s)\n", name.c_str(), updating ? "active" : "not active");
 	update_mutex.lock();
@@ -1844,6 +1864,11 @@ void CCNThread::afterWait()
 		eitDmx->Close();
 	}
 	update_mutex.unlock();
+}
+
+void CCNThread::afterWait()
+{
+	stopUpdate();
 }
 
 void CCNThread::beforeSleep()
@@ -2065,7 +2090,7 @@ static void print_meminfo(void)
 //---------------------------------------------------------------------
 static void *houseKeepingThread(void *)
 {
-	int count = 0, scount = 0;
+	int count = 0, scount = 0, ecount = 0;
 
 	dprintf("housekeeping-thread started.\n");
 	pthread_setcanceltype (PTHREAD_CANCEL_ASYNCHRONOUS, 0);
@@ -2097,6 +2122,23 @@ static void *houseKeepingThread(void *)
 		dprintf("housekeeping.\n");
 
 		removeOldEvents(oldEventsAre); // alte Events
+
+		ecount++;
+		if (ecount == EPG_SAVE_FREQUENTLY_COUNT)
+		{
+			if (epg_save_frequently > 0)
+			{
+				std::string d = epg_dir;
+				if (d.length() > 1)
+				{
+					std::string::iterator it = d.end() - 1;
+					if (*it == '/')
+						d.erase(it);
+				}
+				writeEventsToFile((char *)d.c_str());
+			}
+			ecount = 0;
+		}
 
 		readLockEvents();
 		dprintf("Number of sptr events (event-ID): %u\n", (unsigned)mySIeventsOrderUniqueKey.size());
@@ -2151,6 +2193,7 @@ bool CEitManager::Start()
 	secondsExtendedTextCache = config.epg_extendedcache*60L*60L; //hours
 	oldEventsAre = config.epg_old_events*60L*60L; //hours
 	max_events = config.epg_max_events;
+	epg_save_frequently = config.epg_save_frequently;
 
 	if (find_executable("ntpdate").empty())
 		ntp_system_cmd_prefix = "ntpd -n -q -p ";
@@ -2158,6 +2201,8 @@ bool CEitManager::Start()
 	printf("[sectionsd] Caching: %d days, %d hours Extended Text, max %d events, Events are old %d hours after end time\n",
 		config.epg_cache, config.epg_extendedcache, config.epg_max_events, config.epg_old_events);
 	printf("[sectionsd] NTP: %s, server %s, command %s\n", ntpenable ? "enabled" : "disabled", ntpserver.c_str(), ntp_system_cmd_prefix.c_str());
+
+	xml_epg_filter = readEPGFilter();
 
 	if (!sectionsd_server.prepare(SECTIONSD_UDS_NAME)) {
 		fprintf(stderr, "[sectionsd] failed to prepare basic server\n");
@@ -2204,7 +2249,6 @@ printf("SIevent size: %d\n", (int)sizeof(SIevent));
 
 	tzset(); // TZ auswerten
 
-	readEPGFilter();
 	readDVBTimeFilter();
 	readEncodingFile();
 
@@ -2320,7 +2364,7 @@ void CEitManager::getEventsServiceKey(t_channel_id serviceUniqueKey, CChannelEve
 	// service Found
 	readLockEvents();
 	int serviceIDfound = 0;
-	if (search_text.length())
+	if (!search_text.empty())
 		std::transform(search_text.begin(), search_text.end(), search_text.begin(), tolower);
 
 	for (MySIeventsOrderServiceUniqueKeyFirstStartTimeEventUniqueKey::iterator e = mySIeventsOrderServiceUniqueKeyFirstStartTimeEventUniqueKey.begin(); e != mySIeventsOrderServiceUniqueKeyFirstStartTimeEventUniqueKey.end(); ++e)
@@ -2650,7 +2694,12 @@ bool CEitManager::getEPGid(const event_id_t epgID, const time_t startzeit, CEPGD
 			epgdata->info1 = evt.getText();
 			epgdata->info2 = evt.getExtendedText();
 			/* FIXME printf("itemDescription: %s\n", evt.itemDescription.c_str()); */
+#ifdef FULL_CONTENT_CLASSIFICATION
 			evt.classifications.get(epgdata->contentClassification, epgdata->userClassification);
+#else
+			epgdata->contentClassification = evt.classifications.content;
+			epgdata->userClassification = evt.classifications.user;
+#endif
 			epgdata->fsk = evt.getFSK();
 			epgdata->table_id = evt.table_id;
 
@@ -2711,7 +2760,13 @@ bool CEitManager::getActualEPGServiceKey(const t_channel_id channel_id, CEPGData
 		epgdata->info1 = evt.getText();
 		epgdata->info2 = evt.getExtendedText();
 		/* FIXME printf("itemDescription: %s\n", evt.itemDescription.c_str());*/
+#ifdef FULL_CONTENT_CLASSIFICATION
 		evt.classifications.get(epgdata->contentClassification, epgdata->userClassification);
+#else
+		epgdata->contentClassification = evt.classifications.content;
+		epgdata->userClassification = evt.classifications.user;
+#endif
+
 		epgdata->fsk = evt.getFSK();
 		epgdata->table_id = evt.table_id;
 
@@ -2744,7 +2799,7 @@ void CEitManager::getChannelEvents(CChannelEventList &eList, t_channel_id *chidl
 	bool found_already = true;
 	time_t azeit = time(NULL);
 
-//showProfiling("sectionsd_getChannelEvents start");
+showProfiling("sectionsd_getChannelEvents start");
 	readLockEvents();
 
 	/* !!! FIX ME: if the box starts on a channel where there is no EPG sent, it hangs!!!	*/
@@ -2753,6 +2808,7 @@ void CEitManager::getChannelEvents(CChannelEventList &eList, t_channel_id *chidl
 		uniqueNow = (*e)->get_channel_id();
 		if (IS_WEBTV(uniqueNow))
 			continue;
+
 
 		if (uniqueNow != uniqueOld)
 		{
@@ -2790,7 +2846,7 @@ void CEitManager::getChannelEvents(CChannelEventList &eList, t_channel_id *chidl
 		}
 	}
 
-//showProfiling("sectionsd_getChannelEvents end");
+showProfiling("sectionsd_getChannelEvents end");
 	unlockEvents();
 }
 
@@ -2908,4 +2964,23 @@ unsigned CEitManager::getEventsCount()
 	unsigned anzEvents = mySIeventsOrderUniqueKey.size();
 	unlockEvents();
 	return anzEvents;
+}
+
+void CEitManager::addChannelFilter(t_original_network_id onid, t_transport_stream_id tsid, t_service_id sid)
+{
+	OpenThreads::ScopedLock<OpenThreads::Mutex> slock(filter_mutex);
+	if (xml_epg_filter)
+		return;
+	epg_filter_except_current_next = true;
+	epg_filter_is_whitelist = true;
+	addEPGFilter(onid, tsid, sid);
+}
+
+void CEitManager::clearChannelFilters()
+{
+	OpenThreads::ScopedLock<OpenThreads::Mutex> slock(filter_mutex);
+	if (xml_epg_filter)
+		return;
+	clearEPGFilter();
+	epg_filter_is_whitelist = false;
 }

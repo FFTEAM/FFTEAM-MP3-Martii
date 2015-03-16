@@ -248,6 +248,8 @@ struct SNeutrinoSettings
 	// EPG
 	int epg_save;
 	int epg_save_standby;
+	int epg_save_frequently;
+	int epg_read;
 	int epg_cache;
 	int epg_old_events;
 	int epg_max_events;
@@ -255,6 +257,7 @@ struct SNeutrinoSettings
 	std::string epg_dir;
 	int epg_scan;
 	int epg_scan_mode;
+	int epg_save_mode;
 
 	int epg_search_history_size;
 	int epg_search_history_max;
@@ -262,8 +265,6 @@ struct SNeutrinoSettings
 
 	int epg_enable_freesat;
 	int epg_enable_viasat;
-	int batchepg_run_at_shutdown;
-	int batchepg_standard_waittime;
 
 	std::string streaming_server_url;
 	std::string streaming_server_name;

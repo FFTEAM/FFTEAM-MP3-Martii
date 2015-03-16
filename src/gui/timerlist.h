@@ -65,6 +65,7 @@ class CTimerList : public CMenuTarget
 		int timerNew_standby_on;
 		std::string timerNew_channel_name;
 		std::string m_weekdaysStr;
+		std::string timerNew_message;
 		std::string timerNew_pluginName;
 
 		int timer_apids_dflt;
@@ -72,7 +73,6 @@ class CTimerList : public CMenuTarget
 		int timer_apids_ac3;
 		int timer_apids_alt;
 
-		int skipEventID;
 		void paintItem(int pos);
 		void paint();
 		void paintHead();
@@ -94,6 +94,6 @@ class CTimerList : public CMenuTarget
 		static std::string convertChannelId2String(const t_channel_id id); // UTF-8
 };
 
-bool askUserOnTimerConflict(time_t announceTime, time_t stopTime, t_channel_id channel_id = 0);
+bool askUserOnTimerConflict(time_t announceTime, time_t stopTime);
 
 #endif

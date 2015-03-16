@@ -1539,14 +1539,16 @@ void CChannelList::paintDetails(int index)
 	if (g_settings.colored_events_channellist == 2)
 		colored_event_N = true;
 
-	if (displayNext) {
-		p_event = &(*chanlist)[index]->nextEvent;
-	} else {
-		p_event = &(*chanlist)[index]->currentEvent;
-	}
-
 	frameBuffer->paintBoxRel(x+1, y + height + 1, full_width-2, info_height - 2, COL_MENUCONTENTDARK_PLUS_0, RADIUS_LARGE);//round
 	frameBuffer->paintBoxFrame(x, y + height, full_width, info_height, 2, COL_MENUCONTENT_PLUS_6, RADIUS_LARGE);
+
+	if ((*chanlist).empty())
+		return;
+
+	if (displayNext)
+		p_event = &(*chanlist)[index]->nextEvent;
+	else
+		p_event = &(*chanlist)[index]->currentEvent;
 
 	if (!IS_WEBTV((*chanlist)[index]->channel_id) && !p_event->description.empty()) {
 		char cNoch[50] = {0}; // UTF-8

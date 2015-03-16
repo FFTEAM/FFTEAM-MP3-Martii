@@ -35,10 +35,7 @@
 
 #include "config.h"
 
-#include <configfile.h>
-
 #include <neutrinoMessages.h>
-#include "driver/framebuffer.h"
 #include "driver/neutrinofonts.h"
 #include "system/setting_helpers.h"
 #include "system/configure_network.h"
@@ -47,8 +44,10 @@
 #include "gui/personalize.h"
 #include "gui/rc_lock.h"
 #include "gui/user_menue.h"
+#include <timerdclient/timerdtypes.h>
 #include "gui/timerlist.h"
 
+#include <string>
 // Forward declarations instead of includes:
 class CShairPlay;
 
@@ -62,6 +61,10 @@ class CShairPlay;
 
 extern const unsigned char genre_sub_classes[];            /* epgview.cpp */
 extern const neutrino_locale_t * genre_sub_classes_list[]; /* epgview.cpp */
+
+class CFrameBuffer;
+class CConfigFile;
+class CScanSettings;
 
 class CNeutrinoApp : public CMenuTarget, CChangeObserver
 {
@@ -136,9 +139,7 @@ private:
 	void SetupFrameBuffer();
 	void CmdParser(int argc, char **argv);
 	void Cleanup();
-#if ENABLE_FASTSCAN
 	void CheckFastScan(bool standby = false, bool reload = true);
-#endif
 	CNeutrinoApp();
 
 public:
@@ -159,11 +160,11 @@ public:
 	};
 
 	CUserMenu 			usermenu;
-
 	void saveSetup(const char * fname);
 	int loadSetup(const char * fname);
 	void loadKeys(const char * fname = NULL);
 	void saveKeys(const char * fname = NULL);
+	void SetupTiming();
 	void SetupFonts(int fmode = CNeutrinoFonts::FONTSETUP_ALL);
 	void setupRecordingDevice(void);
 
@@ -226,7 +227,7 @@ public:
 	void showInfo(void);
 	CConfigFile* getConfigFile() {return &configfile;};
 	bool 		SDTreloadChannels;
-	CMenuTarget			*batchEPGSettings;
+
 	void saveEpg(bool cvfd_mode);
 	void stopDaemonsForFlash();
 	int showChannelList(const neutrino_msg_t msg, bool from_menu = false);

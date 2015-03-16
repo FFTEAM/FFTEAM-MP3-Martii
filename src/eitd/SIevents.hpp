@@ -376,6 +376,7 @@ class SIevent
 #endif
 		struct SIeventClassifications
 		{
+#ifdef FULL_CONTENT_CLASSIFICATION
 			uint8_t *data;
 			unsigned int size;
 
@@ -486,6 +487,16 @@ class SIevent
 				memcpy (data + off, _data, len);
 				return off + len;
 			}
+#else
+			uint8_t content;
+			uint8_t user;
+
+			SIeventClassifications()
+			{
+				content = 0;
+				user = 0;
+			}
+#endif
 		};
 
 		SIeventClassifications classifications;
@@ -519,7 +530,7 @@ class SIevent
 		// Aus dem Extended Descriptor
 		std::string getExtendedText() const;
 		void appendExtendedText(const std::string &lang, const std::string &text, bool append = true);
-		void appendExtendedText(unsigned int lang, const std::string &text, bool append = true);
+		void appendExtendedText(unsigned int lang, const std::string &text, bool append = true, bool endappend = false);
 		void setExtendedText(const std::string &lang, const std::string &text) {
 			appendExtendedText(lang, text, false);
 		}

@@ -35,7 +35,7 @@
 #include <eventserver.h>
 #include <timerdclient/timerdtypes.h>
 
-#define CONFIGFILE CONFIGDIR "/timerd.conf"
+#define TIMERDCONFIGFILE CONFIGDIR "/timerd.conf"
 
 class CTimerEvent
 {
@@ -117,16 +117,13 @@ class CTimerEvent_Record : public CTimerEvent
 	CTimerd::EventInfo eventInfo;
 	std::string recordingDir;
 	std::string epgTitle;
-	bool recordingSafety;
-	bool autoAdjustToEPG;
 	CTimerEvent_Record(time_t announceTime, time_t alarmTime, time_t stopTime,
 			   t_channel_id channel_id,
 			   event_id_t epgID = 0,
 			   time_t epg_starttime = 0,
 			   unsigned char apids = TIMERD_APIDS_STD,
 			   CTimerd::CTimerEventRepeat evrepeat = CTimerd::TIMERREPEAT_ONCE,
-			   uint32_t repeatcount = 1, const std::string &recDir = "",
-			   bool _recordingSafety = true, bool _autoAdjustToEPG = true);
+			   uint32_t repeatcount = 1, const std::string &recDir = "");
 	CTimerEvent_Record(CConfigFile *config, int iId);
 	virtual ~CTimerEvent_Record(){};
 	virtual CTimerd::CTimerEventTypes getEventType(void) const { return CTimerd::TIMER_RECORD; };
@@ -137,7 +134,6 @@ class CTimerEvent_Record : public CTimerEvent
 	virtual void Reschedule();
 	virtual void getEpgId();
 	virtual void Refresh();
-	virtual bool adjustToCurrentEPG();
 };
 
 class CTimerEvent_Zapto : public CTimerEvent_Record
@@ -232,7 +228,7 @@ private:
 	CTimerEvent			*nextEvent();
 public:
 
-	bool 		  *wakeup;
+	bool 		  wakeup;
 
 	static CTimerManager* getInstance();
 
@@ -241,6 +237,8 @@ public:
 	bool removeEvent(int eventID);
 	bool stopEvent(int eventID);
 	CTimerEvent* getNextEvent();
+	int lockEvents();
+	int unlockEvents();
 	bool listEvents(CTimerEventMap &Events);
 	CTimerd::CTimerEventTypes *getEventType(int eventID);
 //	int modifyEvent(int eventID, time_t announceTime, time_t alarmTime, time_t stopTime, uint32_t repeatcount, CTimerd::CTimerEventRepeat evrepeat = CTimerd::TIMERREPEAT_ONCE);
@@ -258,13 +256,4 @@ public:
 	void cancelShutdownOnWakeup();
 };
 
-class CTimerEvent_BatchEPG : public CTimerEvent
-{
- public:
-	CTimerEvent_BatchEPG( time_t announceTimeArg, time_t alarmTimeArg, CTimerd::CTimerEventRepeat evrepeat = CTimerd::TIMERREPEAT_ONCE, uint32_t repeatcount = 1) :
-		CTimerEvent(CTimerd::TIMER_BATCHEPG, announceTimeArg, alarmTimeArg, (time_t) 0, evrepeat, repeatcount ){};
-	CTimerEvent_BatchEPG(CConfigFile *config, int iId):
-		CTimerEvent(CTimerd::TIMER_BATCHEPG, config, iId){};
-	virtual void fireEvent();
-};
 #endif

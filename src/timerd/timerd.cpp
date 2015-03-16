@@ -36,7 +36,6 @@
 
 #include "debug.h"
 #include "timermanager.h"
-#include <system/helpers.h>
 #include <system/set_threadname.h>
 
 int timerd_debug = 0;
@@ -61,6 +60,7 @@ bool timerd_parse_command(CBasicMessage::Header &rmsg, int connfd)
 
 		case CTimerdMsg::CMD_GETSLEEPTIMER:
 			rspGetSleeptimer.eventID = 0;
+			CTimerManager::getInstance()->lockEvents();
 			if (CTimerManager::getInstance()->listEvents(events))
 			{
 				for (pos = events.begin(); pos != events.end(); ++pos)
@@ -73,6 +73,7 @@ bool timerd_parse_command(CBasicMessage::Header &rmsg, int connfd)
 					}
 				}
 			}
+			CTimerManager::getInstance()->unlockEvents();
 			CBasicServer::send_data(connfd, &rspGetSleeptimer, sizeof(rspGetSleeptimer));
 			break;
 
@@ -80,6 +81,7 @@ bool timerd_parse_command(CBasicMessage::Header &rmsg, int connfd)
 			CTimerdMsg::commandGetTimer msgGetTimer;
 			CTimerd::responseGetTimer resp;
 			CBasicServer::receive_data(connfd,&msgGetTimer, sizeof(msgGetTimer));
+			CTimerManager::getInstance()->lockEvents();
 			if(CTimerManager::getInstance()->listEvents(events))
 			{
 				if(events[msgGetTimer.eventID])
@@ -112,8 +114,8 @@ bool timerd_parse_command(CBasicMessage::Header &rmsg, int connfd)
 						resp.epg_starttime = ev->eventInfo.epg_starttime;
 						resp.channel_id = ev->eventInfo.channel_id;
 						resp.apids = ev->eventInfo.apids;
-						cstrncpy(resp.recordingDir, ev->recordingDir.c_str(), sizeof(resp.recordingDir));
-						cstrncpy(resp.epgTitle, ev->epgTitle, sizeof(resp.epgTitle));
+						strcpy(resp.recordingDir, ev->recordingDir.substr(0,sizeof(resp.recordingDir)-1).c_str());
+						strcpy(resp.epgTitle, ev->epgTitle.substr(0,sizeof(resp.epgTitle)-1).c_str());
 					}
 					else if(event->eventType == CTimerd::TIMER_ZAPTO)
 					{
@@ -122,23 +124,27 @@ bool timerd_parse_command(CBasicMessage::Header &rmsg, int connfd)
 						resp.epg_starttime = ev->eventInfo.epg_starttime;
 						resp.channel_id = ev->eventInfo.channel_id;
 						resp.apids = ev->eventInfo.apids;
-						cstrncpy(resp.epgTitle, ev->epgTitle, sizeof(resp.epgTitle));
+						strcpy(resp.epgTitle, ev->epgTitle.substr(0,sizeof(resp.epgTitle)-1).c_str());
 					}
 					else if(event->eventType == CTimerd::TIMER_REMIND)
 					{
-						cstrncpy(resp.message, static_cast<CTimerEvent_Remind*>(event)->message, sizeof(resp.message));
+						memset(resp.message, 0, sizeof(resp.message));
+						strncpy(resp.message, static_cast<CTimerEvent_Remind*>(event)->message, sizeof(resp.message)-1);
 					}
 					else if (event->eventType == CTimerd::TIMER_EXEC_PLUGIN)
 					{
-						cstrncpy(resp.pluginName, static_cast<CTimerEvent_ExecPlugin*>(event)->name, sizeof(resp.message));
+						memset(resp.pluginName, 0, sizeof(resp.pluginName));
+						strncpy(resp.pluginName, static_cast<CTimerEvent_ExecPlugin*>(event)->name, sizeof(resp.message)-1);
 					}
 				}
 			}
+			CTimerManager::getInstance()->unlockEvents();
 			CBasicServer::send_data(connfd, &resp, sizeof(CTimerd::responseGetTimer));
 			break;
 
 		case CTimerdMsg::CMD_GETTIMERLIST:
 			CTimerdMsg::generalInteger responseInteger;
+			CTimerManager::getInstance()->lockEvents();
 			responseInteger.number = (CTimerManager::getInstance()->listEvents(events)) ? events.size() : 0;
 
 			if (CBasicServer::send_data(connfd, &responseInteger, sizeof(responseInteger)) == true)
@@ -177,8 +183,8 @@ bool timerd_parse_command(CBasicMessage::Header &rmsg, int connfd)
 						lresp.epg_starttime = ev->eventInfo.epg_starttime;
 						lresp.channel_id = ev->eventInfo.channel_id;
 						lresp.apids = ev->eventInfo.apids;
-						cstrncpy(lresp.recordingDir, ev->recordingDir, sizeof(lresp.recordingDir));
-						cstrncpy(lresp.epgTitle, ev->epgTitle, sizeof(lresp.epgTitle));
+						strcpy(lresp.recordingDir, ev->recordingDir.substr(0,sizeof(lresp.recordingDir)-1).c_str());
+						strcpy(lresp.epgTitle, ev->epgTitle.substr(0,sizeof(lresp.epgTitle)-1).c_str());
 					}
 					else if(event->eventType == CTimerd::TIMER_ZAPTO)
 					{
@@ -187,19 +193,20 @@ bool timerd_parse_command(CBasicMessage::Header &rmsg, int connfd)
 						lresp.epg_starttime = ev->eventInfo.epg_starttime;
 						lresp.channel_id = ev->eventInfo.channel_id;
 						lresp.apids = ev->eventInfo.apids;
-						cstrncpy(lresp.epgTitle, ev->epgTitle, sizeof(lresp.epgTitle));
+						strcpy(lresp.epgTitle, ev->epgTitle.substr(0,sizeof(lresp.epgTitle)-1).c_str());
 					}
 					else if(event->eventType == CTimerd::TIMER_REMIND)
 					{
-						cstrncpy(lresp.message, static_cast<CTimerEvent_Remind*>(event)->message, sizeof(lresp.message));
+						strcpy(lresp.message, static_cast<CTimerEvent_Remind*>(event)->message);
 					}
 					else if(event->eventType == CTimerd::TIMER_EXEC_PLUGIN)
 					{
-						cstrncpy(lresp.pluginName, static_cast<CTimerEvent_ExecPlugin*>(event)->name, sizeof(lresp.pluginName));
+						strcpy(lresp.pluginName, static_cast<CTimerEvent_ExecPlugin*>(event)->name);
 					}
 					CBasicServer::send_data(connfd, &lresp, sizeof(CTimerd::responseGetTimer));
 				}
 			}
+			CTimerManager::getInstance()->unlockEvents();
 			break;
 
 		case CTimerdMsg::CMD_RESCHEDULETIMER:			// event nach vorne oder hinten schieben
@@ -230,13 +237,12 @@ bool timerd_parse_command(CBasicMessage::Header &rmsg, int connfd)
 						case CTimerd::TIMER_SLEEPTIMER:
 						case CTimerd::TIMER_EXEC_PLUGIN:
 						case CTimerd::TIMER_IMMEDIATE_RECORD:
-						case CTimerd::TIMER_BATCHEPG:
 							break;
 						case CTimerd::TIMER_RECORD:
 						{
 							CTimerdMsg::commandRecordDir rdir;
 							CBasicServer::receive_data(connfd,&rdir, sizeof(CTimerdMsg::commandRecordDir));
-							cstrncpy(data.recordingDir,rdir.recDir, sizeof(data.recordingDir));
+							strcpy(data.recordingDir,rdir.recDir);
 							break;
 						}
 						default:
@@ -298,7 +304,7 @@ bool timerd_parse_command(CBasicMessage::Header &rmsg, int connfd)
 
 					CTimerd::TransferRecordingInfo recInfo;
 					CBasicServer::receive_data(connfd, &recInfo, sizeof(CTimerd::TransferRecordingInfo));
-					if(recInfo.recordingSafety)
+				if(recInfo.recordingSafety)
 					{
 						int pre,post;
 						CTimerManager::getInstance()->getRecordingSafety(pre,post);
@@ -316,9 +322,7 @@ bool timerd_parse_command(CBasicMessage::Header &rmsg, int connfd)
 						recInfo.apids,
 						msgAddTimer.eventRepeat,
 						msgAddTimer.repeatCount,
-						recInfo.recordingDir,
-						recInfo.recordingSafety,
-						recInfo.autoAdjustToEPG);
+						recInfo.recordingDir);
 					rspAddTimer.eventID = CTimerManager::getInstance()->addEvent(event);
 
 					break;
@@ -404,14 +408,6 @@ bool timerd_parse_command(CBasicMessage::Header &rmsg, int connfd)
 									   pluginMsg.name,
 									   msgAddTimer.eventRepeat,
 									   msgAddTimer.repeatCount);
-					rspAddTimer.eventID = CTimerManager::getInstance()->addEvent(event);
-					break;
-				case CTimerd::TIMER_BATCHEPG :
-					event = new CTimerEvent_BatchEPG(
-						msgAddTimer.announceTime,
-						msgAddTimer.alarmTime,
-						msgAddTimer.eventRepeat,
-						msgAddTimer.repeatCount);
 					rspAddTimer.eventID = CTimerManager::getInstance()->addEvent(event);
 					break;
 				default:

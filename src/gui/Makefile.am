@@ -45,7 +45,6 @@ libneutrino_gui_a_SOURCES = \
 	audiomute.cpp \
 	audioplayer.cpp \
 	audioplayer_setup.cpp\
-	batchepg.cpp \
 	bluepanel.cpp \
 	bookmarkmanager.cpp \
 	bouquetlist.cpp \
@@ -59,7 +58,6 @@ libneutrino_gui_a_SOURCES = \
 	favorites.cpp \
 	filebrowser.cpp \
 	filebrowser_setup.cpp \
-	followscreenings.cpp \
 	imageinfo.cpp \
 	info_menue.cpp \
 	infoviewer.cpp \

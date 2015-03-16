@@ -33,13 +33,6 @@
 #ifndef __EPGPLUS_HPP__
 #define __EPGPLUS_HPP__
 
-#include <system/settings.h>
-
-#include "color.h"
-#include "channellist.h"
-#include "infoviewer.h"
-#include "filebrowser.h"
-
 #include "widget/menue.h"
 
 #include <string>

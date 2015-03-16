@@ -69,7 +69,7 @@ class CTimerd
 			TIMER_SLEEPTIMER,
 			TIMER_EXEC_PLUGIN,
  			TIMER_IMMEDIATE_RECORD,
- 			TIMER_BATCHEPG
+			TIMER_ADZAP
 		};
 		
 		enum CTimerEventStates 
@@ -88,7 +88,6 @@ class CTimerd
 			t_channel_id  channel_id;
 			unsigned char apids;
 			bool          recordingSafety;
-			bool          autoAdjustToEPG;
 		};
 
 		struct TransferEventInfo
@@ -98,7 +97,6 @@ class CTimerd
 			t_channel_id  channel_id;
 			unsigned char apids;
 			bool          recordingSafety;
-			bool          autoAdjustToEPG;
 		};
 
 		struct TransferRecordingInfo : TransferEventInfo
@@ -119,7 +117,6 @@ class CTimerd
 						epgID = e.epgID;
 						epg_starttime = e.epg_starttime;
 						recordingSafety = e.recordingSafety;
-						autoAdjustToEPG = e.autoAdjustToEPG;
 					};
 				RecordingInfo& operator = (EventInfo& e)
 					{
@@ -128,7 +125,6 @@ class CTimerd
 						epgID = e.epgID;
 						epg_starttime = e.epg_starttime;
 						recordingSafety = e.recordingSafety;
-						autoAdjustToEPG = e.autoAdjustToEPG;
 						return *this;
 					}
 				unsigned char apids;

@@ -110,10 +110,20 @@ void COnOffNotifier::addItem(CMenuItem* menuItem)
 	toDisable.push_back(menuItem);
 }
 
-bool CSectionsdConfigNotifier::changeNotify(const neutrino_locale_t, void *)
+bool CSectionsdConfigNotifier::changeNotify(const neutrino_locale_t locale, void *data)
 {
-        CNeutrinoApp::getInstance()->SendSectionsdConfig();
-        return false;
+	char *str = (char*) data;
+	if (locale == LOCALE_MISCSETTINGS_EPG_CACHE)
+		g_settings.epg_cache = atoi(str);
+	else if (locale == LOCALE_MISCSETTINGS_EPG_EXTENDEDCACHE)
+		g_settings.epg_extendedcache = atoi(str);
+	else if (locale == LOCALE_MISCSETTINGS_EPG_OLD_EVENTS)
+		g_settings.epg_old_events = atoi(str);
+	else if (locale == LOCALE_MISCSETTINGS_EPG_MAX_EVENTS)
+		g_settings.epg_max_events = atoi(str);
+
+	CNeutrinoApp::getInstance()->SendSectionsdConfig();
+	return false;
 }
 
 #if 0
@@ -336,7 +346,7 @@ bool CFontSizeNotifier::changeNotify(const neutrino_locale_t, void *)
 
 int CSubtitleChangeExec::exec(CMenuTarget* /*parent*/, const std::string & actionKey)
 {
-	fprintf(stderr, "CSubtitleChangeExec::exec: action %s\n", actionKey.c_str());
+printf("CSubtitleChangeExec::exec: action %s\n", actionKey.c_str());
 
 	CMoviePlayerGui *mp = &CMoviePlayerGui::getInstance();
 	bool is_mp = mp->Playing();
@@ -356,9 +366,9 @@ int CSubtitleChangeExec::exec(CMenuTarget* /*parent*/, const std::string & actio
 		char const * pidptr = strchr(actionKey.c_str(), ':');
 		int pid = atoi(pidptr+1);
 		tuxtx_stop_subtitle();
-		dvbsub_stop();
+		dvbsub_pause();
 		dvbsub_start(pid);
-	} else if(!strncmp(actionKey.c_str(), "TTX", 3)){
+	} else if (!strncmp(actionKey.c_str(), "TTX", 3)) {
 		char const * ptr = strchr(actionKey.c_str(), ':');
 		ptr++;
 		int pid = atoi(ptr);
@@ -367,8 +377,9 @@ int CSubtitleChangeExec::exec(CMenuTarget* /*parent*/, const std::string & actio
 		int page = strtol(ptr, NULL, 16);
 		ptr = strchr(ptr, ':');
 		ptr++;
-//printf("CSubtitleChangeExec::exec: TTX, pid %x page %x lang %s\n", pid, page, ptr);
+printf("CSubtitleChangeExec::exec: TTX, pid %x page %x lang %s\n", pid, page, ptr);
 		tuxtx_stop_subtitle();
+		tuxtx_set_pid(pid, page, ptr);
 		dvbsub_stop();
 		if (is_mp) {
 			playback->SetSubtitlePid(0);
@@ -400,7 +411,7 @@ int CSubtitleChangeExec::exec(CMenuTarget* /*parent*/, const std::string & actio
 int CNVODChangeExec::exec(CMenuTarget* parent, const std::string & actionKey)
 {
 	//    printf("CNVODChangeExec exec: %s\n", actionKey.c_str());
-	unsigned sel= atoi(actionKey);
+	unsigned sel= atoi(actionKey.c_str());
 	g_RemoteControl->setSubChannel(sel);
 
 	parent->hide();
@@ -453,7 +464,7 @@ long CNetAdapter::mac_addr_sys ( u_char *addr) //only for function getMacAddr()
 	IFR = ifc.ifc_req;
 	for (i = ifc.ifc_len / sizeof(struct ifreq); --i >= 0; IFR++)
 	{
-		cstrncpy(ifr.ifr_name, IFR->ifr_name, sizeof(ifr.ifr_name));
+		strcpy(ifr.ifr_name, IFR->ifr_name);
 		if (ioctl(s, SIOCGIFFLAGS, &ifr) == 0) 
 		{
 			if (! (ifr.ifr_flags & IFF_LOOPBACK)) 
@@ -593,12 +604,11 @@ int CDataResetNotifier::exec(CMenuTarget* /*parent*/, const std::string& actionK
 		g_Zapit->reinitChannels();
 	}
 	if (delete_removed) {
-		if (reloadhintBox)
-			reloadhintBox->paint();
+		CHintBox chb(LOCALE_MESSAGEBOX_INFO, g_Locale->getText(LOCALE_SERVICEMENU_RELOAD_HINT));
+		chb.paint();
 		CServiceManager::getInstance()->SaveServices(true, false, true);
-		if (reloadhintBox)
-			reloadhintBox->hide(); /* reinitChannels also triggers a reloadhintbox */
 		g_Zapit->reinitChannels();
+		chb.hide();
 	}
 	return ret;
 }

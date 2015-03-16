@@ -28,8 +28,6 @@
 #include <sectionsdclient/sectionsdclient.h>
 #include <sectionsdclient/sectionsdMsg.h>
 
-#include <system/helpers.h>
-
 #ifdef PEDANTIC_VALGRIND_SETUP
 #define VALGRIND_PARANOIA(x) memset(&x, 0, sizeof(x))
 #else
@@ -91,7 +89,7 @@ void CSectionsdClient::registerEvent(const unsigned int eventID, const unsigned 
 	msg2.eventID = eventID;
 	msg2.clientID = clientID;
 
-	cstrncpy(msg2.udsName, udsName, sizeof(msg2.udsName));
+	strcpy(msg2.udsName, udsName);
 
 	send(sectionsd::CMD_registerEvents, (char*)&msg2, sizeof(msg2));
 
@@ -217,6 +215,7 @@ void CSectionsdClient::setConfig(const epg_config config)
 	msg->network_ntprefresh	= config.network_ntprefresh;
 	msg->network_ntpenable	= config.network_ntpenable;
 	msg->epg_extendedcache	= config.epg_extendedcache;
+	msg->epg_save_frequently= config.epg_save_frequently;
 //	config.network_ntpserver:
 	strcpy(&pData[sizeof(sectionsd::commandSetConfig)], config.network_ntpserver.c_str());
 //	config.epg_dir:
