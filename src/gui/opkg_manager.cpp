@@ -173,13 +173,13 @@ int COPKGManager::exec(CMenuTarget* parent, const std::string &actionKey)
 
 #define COPKGManagerFooterButtonCount 3
 static const struct button_label COPKGManagerFooterButtons[COPKGManagerFooterButtonCount] = {
-	{ NEUTRINO_ICON_BUTTON_YELLOW, LOCALE_OPKG_BUTTON_EXPERT_ON },
+	{ NEUTRINO_ICON_BUTTON_BLUE, LOCALE_OPKG_BUTTON_EXPERT_ON },
 	{ NEUTRINO_ICON_BUTTON_INFO_SMALL, LOCALE_OPKG_BUTTON_INFO },
 	{ NEUTRINO_ICON_BUTTON_OKAY,	   LOCALE_OPKG_BUTTON_INSTALL }
 };
 #define COPKGManagerFooterButtonCountExpert 4
 static const struct button_label COPKGManagerFooterButtonsExpert[COPKGManagerFooterButtonCountExpert] = {
-	{ NEUTRINO_ICON_BUTTON_YELLOW, LOCALE_OPKG_BUTTON_EXPERT_OFF },
+	{ NEUTRINO_ICON_BUTTON_BLUE, LOCALE_OPKG_BUTTON_EXPERT_OFF },
 	{ NEUTRINO_ICON_BUTTON_INFO_SMALL, LOCALE_OPKG_BUTTON_INFO },
 	{ NEUTRINO_ICON_BUTTON_OKAY,	   LOCALE_OPKG_BUTTON_INSTALL },
 	{ NEUTRINO_ICON_BUTTON_RED, LOCALE_OPKG_BUTTON_UNINSTALL }
@@ -238,7 +238,7 @@ int COPKGManager::showMenu()
 	menuBack.setHint(NEUTRINO_ICON_HINT_BACK, LOCALE_MENU_HINT_BACK_BRIEF);
 	menu->addItem(GenericMenuSeparatorLine);
 
-	upgrade_forwarder = new CMenuForwarder(LOCALE_OPKG_UPGRADE, true, NULL , this, pkg_types[OM_UPGRADE].c_str(), CRCInput::RC_red);
+	upgrade_forwarder = new CMenuForwarder(LOCALE_OPKG_UPGRADE, true, NULL , this, pkg_types[OM_UPGRADE].c_str(), CRCInput::RC_green);
 	upgrade_forwarder->setHint(NEUTRINO_ICON_HINT_SW_UPDATE, LOCALE_MENU_HINT_OPKG_UPGRADE);
 	menu->addItem(upgrade_forwarder);
 	menu->addItem(GenericMenuSeparatorLine);
@@ -246,9 +246,10 @@ int COPKGManager::showMenu()
 	menu_offset = menu->getItemsCount();
 
 	menu->addKey(CRCInput::RC_info, this, "rc_info");
+	menu->addKey(CRCInput::RC_spkr, this, "rc_spkr");
+	menu->addKey(CRCInput::RC_setup, this, "rc_setup");
 	menu->addKey(CRCInput::RC_red, this, "rc_spkr");
-	menu->addKey(CRCInput::RC_yellow, this, "rc_setup");
-
+	menu->addKey(CRCInput::RC_blue, this, "rc_setup");
 	pkg_vec.clear();
 	for (std::map<string, struct pkg>::iterator it = pkg_map.begin(); it != pkg_map.end(); it++) {
 		it->second.forwarder = new CMenuForwarder(it->second.desc, true, NULL , this, it->second.name.c_str());
