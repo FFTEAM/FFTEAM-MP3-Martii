@@ -156,7 +156,7 @@ class MI_MOVIE_INFO
 	std::string serieName;  	// user defines series name
 
 	time_t dateOfLastPlay; 		// last play date of movie in seconds since 1970
-	char dirItNr;  				// handle for quick directory path access only, this is not saved in xml, might be used by the owner of the movie info struct
+	int  dirItNr;  				// handle for quick directory path access only, this is not saved in xml, might be used by the owner of the movie info struct
 	int  genreMajor;            // see showEPG class for more info, usually filled by EPG
 	char genreMinor;			// genreMinor not used so far			
 	int  length;                // movie length in minutes, usually filled by EPG
@@ -174,6 +174,7 @@ class MI_MOVIE_INFO
 	int  epgVideoPid; 		// currently not used, we just do not want to loose this info if movie info is saved backed
 	int  VideoType;
 	int	 epgVTXPID;			// currently not used, we just do not want to loose this info if movie info is saved backed 
+	bool marked;
 	std::string tfile; // thumbnail/cover file name
 	std::string ytdate; // yt published
 	std::string ytid; // yt published
@@ -188,6 +189,8 @@ class MI_MOVIE_INFO
 	MI_MOVIE_INFO() { clear(); }
 };
 
+typedef std::vector<MI_MOVIE_INFO> MI_MOVIE_LIST;
+typedef std::vector<MI_MOVIE_INFO*> P_MI_MOVIE_LIST;
 
 class CMovieInfo
 {
@@ -200,6 +203,7 @@ class CMovieInfo
 		bool saveMovieInfo(MI_MOVIE_INFO& movie_info, CFile* file = NULL ); 	// encode the movie_info structure to xml and save it to the given .xml filename. If there is no filename, the filename (ts) from movie_info is converted to xml and used instead
 		void showMovieInfo(MI_MOVIE_INFO& movie_info);									// open a Hintbox and show the movie info
 		void printDebugMovieInfo(MI_MOVIE_INFO& movie_info);							// print movie info on debug channel (RS232)
+		void clearMovieInfo(MI_MOVIE_INFO* movie_info);									// Set movie info structure to initial values
 		bool addNewBookmark(MI_MOVIE_INFO* movie_info,MI_BOOKMARK &new_bookmark);		// add a new bookmark to the given movie info. If there is no space false is returned
 		
 	private:// Functions

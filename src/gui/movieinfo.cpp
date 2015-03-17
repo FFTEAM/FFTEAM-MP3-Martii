@@ -116,7 +116,7 @@ static void XML_ADD_TAG_UNSIGNED(std::string &_xml_text_, const char *_tag_name_
 	_xml_text_ += ">\n";
 }
 
-static void XML_ADD_TAG_LONG(std::string &_xml_text_, const char *_tag_name_, long int _tag_content_)
+static void XML_ADD_TAG_LONG(std::string &_xml_text_, const char *_tag_name_, uint64_t _tag_content_)
 {
 	_xml_text_ += "\t\t<";
 	_xml_text_ += _tag_name_;
@@ -382,7 +382,7 @@ bool CMovieInfo::parseXmlTree(char */*text*/, MI_MOVIE_INFO * /*movie_info*/)
 	}
 
 	delete parser;
-	if (movie_info->epgInfo2 == "") {
+	if (movie_info->epgInfo2.empty()) {
 		movie_info->epgInfo2 = movie_info->epgInfo1;
 		//movie_info->epgInfo1 = "";
 	}
@@ -797,7 +797,7 @@ bool CMovieInfo::parseXmlQuickFix(std::string &_text, MI_MOVIE_INFO * movie_info
 		}
 	}
 
-	if (movie_info->epgInfo2 == "") {
+	if (movie_info->epgInfo2.empty()) {
 		movie_info->epgInfo2 = movie_info->epgInfo1;
 		//movie_info->epgInfo1 = "";
 	}
@@ -844,6 +844,57 @@ bool CMovieInfo::addNewBookmark(MI_MOVIE_INFO * movie_info, MI_BOOKMARK & new_bo
 /************************************************************************
 
 ************************************************************************/
+
+void CMovieInfo::clearMovieInfo(MI_MOVIE_INFO * movie_info)
+{
+	//TRACE("[mi]->clearMovieInfo \r\n");
+	tm timePlay;
+	timePlay.tm_hour = 0;
+	timePlay.tm_min = 0;
+	timePlay.tm_sec = 0;
+	timePlay.tm_year = 100;
+	timePlay.tm_mday = 0;
+	timePlay.tm_mon = 1;
+
+	movie_info->file.Name = "";
+	movie_info->file.Size = 0;	// Megabytes
+	movie_info->file.Time = mktime(&timePlay);
+	movie_info->dateOfLastPlay = mktime(&timePlay);	// (date, month, year)
+	movie_info->dirItNr = 0;	//
+	movie_info->genreMajor = 0;	//genreMajor;
+	movie_info->genreMinor = 0;	//genreMinor;
+	movie_info->length = 0;	// (minutes)
+	movie_info->quality = 0;	// (3 stars: classics, 2 stars: very good, 1 star: good, 0 stars: OK)
+	movie_info->productionDate = 0;	// (Year)  years since 1900
+	movie_info->parentalLockAge = 0;	// MI_PARENTAL_LOCKAGE (0,6,12,16,18)
+
+	movie_info->epgId = 0;
+	movie_info->epgEpgId = 0;
+	movie_info->epgMode = 0;
+	movie_info->epgVideoPid = 0;
+	movie_info->VideoType = 0;
+	movie_info->epgVTXPID = 0;
+
+	movie_info->audioPids.clear();
+
+	movie_info->productionCountry = "";
+	movie_info->epgTitle = "";
+	movie_info->epgInfo1 = "";	//epgInfo1
+	movie_info->epgInfo2 = "";	//epgInfo2
+	movie_info->epgChannel = "";
+	movie_info->serieName = "";	// (name e.g. 'StarWars)
+	movie_info->bookmarks.end = 0;
+	movie_info->bookmarks.start = 0;
+	movie_info->bookmarks.lastPlayStop = 0;
+	for (int i = 0; i < MI_MOVIE_BOOK_USER_MAX; i++) {
+		movie_info->bookmarks.user[i].pos = 0;
+		movie_info->bookmarks.user[i].length = 0;
+		movie_info->bookmarks.user[i].name = "";
+	}
+	movie_info->tfile.clear();
+	movie_info->ytdate.clear();
+	movie_info->ytid.clear();
+}
 
 void MI_MOVIE_INFO::clear(void)
 {
@@ -897,6 +948,7 @@ void MI_MOVIE_INFO::clear(void)
 	ytdate = "";
 	ytid = "";
 	ytitag = 0;
+	marked = false;
 	nkrtmp = true;
 	nkstreaming = "";
 }
@@ -911,7 +963,7 @@ bool CMovieInfo::loadFile(CFile & file, std::string &buffer)
 	int fd = open(file.Name.c_str(), O_RDONLY);
 	if (fd == -1)		// cannot open file, return!!!!!
 	{
-		TRACE("[mi] loadXml: cannot open (%s)\r\n", file.getFileName().c_str());
+		TRACE("[mi] loadXml: cannot open (%s)\r\n", file.Name.c_str());
 		return false;
 	}
 	struct stat st;
@@ -921,7 +973,7 @@ bool CMovieInfo::loadFile(CFile & file, std::string &buffer)
 	}
 	char buf[st.st_size];
 	if (st.st_size != read(fd, buf, st.st_size)) {
-		TRACE("[mi] loadXml: cannot read (%s)\r\n", file.getFileName().c_str());
+		TRACE("[mi] loadXml: cannot read (%s)\r\n", file.Name.c_str());
 		result = false;
 	} else
 		buffer = std::string(buf, st.st_size);

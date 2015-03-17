@@ -278,7 +278,7 @@ class CMovieBrowser : public CMenuTarget
 		int Dirs_Selectable; // for FileBrowser compatibility, not used in MovieBrowser
 
 	private: // Variables
-		//CFBWindow* m_pcWindow;
+		CFrameBuffer * framebuffer;
 		CFrameBuffer * m_pcWindow;
 
 		CListFrame* m_pcBrowser;
@@ -313,7 +313,7 @@ class CMovieBrowser : public CMenuTarget
 		unsigned int m_currentRecordSelection;
 		unsigned int m_currentPlaySelection;
 		unsigned int m_currentFilterSelection;
- 		unsigned int m_prevBrowserSelection;
+		unsigned int m_prevBrowserSelection;
 		unsigned int m_prevRecordSelection;
 		unsigned int m_prevPlaySelection;
 
@@ -349,12 +349,10 @@ class CMovieBrowser : public CMenuTarget
 		std::vector<std::string> PicExts;
 		std::string getScreenshotName(std::string movie);
 
-		//bool restart_mb_timeout;
 		int menu_ret;
 
 		cNKFeedParser nkparser;
 		std::string nkcategory_name;
-
 		cYTFeedParser ytparser;
 		int show_mode;
 		CMenuWidget *yt_menue;
@@ -397,16 +395,13 @@ class CMovieBrowser : public CMenuTarget
 		bool delFile_std(CFile& file);
 		int  getMenuRet() { return menu_ret; }
 		int  getMode() { return show_mode; }
-		void  setMode(int mode) { show_mode = mode; }
+		void setMode(int mode) { show_mode = mode; }
 
 	private: //Functions
 		///// MovieBrowser init ///////////////
 		void init(void); //P1
 		void initGlobalSettings(void); //P1
 		void initFrames(void);
-#if 0
-		void initDevelopment(void); //P1 for development testing only
-#endif
 		void initRows(void);
 		void reinit(void); //P1
 
@@ -434,6 +429,7 @@ class CMovieBrowser : public CMenuTarget
 		bool onButtonPressFilterList(neutrino_msg_t msg); // P2
 		bool onButtonPressBookmarkList(neutrino_msg_t msg); // P3
 		bool onButtonPressMovieInfoList(neutrino_msg_t msg); // P2
+		void markItem(CListFrame *list);
 		void onSetFocus(MB_FOCUS new_focus); // P2
 		void onSetFocusNext(void); // P2
 		void onSetFocusPrev(void); // P2

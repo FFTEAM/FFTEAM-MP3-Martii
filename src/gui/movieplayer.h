@@ -79,8 +79,8 @@ class CMoviePlayerGui : public CMenuTarget
 	CFrameBuffer * frameBuffer;
 	int            m_LastMode;	
 
-	std::string	pretty_name;
 	std::string	file_name;
+	std::string	pretty_name;
 	std::string	info_1, info_2;
 	std::string    	currentaudioname;
 	bool		playing;
@@ -95,10 +95,8 @@ class CMoviePlayerGui : public CMenuTarget
 	CTimeOSD FileTime;
 
 	unsigned int numpida;
-
 	int vpid;
 	int vtype;
-
 	std::string    language[REC_MAX_APIDS];
 #if HAVE_COOL_HARDWARE
 	uint16_t apids[REC_MAX_APIDS];
@@ -114,7 +112,7 @@ class CMoviePlayerGui : public CMenuTarget
 #ifndef REC_MAX_SPIDS
 #define REC_MAX_SPIDS 20 // whatever
 #endif
-	std::string    slanguage[REC_MAX_SPIDS];
+	std::string slanguage[REC_MAX_SPIDS];
 	int spids[REC_MAX_SPIDS];
 
 	// teletext subtitle data
@@ -122,7 +120,7 @@ class CMoviePlayerGui : public CMenuTarget
 #ifndef REC_MAX_TPIDS
 #define REC_MAX_TPIDS 50 // not pids, actually -- a pid may cover multiple subtitle pages
 #endif
-	std::string    tlanguage[REC_MAX_TPIDS];
+	std::string tlanguage[REC_MAX_TPIDS];
 	int tpids[REC_MAX_TPIDS];
 	int tmag[REC_MAX_TPIDS];
 	int tpage[REC_MAX_TPIDS];
@@ -158,19 +156,20 @@ class CMoviePlayerGui : public CMenuTarget
 	CMovieBrowser* moviebrowser;
 	MI_MOVIE_INFO * p_movie_info;
 	MI_MOVIE_INFO mi;
+	const static int MOVIE_HINT_BOX_TIMER = 5;	// time to show bookmark hints in seconds
 #if HAVE_SPARK_HARDWARE
-        CFrameBuffer::Mode3D old3dmode;
+	CFrameBuffer::Mode3D old3dmode;
 #endif
 
-	const static int MOVIE_HINT_BOX_TIMER = 5;	// time to show bookmark hints in seconds
-
+	/* playback from file */
+	bool is_file_player;
 	CFileBrowser * filebrowser;
 	CFileFilter tsfilefilter;
 	CFileList filelist;
 	CFileList::iterator filelist_it;
 	std::string Path_local;
 	int menu_ret;
-
+	bool autoshot_done;
         CHintBox *hintBox;
 
 	/* playback from bookmark */
@@ -192,7 +191,7 @@ class CMoviePlayerGui : public CMenuTarget
 	void restoreNeutrino();
 
 	void showHelpTS(void);
-	void callInfoViewer(/*const int duration, const int pos*/);
+	void callInfoViewer();
 	void fillPids();
 	bool getAudioName(int pid, std::string &apidtitle);
 	void selectAudioPid(void);
@@ -241,6 +240,7 @@ class CMoviePlayerGui : public CMenuTarget
 	void UpdatePosition();
 	int timeshift;
 	int file_prozent;
+	cPlayback *getPlayback() { return playback; }
 	void SetFile(std::string &name, std::string &file, std::string info1="", std::string info2="") { pretty_name = name; file_name = file; info_1 = info1; info_2 = info2; }
 	unsigned int getAPID(void);
 	unsigned int getAPID(unsigned int i);
@@ -249,7 +249,6 @@ class CMoviePlayerGui : public CMenuTarget
 	bool setAPID(unsigned int i);
 	AUDIO_FORMAT GetStreamType(void) { return StreamType; }
 	void SetStreamType(void);
-	cPlayback *getPlayback() { return playback; }
 	unsigned int getAPIDCount(void);
 	std::string getAPIDDesc(unsigned int i);
 	unsigned int getSubtitleCount(void);
