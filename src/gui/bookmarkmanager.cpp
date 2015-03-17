@@ -41,7 +41,6 @@
 #include <gui/widget/messagebox.h>
 #include <gui/widget/hintbox.h>
 #include <gui/widget/stringinput.h>
-#include <gui/widget/keyboard_input.h>
 #include <gui/widget/icons.h>
 #include <gui/widget/buttons.h>
 #include <system/helpers.h>
@@ -85,11 +84,14 @@ inline int CBookmarkManager::createBookmark (const std::string & name, const std
 
 int CBookmarkManager::createBookmark (const std::string & url, const std::string & time) {
 	std::string bookmarkname;
-	CKeyboardInput bookmarkname_input(LOCALE_MOVIEPLAYER_BOOKMARKNAME, &bookmarkname, 0, NULL, NULL, LOCALE_MOVIEPLAYER_BOOKMARKNAME_HINT1, LOCALE_MOVIEPLAYER_BOOKMARKNAME_HINT2);
+	CStringInputSMS bookmarkname_input(LOCALE_MOVIEPLAYER_BOOKMARKNAME, &bookmarkname, 25, LOCALE_MOVIEPLAYER_BOOKMARKNAME_HINT1, LOCALE_MOVIEPLAYER_BOOKMARKNAME_HINT2, "abcdefghijklmnopqrstuvwxyz0123456789-_", this);
 	bookmarkname_input.exec(NULL, "");
-	// TODO: return -1 if no name was entered
-	if (bookmarkname.empty()) return -1;
-	return createBookmark(bookmarkname, url, time);
+	if (bookmarkname_entered)
+	{
+		bookmarkname_entered = false;
+		return createBookmark(bookmarkname, url, time);
+	}
+	return -1;
 }
 
 //------------------------------------------------------------------------
@@ -110,7 +112,7 @@ void CBookmarkManager::renameBookmark (unsigned int index) {
 	CBookmark & theBookmark = bookmarks[index];
 	char bookmarkname[26];
 	strncpy (bookmarkname, theBookmark.getName(), 25);
-	CKeyboardInput bookmarkname_input(LOCALE_MOVIEPLAYER_BOOKMARKNAME, bookmarkname, 0, NULL, NULL, LOCALE_MOVIEPLAYER_BOOKMARKNAME_HINT1, LOCALE_MOVIEPLAYER_BOOKMARKNAME_HINT2);
+	CStringInputSMS bookmarkname_input(LOCALE_MOVIEPLAYER_BOOKMARKNAME, bookmarkname, 25, LOCALE_MOVIEPLAYER_BOOKMARKNAME_HINT1, LOCALE_MOVIEPLAYER_BOOKMARKNAME_HINT2, "abcdefghijklmnopqrstuvwxyz0123456789-_");
 	bookmarkname_input.exec(NULL, "");
 
 	if (strcmp(theBookmark.getName(), bookmarkname) != 0)
@@ -141,8 +143,6 @@ void CBookmarkManager::readBookmarkFile() {
 			bookmarks.push_back(CBookmark(bookmarkname, bookmarkurl, bookmarktime));
 		}
 	}
-	else
-		bookmarkfile.clear();
 }
 
 //------------------------------------------------------------------------
@@ -150,6 +150,7 @@ void CBookmarkManager::writeBookmarkFile() {
 
 	printf("CBookmarkManager: Writing bookmark file\n");
 
+	bookmarkfile.clear();
 	unsigned int bookmarkcount = 0;
 	for (std::vector<CBookmark>::const_iterator it = bookmarks.begin(); it != bookmarks.end(); ++it, bookmarkcount++)
 	{
@@ -160,12 +161,15 @@ void CBookmarkManager::writeBookmarkFile() {
 	}
 	bookmarkfile.setInt32("bookmarkcount", bookmarks.size());
 	bookmarkfile.saveConfig(BOOKMARKFILE);
+
+	bookmarksmodified = false;
 }
 
 //------------------------------------------------------------------------
 
 CBookmarkManager::CBookmarkManager() : bookmarkfile ('\t')
 {
+	bookmarkname_entered = false;
 	bookmarksmodified = false;
 	readBookmarkFile();
 }
@@ -177,6 +181,13 @@ CBookmarkManager::~CBookmarkManager () {
 }
 
 //------------------------------------------------------------------------
+
+bool CBookmarkManager::changeNotify(const neutrino_locale_t, void *)
+{
+	bookmarkname_entered = true;
+	return false;
+}
+
 #if 0 
 //never used
 int CBookmarkManager::getBookmarkCount(void) const {
@@ -238,8 +249,8 @@ const CBookmark * CBookmarkManager::getBookmark(CMenuTarget* parent)
 	int res = -1;
 
 	uint64_t timeoutEnd = CRCInput::calcTimeoutEnd(g_settings.timing[SNeutrinoSettings::TIMING_MENU] == 0 ? 0xFFFF : g_settings.timing[SNeutrinoSettings::TIMING_MENU]);
-	neutrino_msg_t msg;
-	neutrino_msg_data_t data;
+	uint32_t msg;
+	uint32_t data;
 
 	bool loop=true;
 	bool update=true;
@@ -324,7 +335,7 @@ const CBookmark * CBookmarkManager::getBookmark(CMenuTarget* parent)
 			res=-1;
 			loop=false;
 		}
-		else if (msg==CRCInput::RC_help)
+		else if ( msg == CRCInput::RC_help )
 		{
 			// TODO Add Help
 		}
@@ -336,7 +347,6 @@ const CBookmark * CBookmarkManager::getBookmark(CMenuTarget* parent)
 				res = menu_return::RETURN_EXIT_ALL;
 			}
 		}
-		frameBuffer->blit();
 	}
 	hide();
 

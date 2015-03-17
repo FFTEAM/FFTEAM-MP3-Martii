@@ -537,7 +537,7 @@ int CBouquetList::show(bool bShowChannelList)
 			}
 		}
 		else if ( msg == CRCInput::RC_ok ) {
-			if(!Bouquets.empty() && (!bShowChannelList || !Bouquets[selected]->channelList->isEmpty())) {
+			if(!Bouquets.empty() /* && (!bShowChannelList || !Bouquets[selected]->channelList->isEmpty())*/) {
 				zapOnExit = true;
 				loop=false;
 			}
@@ -584,19 +584,19 @@ int CBouquetList::show(bool bShowChannelList)
 	CVFD::getInstance()->setMode(CVFD::MODE_TVRADIO);
 	if (save_bouquets) {
 		save_bouquets = false;
+#if 0
 		if (CNeutrinoApp::getInstance()->GetChannelMode() == LIST_MODE_FAV)
 			g_bouquetManager->saveUBouquets();
 		else
 			g_bouquetManager->saveBouquets();
-
+#endif
 		if (g_settings.epg_scan == CEpgScan::SCAN_SEL)
 			CEpgScan::getInstance()->Start();
 	}
-	if(zapOnExit) {
+	if(zapOnExit)
 		return (selected);
-	} else {
-		return (res);
-	}
+
+	return (res);
 }
 
 void CBouquetList::hide()
