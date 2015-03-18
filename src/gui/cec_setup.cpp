@@ -47,13 +47,13 @@
 #include <cs_api.h>
 #include <video.h>
 
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <gui/kerneloptions.h>
-#endif
-#if !HAVE_SPARK_HARDWARE
+#else
 extern cVideo *videoDecoder;
 #endif
 
@@ -83,22 +83,21 @@ int CCECSetup::exec(CMenuTarget* parent, const std::string &/*actionKey*/)
 }
 
 
-#if !HAVE_SPARK_HARDWARE
-#define VIDEOMENU_HDMI_CEC_MODE_OPTION_COUNT 3
-const CMenuOptionChooser::keyval VIDEOMENU_HDMI_CEC_MODE_OPTIONS[VIDEOMENU_HDMI_CEC_MODE_OPTION_COUNT] =
-{
-	{ VIDEO_HDMI_CEC_MODE_OFF	, LOCALE_VIDEOMENU_HDMI_CEC_MODE_OFF      },
-	{ VIDEO_HDMI_CEC_MODE_TUNER	, LOCALE_VIDEOMENU_HDMI_CEC_MODE_TUNER    },
-	{ VIDEO_HDMI_CEC_MODE_RECORDER	, LOCALE_VIDEOMENU_HDMI_CEC_MODE_RECORDER },
-};
-#endif
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 #define VIDEOMENU_HDMI_CEC_STANDBY_OPTION_COUNT 3
 const CMenuOptionChooser::keyval VIDEOMENU_HDMI_CEC_STANDBY_OPTIONS[VIDEOMENU_HDMI_CEC_STANDBY_OPTION_COUNT] =
 {
 	{ 0	, LOCALE_OPTIONS_OFF				},
 	{ 1	, LOCALE_OPTIONS_ON				},
 	{ 2	, LOCALE_VIDEOMENU_HDMI_CEC_STANDBY_NOT_TIMER	}
+};
+#else
+#define VIDEOMENU_HDMI_CEC_MODE_OPTION_COUNT 3
+const CMenuOptionChooser::keyval VIDEOMENU_HDMI_CEC_MODE_OPTIONS[VIDEOMENU_HDMI_CEC_MODE_OPTION_COUNT] =
+{
+	{ VIDEO_HDMI_CEC_MODE_OFF	, LOCALE_VIDEOMENU_HDMI_CEC_MODE_OFF      },
+	{ VIDEO_HDMI_CEC_MODE_TUNER	, LOCALE_VIDEOMENU_HDMI_CEC_MODE_TUNER    },
+	{ VIDEO_HDMI_CEC_MODE_RECORDER	, LOCALE_VIDEOMENU_HDMI_CEC_MODE_RECORDER }
 };
 #endif
 
@@ -109,7 +108,7 @@ int CCECSetup::showMenu()
 	cec->addIntroItems(LOCALE_VIDEOMENU_HDMI_CEC);
 
 	//cec
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	CKernelOptions ko;
 	g_settings.hdmi_cec_mode = ko.isEnabled("cec");
 	CMenuOptionChooser *cec_ch = new CMenuOptionChooser(LOCALE_VIDEOMENU_HDMI_CEC_MODE, &g_settings.hdmi_cec_mode, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true, this);
@@ -125,7 +124,7 @@ int CCECSetup::showMenu()
 #endif
 
 	cec->addItem(cec_ch);
-#if !HAVE_SPARK_HARDWARE
+#if !HAVE_SPARK_HARDWARE && !HAVE_DUCKBOX_HARDWARE
 	cec->addItem(GenericMenuSeparatorLine);
 #endif
 	//-------------------------------------------------------
@@ -138,15 +137,15 @@ int CCECSetup::showMenu()
 	return res;
 }
 
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 void CCECSetup::setCECSettings(bool b)
 {	
 	printf("[neutrino CEC Settings] %s init CEC settings...\n", __FUNCTION__);
 	if (b) {
 		// wakeup
 		if (g_settings.hdmi_cec_mode &&
-		    ((g_settings.hdmi_cec_standby == 1) ||
-		     (g_settings.hdmi_cec_standby == 2 && !CNeutrinoApp::getInstance()->timer_wakeup))) {
+			 ((g_settings.hdmi_cec_standby == 1) ||
+			 (g_settings.hdmi_cec_standby == 2 && !CNeutrinoApp::getInstance()->timer_wakeup))) {
 			int otp = ::open("/proc/stb/cec/onetouchplay", O_WRONLY);
 			if (otp > -1) {
 				write(otp, g_settings.hdmi_cec_broadcast ? "f\n" : "0\n", 2);
@@ -175,8 +174,7 @@ void CCECSetup::setCECSettings()
 
 bool CCECSetup::changeNotify(const neutrino_locale_t OptionName, void * /*data*/)
 {
-
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	if (ARE_LOCALES_EQUAL(OptionName, LOCALE_VIDEOMENU_HDMI_CEC_MODE))
 	{
 		printf("[neutrino CEC Settings] %s set CEC settings...\n", __FUNCTION__);
@@ -187,6 +185,7 @@ bool CCECSetup::changeNotify(const neutrino_locale_t OptionName, void * /*data*/
 		g_settings.hdmi_cec_mode = ko.isEnabled("cec");
 	}
 #else
+
 	if (ARE_LOCALES_EQUAL(OptionName, LOCALE_VIDEOMENU_HDMI_CEC_MODE))
 	{
 		printf("[neutrino CEC Settings] %s set CEC settings...\n", __FUNCTION__);
