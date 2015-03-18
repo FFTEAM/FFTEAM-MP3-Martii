@@ -44,6 +44,11 @@
 #endif
 
 #include <driver/screen_max.h>
+#if !HAVE_SPARK_HARDWARE
+#include "gui/cam_menu.h"
+
+extern CCAMMenuHandler * g_CamHandler;
+#endif
 
 CInfoMenu::CInfoMenu()
 {
@@ -94,6 +99,9 @@ int CInfoMenu::showMenu()
 	mf->setHint(NEUTRINO_ICON_HINT_IMAGEINFO, LOCALE_MENU_HINT_BUILDINFO);
 	info->addItem(mf);
 #endif
+
+	//add I_TYPE_INFORMATION plugins
+	info->integratePlugins(CPlugins::I_TYPE_INFORMATION, 1);
 
 	int res = info->exec(NULL, "");
 	delete info;
