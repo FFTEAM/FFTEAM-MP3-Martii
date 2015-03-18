@@ -149,6 +149,15 @@ const CMenuOptionChooser::keyval KEYBINDINGMENU_BOUQUETHANDLING_OPTIONS[KEYBINDI
 	{ 2, LOCALE_KEYBINDINGMENU_ALLCHANNELS_ON_OK     }
 };
 
+#define KEYBINDINGMENU_PLAYBUTTON_OPTIONS_COUNT 4
+const CMenuOptionChooser::keyval KEYBINDINGMENU_PLAYBUTTON_OPTIONS[KEYBINDINGMENU_PLAYBUTTON_OPTIONS_COUNT] =
+{
+	{ 0, LOCALE_MOVIEPLAYER_TSPLAYBACK   },
+	{ 1, LOCALE_MOVIEPLAYER_FILEPLAYBACK },
+	{ 2, LOCALE_AUDIOPLAYER_NAME         },
+	{ 3, LOCALE_INETRADIO_NAME           }
+};
+
 typedef struct key_settings_t
 {
 	const neutrino_locale_t keydescription;
@@ -189,7 +198,7 @@ const key_settings_struct_t key_settings[CKeybindSetup::KEYBINDS_COUNT] =
 	{LOCALE_MPKEY_SUBTITLE,			&g_settings.mpkey_subtitle,		LOCALE_MENU_HINT_KEY_MPSUBTITLE },
 	{LOCALE_MPKEY_TIME,			&g_settings.mpkey_time,			LOCALE_MENU_HINT_KEY_MPTIME },
 	{LOCALE_MPKEY_BOOKMARK,			&g_settings.mpkey_bookmark, 		LOCALE_MENU_HINT_KEY_MPBOOKMARK },
-	{LOCALE_MPKEY_GOTO,			&g_settings.mpkey_goto,	 		NONEXISTANT_LOCALE},
+	{LOCALE_MPKEY_GOTO,			&g_settings.mpkey_goto,			NONEXISTANT_LOCALE},
 	{LOCALE_MPKEY_NEXT3DMODE,		&g_settings.mpkey_next3dmode,		NONEXISTANT_LOCALE},
 	{LOCALE_MPKEY_NEXT_REPEAT_MODE,		&g_settings.mpkey_next_repeat_mode,	NONEXISTANT_LOCALE},
 	{LOCALE_MPKEY_VTXT,			&g_settings.mpkey_vtxt,	 		NONEXISTANT_LOCALE},
@@ -228,7 +237,7 @@ bool checkLongPress(uint32_t key)
 
 int CKeybindSetup::showKeySetup()
 {
-#if !HAVE_SPARK_HARDWARE
+#if !HAVE_SPARK_HARDWARE && !HAVE_DUCKBOX_HARDWARE
 	//save original rc hardware selection and initialize text strings
 	int org_remote_control_hardware = g_settings.remote_control_hardware;
 	char RC_HW_str[4][32];
@@ -283,7 +292,7 @@ int CKeybindSetup::showKeySetup()
 	cc->setHint("", LOCALE_MENU_HINT_LONGKEYPRESS_DURATION);
 	keySettings->addItem(cc);
 
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	g_settings.accept_other_remotes = access("/etc/lircd_predata_lock", R_OK) ? 1 : 0;
 	CMenuOptionChooser *mc = new CMenuOptionChooser(LOCALE_KEYBINDINGMENU_ACCEPT_OTHER_REMOTES,
 		&g_settings.accept_other_remotes, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true, this,
@@ -291,7 +300,7 @@ int CKeybindSetup::showKeySetup()
 	mc->setHint("", LOCALE_MENU_HINT_ACCEPT_OTHER_REMOTES);
 	keySettings->addItem(mc);
 #endif
-#if !HAVE_SPARK_HARDWARE
+#if !HAVE_SPARK_HARDWARE && !HAVE_DUCKBOX_HARDWARE
 	if (RC_HW_SELECT) {
 		CMenuOptionChooser * mc = new CMenuOptionChooser(LOCALE_KEYBINDINGMENU_REMOTECONTROL_HARDWARE,
 			&g_settings.remote_control_hardware, KEYBINDINGMENU_REMOTECONTROL_HARDWARE_OPTIONS, KEYBINDINGMENU_REMOTECONTROL_HARDWARE_OPTION_COUNT, true, NULL,
@@ -319,7 +328,7 @@ int CKeybindSetup::showKeySetup()
 
 	int res = keySettings->exec(NULL, "");
 
-#if !HAVE_SPARK_HARDWARE
+#if !HAVE_SPARK_HARDWARE && !HAVE_DUCKBOX_HARDWARE
 	//check if rc hardware selection has changed before leaving the menu
 	if (org_remote_control_hardware != g_settings.remote_control_hardware) {
 		g_RCInput->CRCInput::set_rc_hw();
@@ -436,6 +445,11 @@ void CKeybindSetup::showKeyBindSetup(CMenuWidget *bindSettings)
 	bindSettings->addItem(new CMenuForwarder(key_settings[NKEY_HELP].keydescription, true, keychooser[NKEY_HELP]->getKeyName(), keychooser[NKEY_HELP]));
 	bindSettings->addItem(new CMenuForwarder(key_settings[NKEY_RECORD].keydescription, true, keychooser[NKEY_RECORD]->getKeyName(), keychooser[NKEY_RECORD]));
 
+	//play button starts....
+	mc = new CMenuOptionChooser(LOCALE_MPKEY_PLAY, &g_settings.key_playbutton, KEYBINDINGMENU_PLAYBUTTON_OPTIONS, KEYBINDINGMENU_PLAYBUTTON_OPTIONS_COUNT, true);
+	mc->setHint("", LOCALE_MENU_HINT_KEY_MPPLAY);
+	bindSettings->addItem(mc);
+
 	// right key
 	mc = new CMenuOptionChooser(LOCALE_KEYBINDINGMENU_MODE_LEFT_RIGHT_KEY_TV, &g_settings.mode_left_right_key_tv, KEYBINDINGMENU_MODE_LEFT_RIGHT_KEY_TV_OPTIONS, KEYBINDINGMENU_MODE_LEFT_RIGHT_KEY_TV_COUNT, true);
 	mc->setHint("", LOCALE_MENU_HINT_KEY_RIGHT);
@@ -510,7 +524,7 @@ void CKeybindSetup::showKeyBindSpecialSetup(CMenuWidget *bindSettings_special)
 
 bool CKeybindSetup::changeNotify(const neutrino_locale_t OptionName, void * /* data */)
 {
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	if (ARE_LOCALES_EQUAL(OptionName, LOCALE_KEYBINDINGMENU_ACCEPT_OTHER_REMOTES)) {
 		struct sockaddr_un sun;
 		memset(&sun, 0, sizeof(sun));
