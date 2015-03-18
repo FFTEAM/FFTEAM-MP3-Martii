@@ -76,6 +76,7 @@ int CCAMMenuHandler::exec(CMenuTarget* parent, const std::string &actionkey)
 
 		if(ca && ca->ModulePresent(CA_SLOT_TYPE_CI, slot))
 			ca->ModuleReset(CA_SLOT_TYPE_CI, slot);
+		return menu_return::RETURN_EXIT;
 	} else if ((loc = actionkey.find("ca_ci", 0)) != std::string::npos) {
 		slot = actionkey.at(5) - '0';
 		printf("CCAMMenuHandler::exec: actionkey %s for slot %d\n", actionkey.c_str(), slot);
@@ -85,6 +86,7 @@ int CCAMMenuHandler::exec(CMenuTarget* parent, const std::string &actionkey)
 
 		if(ca && ca->ModulePresent(CA_SLOT_TYPE_SMARTCARD, slot))
 			ca->ModuleReset(CA_SLOT_TYPE_SMARTCARD, slot);
+		return menu_return::RETURN_EXIT;
 	} else if ((loc = actionkey.find("ca_sc", 0)) != std::string::npos) {
 		slot = actionkey.at(5) - '0';
 		printf("CCAMMenuHandler::exec: actionkey %s for slot %d\n", actionkey.c_str(), slot);
@@ -324,27 +326,27 @@ int CCAMMenuHandler::handleCamMsg(const neutrino_msg_t msg, neutrino_msg_data_t 
 						bpos = 0;
 						tptr[li] = 0;
 						printf("CCAMMenuHandler::handleCamMsg: subtitle: %s\n", sptr);
-						menu->addItem(new CMenuForwarder(convertDVBUTF8(sptr, strlen(sptr), 0), false));
+						menu->addItem(new CMenuForwarder(convertDVBUTF8(sptr, strlen(sptr), 0).c_str(), false));
 						sptr = &tptr[li+1];
 					}
 					bpos++;
 				}
 				if(strlen(sptr)) {
 					printf("CCAMMenuHandler::handleCamMsg: subtitle: %s\n", sptr);
-					menu->addItem(new CMenuForwarder(convertDVBUTF8(sptr, strlen(sptr), 0), false));
+					menu->addItem(new CMenuForwarder(convertDVBUTF8(sptr, strlen(sptr), 0).c_str(), false));
 				}
 			}
 			for(i = 0; (i < pMenu->choice_nb) && (i < MAX_MMI_ITEMS); i++) {
 				snprintf(cnt, sizeof(cnt), "%d", i);
 				if(sublevel)
-					menu->addItem(new CMenuForwarder(convertDVBUTF8(pMenu->choice_item[i], strlen(pMenu->choice_item[i]), 0), true, NULL, selector, cnt));
+					menu->addItem(new CMenuForwarder(convertDVBUTF8(pMenu->choice_item[i], strlen(pMenu->choice_item[i]), 0).c_str(), true, NULL, selector, cnt));
 				else
-					menu->addItem(new CMenuForwarder(convertDVBUTF8(pMenu->choice_item[i], strlen(pMenu->choice_item[i]), 0), true, NULL, selector, cnt, CRCInput::convertDigitToKey(i+1)));
+					menu->addItem(new CMenuForwarder(convertDVBUTF8(pMenu->choice_item[i], strlen(pMenu->choice_item[i]), 0).c_str(), true, NULL, selector, cnt, CRCInput::convertDigitToKey(i+1)));
 			}
 			slen = strlen(pMenu->bottom);
 			if(slen) {
 				printf("CCAMMenuHandler::handleCamMsg: bottom: %s\n", pMenu->bottom);
-				menu->addItem(new CMenuForwarder(convertDVBUTF8(pMenu->bottom, slen, 0), false));
+				menu->addItem(new CMenuForwarder(convertDVBUTF8(pMenu->bottom, slen, 0).c_str(), false));
 			}
 
 			menuret = menu->exec(NULL, "");
