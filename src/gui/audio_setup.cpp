@@ -94,12 +94,18 @@ const CMenuOptionChooser::keyval AUDIOMENU_ANALOGOUT_OPTIONS[AUDIOMENU_ANALOGOUT
 	{ 2, LOCALE_AUDIOMENU_MONORIGHT }
 };
 
+#ifdef BOXMODEL_APOLLO
 #define AUDIOMENU_SRS_OPTION_COUNT 3
+#else
+#define AUDIOMENU_SRS_OPTION_COUNT 2
+#endif
 const CMenuOptionChooser::keyval AUDIOMENU_SRS_OPTIONS[AUDIOMENU_SRS_OPTION_COUNT] =
 {
 	{ 0 , LOCALE_AUDIO_SRS_ALGO_LIGHT },
 	{ 1 , LOCALE_AUDIO_SRS_ALGO_NORMAL },
+#ifdef BOXMODEL_APOLLO
 	{ 2 , LOCALE_AUDIO_SRS_ALGO_HEAVY }
+#endif
 };
 
 #define AUDIOMENU_AVSYNC_OPTION_COUNT 3
@@ -110,7 +116,7 @@ const CMenuOptionChooser::keyval AUDIOMENU_AVSYNC_OPTIONS[AUDIOMENU_AVSYNC_OPTIO
 	{ 2, LOCALE_AUDIOMENU_AVSYNC_AM }
 };
 
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 #define AUDIOMENU_HDMI_DD_OPTION_COUNT 2
 #else
 #define AUDIOMENU_HDMI_DD_OPTION_COUNT 3
@@ -118,7 +124,7 @@ const CMenuOptionChooser::keyval AUDIOMENU_AVSYNC_OPTIONS[AUDIOMENU_AVSYNC_OPTIO
 const CMenuOptionChooser::keyval AUDIOMENU_HDMI_DD_OPTIONS[AUDIOMENU_HDMI_DD_OPTION_COUNT] =
 {
 	{ HDMI_ENCODED_OFF,		LOCALE_OPTIONS_OFF		},
-#if !HAVE_SPARK_HARDWARE
+#if !HAVE_SPARK_HARDWARE && !HAVE_DUCKBOX_HARDWARE
 	{ HDMI_ENCODED_AUTO,		LOCALE_AUDIOMENU_HDMI_DD_AUTO	},
 #endif
 	{ HDMI_ENCODED_FORCED,		LOCALE_AUDIOMENU_HDMI_DD_FORCE	}
@@ -144,11 +150,11 @@ int CAudioSetup::showAudioSetup()
 	as_oj_analogmode->setHint("", LOCALE_MENU_HINT_AUDIO_ANALOG_MODE);
 
 	//dd subchannel auto on/off
-	CMenuOptionChooser * as_oj_ddsubchn 	= new CMenuOptionChooser(LOCALE_AUDIOMENU_DOLBYDIGITAL_AUTO, &g_settings.audio_DolbyDigital, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true, audioSetupNotifier);
+	CMenuOptionChooser * as_oj_ddsubchn = new CMenuOptionChooser(LOCALE_AUDIOMENU_DOLBYDIGITAL, &g_settings.audio_DolbyDigital, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true, audioSetupNotifier);
 	as_oj_ddsubchn->setHint("", LOCALE_MENU_HINT_AUDIO_DD);
 
 	//dd via hdmi
-	CMenuOptionChooser *as_oj_dd_hdmi = NULL;
+	CMenuOptionChooser * as_oj_dd_hdmi = NULL;
 	if (g_info.hw_caps->has_HDMI) {
 		as_oj_dd_hdmi = new CMenuOptionChooser(LOCALE_AUDIOMENU_HDMI_DD, &g_settings.hdmi_dd, AUDIOMENU_HDMI_DD_OPTIONS, AUDIOMENU_HDMI_DD_OPTION_COUNT, true, audioSetupNotifier);
 		as_oj_dd_hdmi->setHint("", LOCALE_MENU_HINT_AUDIO_HDMI_DD);
@@ -158,22 +164,20 @@ int CAudioSetup::showAudioSetup()
 	CMenuOptionChooser * as_oj_dd_spdif 	= new CMenuOptionChooser(LOCALE_AUDIOMENU_SPDIF_DD, &g_settings.spdif_dd, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true, audioSetupNotifier);
 	as_oj_dd_spdif->setHint("", LOCALE_MENU_HINT_AUDIO_SPDIF_DD);
 
-	//av synch
 	CMenuOptionChooser * as_oj_avsync = NULL;
-	as_oj_avsync	= new CMenuOptionChooser(LOCALE_AUDIOMENU_AVSYNC, &g_settings.avsync, AUDIOMENU_AVSYNC_OPTIONS, AUDIOMENU_AVSYNC_OPTION_COUNT, true, audioSetupNotifier);
+	CMenuOptionNumberChooser * as_oj_vsteps = NULL;
+	CMenuOptionNumberChooser * st = NULL;
+
+	//av synch
+	as_oj_avsync = new CMenuOptionChooser(LOCALE_AUDIOMENU_AVSYNC, &g_settings.avsync, AUDIOMENU_AVSYNC_OPTIONS, AUDIOMENU_AVSYNC_OPTION_COUNT, true, audioSetupNotifier);
 	as_oj_avsync->setHint("", LOCALE_MENU_HINT_AUDIO_AVSYNC);
 
 	//volume steps
-	CMenuOptionNumberChooser * as_oj_vsteps = NULL;
-	as_oj_vsteps = new CMenuOptionNumberChooser(LOCALE_AUDIOMENU_VOLUME_STEP, &g_settings.current_volume_step, true, 1, 25, NULL);
+	as_oj_vsteps = new CMenuOptionNumberChooser(LOCALE_AUDIOMENU_VOLUME_STEP, (int *)&g_settings.current_volume_step, true, 1, 25, NULL);
 	as_oj_vsteps->setHint("", LOCALE_MENU_HINT_AUDIO_VOLSTEP);
 
-	// initial volume
-	CMenuOptionNumberChooser * as_oj_iv = NULL;
-	as_oj_iv = new CMenuOptionNumberChooser(LOCALE_AUDIOMENU_INITIAL_VOLUME, &g_settings.audio_initial_volume, true, -1, 100, NULL, CRCInput::RC_nokey, NULL, 0, -1, LOCALE_AUDIOMENU_INITIAL_VOLUME_RESTORE, false);
-	as_oj_iv->setNumberFormat("%d%%");
-	as_oj_iv->setHint("", LOCALE_MENU_HINT_AUDIO_INITIAL_VOLUME);
-
+	st = new CMenuOptionNumberChooser(LOCALE_AUDIOMENU_VOLUME_START, &g_settings.start_volume, true, -1, 100, NULL, CRCInput::RC_nokey, NULL, 0, -1, LOCALE_OPTIONS_OFF);
+	st->setHint("", LOCALE_MENU_HINT_AUDIO_VOLSTART);
 	//clock rec
 	//CMenuOptionChooser * as_oj_clockrec new CMenuOptionChooser(LOCALE_AUDIOMENU_CLOCKREC, &g_settings.clockrec, AUDIOMENU_CLOCKREC_OPTIONS, AUDIOMENU_CLOCKREC_OPTION_COUNT, true, audioSetupNotifier);
 
@@ -198,11 +202,26 @@ int CAudioSetup::showAudioSetup()
 	as_oj_srsonoff->setHint("", LOCALE_MENU_HINT_AUDIO_SRS);
 #endif
 
+	// ac3,pcm and clear volume adjustment
+	CMenuOptionNumberChooser *adj_ac3 = NULL, *adj_pcm = NULL;
+	CMenuForwarder *adj_clear = NULL;
+	adj_ac3 = new CMenuOptionNumberChooser(LOCALE_AUDIOMENU_VOLUME_ADJUSTMENT_AC3,
+	(int *)&g_settings.audio_volume_percent_ac3, true, 0, 100, audioSetupNotifier);
+	adj_ac3->setNumberFormat("%d%%");
+	adj_ac3->setHint("", LOCALE_MENU_HINT_AUDIO_ADJUST_VOL_AC3);
+
+	adj_pcm  = new CMenuOptionNumberChooser(LOCALE_AUDIOMENU_VOLUME_ADJUSTMENT_PCM,
+	(int *)&g_settings.audio_volume_percent_pcm, true, 0, 100, audioSetupNotifier);
+	adj_pcm->setNumberFormat("%d%%");
+	adj_pcm->setHint("", LOCALE_MENU_HINT_AUDIO_ADJUST_VOL_PCM);
+
+	adj_clear = new CMenuForwarder(LOCALE_AUDIOMENU_VOLUME_ADJUSTMENT_CLEAR, true, NULL, this, "clear_vol_map");
+	adj_clear->setHint("", LOCALE_MENU_HINT_AUDIO_ADJUST_VOL_CLEAR);
 	//paint items
 	audioSettings->addIntroItems(LOCALE_MAINSETTINGS_AUDIO);
 	//---------------------------------------------------------
 	audioSettings->addItem(as_oj_analogmode);
-	audioSettings->addItem(new CMenuSeparator(CMenuSeparator::LINE | CMenuSeparator::STRING, LOCALE_AUDIOMENU_DOLBYDIGITAL));
+	audioSettings->addItem(GenericMenuSeparatorLine);
 	//---------------------------------------------------------
 	if (g_info.hw_caps->has_HDMI)
 		audioSettings->addItem(as_oj_dd_hdmi);
@@ -212,7 +231,7 @@ int CAudioSetup::showAudioSetup()
 	audioSettings->addItem(GenericMenuSeparatorLine);
 	audioSettings->addItem(as_oj_avsync);
 	audioSettings->addItem(as_oj_vsteps);
-	audioSettings->addItem(as_oj_iv);
+	audioSettings->addItem(st);
 	//audioSettings->addItem(as_clockrec);
 	//---------------------------------------------------------
 #if HAVE_COOL_HARDWARE
@@ -220,14 +239,16 @@ int CAudioSetup::showAudioSetup()
 	audioSettings->addItem(GenericMenuSeparatorLine);
 	audioSettings->addItem(as_oj_srsonoff);
 	audioSettings->addItem(as_oj_algo);
+#ifndef BOXMODEL_APOLLO
 	audioSettings->addItem(as_oj_noise);
+#endif
 	audioSettings->addItem(as_oj_volrev);
 #endif
 #if 0
 	audioSettings->addItem(mf);
 #endif
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	CMenuOptionNumberChooser *ch;
-#if HAVE_SPARK_HARDWARE
 	audioSettings->addItem(new CMenuSeparator(CMenuSeparator::LINE | CMenuSeparator::STRING, LOCALE_AUDIOMENU_MIXER_VOLUME));
 	ch = new CMenuOptionNumberChooser(LOCALE_AUDIOMENU_MIXER_VOLUME_ANALOG,
 		(int *)&g_settings.audio_mixer_volume_analog, true, 0, 100, audioSetupNotifier);
@@ -243,23 +264,18 @@ int CAudioSetup::showAudioSetup()
 	audioSettings->addItem(ch);
 #endif
 	audioSettings->addItem(new CMenuSeparator(CMenuSeparator::LINE | CMenuSeparator::STRING, LOCALE_AUDIOMENU_VOLUME_ADJUSTMENT));
-	ch = new CMenuOptionNumberChooser(LOCALE_AUDIOMENU_VOLUME_ADJUSTMENT_AC3,
-		(int *)&g_settings.audio_volume_percent_ac3, true, 0, 100, audioSetupNotifier);
-	ch->setNumberFormat("%d%%");
-	audioSettings->addItem(ch);
-	ch = new CMenuOptionNumberChooser(LOCALE_AUDIOMENU_VOLUME_ADJUSTMENT_PCM,
-		(int *)&g_settings.audio_volume_percent_pcm, true, 0, 100, audioSetupNotifier);
-	ch->setNumberFormat("%d%%");
-	audioSettings->addItem(ch);
-	audioSettings->addItem(new CMenuForwarder(LOCALE_AUDIOMENU_VOLUME_ADJUSTMENT_CLEAR, true, NULL, this, "clear_vol_map"));
+	audioSettings->addItem(adj_ac3);
+	audioSettings->addItem(adj_pcm);
+	audioSettings->addItem(adj_clear);
 
 	int res = audioSettings->exec(NULL, "");
 	selected = audioSettings->getSelected();
-	CZapit::getInstance()->SetVolumePercent(g_settings.audio_volume_percent_ac3, g_settings.audio_volume_percent_pcm);
 	delete audioSettings;
 #ifdef BOXMODEL_APOLLO
 	delete as_oj_noise;
 #endif
+	CZapit::getInstance()->SetVolumePercent(g_settings.audio_volume_percent_ac3, g_settings.audio_volume_percent_pcm);
+
 	return res;
 }
 

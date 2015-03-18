@@ -69,7 +69,7 @@ CAudioSelectMenuHandler::~CAudioSelectMenuHandler()
 
 }
 
-#if !HAVE_SPARK_HARDWARE
+#if !HAVE_SPARK_HARDWARE && !HAVE_DUCKBOX_HARDWARE
 // -- this is a copy from neutrino.cpp!!
 #define AUDIOMENU_ANALOGOUT_OPTION_COUNT 3
 const CMenuOptionChooser::keyval AUDIOMENU_ANALOGOUT_OPTIONS[AUDIOMENU_ANALOGOUT_OPTION_COUNT] =
@@ -102,13 +102,13 @@ int CAudioSelectMenuHandler::exec(CMenuTarget* parent, const std::string &action
 		}
 		perc_str[sel] = to_string(perc_val[sel]) + "%";
 
-#if !HAVE_SPARK_HARDWARE
+#if !HAVE_SPARK_HARDWARE && !HAVE_DUCKBOX_HARDWARE
 		int vol =  CZapit::getInstance()->GetVolume();
 		/* keep resulting volume = (vol * percent)/100 not more than 115 */
 		if (vol * perc_val[sel] > 11500)
 			perc_val[sel] = 11500 / vol;
 #endif
-                CZapit::getInstance()->SetPidVolume(chan, apid[sel], perc_val[sel]);
+		CZapit::getInstance()->SetPidVolume(chan, apid[sel], perc_val[sel]);
 		if (sel == sel_apid)
 			CZapit::getInstance()->SetVolumePercent(perc_val[sel]);
 
@@ -171,7 +171,8 @@ int CAudioSelectMenuHandler::doMenu ()
 	chan = is_mp ? mp->getChannelId() : 0;
 
 	// -- setup menue due to Audio PIDs
-	for(int i = 0; i < p_count; i++) {
+	for (int i = 0; i < p_count; i++)
+	{
 		if (is_mp) {
 			mp->getAPID(i, apid[i], is_ac3[i]);
 		} else {
@@ -189,7 +190,7 @@ int CAudioSelectMenuHandler::doMenu ()
 		AudioSelector->addItem(fw, sel_apid == i);
 	}
 	unsigned int shortcut_num = p_count;
-#if !HAVE_SPARK_HARDWARE
+#if !HAVE_SPARK_HARDWARE && !HAVE_DUCKBOX_HARDWARE
 	if (p_count)
 		AudioSelector->addItem(GenericMenuSeparatorLine);
 
@@ -204,7 +205,6 @@ int CAudioSelectMenuHandler::doMenu ()
 	oj = new CMenuOptionChooser(LOCALE_AUDIOMENU_ANALOG_OUT, &g_settings.analog_out,
 			OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT,
 			true, audioSetupNotifier, CRCInput::RC_green);
-
 	AudioSelector->addItem( oj );
 #endif
 
@@ -220,7 +220,7 @@ int CAudioSelectMenuHandler::doMenu ()
 	}
 
 	bool sep_added = false;
-	if(subtitleCount > 0)
+	if (subtitleCount > 0)
 	{
 		bool sub_active = false;
 
@@ -230,7 +230,7 @@ int CAudioSelectMenuHandler::doMenu ()
 			if (!s)
 				continue;
 
-			if(!sep_added)
+			if (!sep_added)
 			{
 				sep_added = true;
 				AudioSelector->addItem(new CMenuSeparator(CMenuSeparator::LINE | CMenuSeparator::STRING, LOCALE_SUBTITLES_HEAD));
@@ -272,7 +272,7 @@ int CAudioSelectMenuHandler::doMenu ()
 			sub_active |= !ena;
 		}
 
-		if(sub_active) {
+		if (sub_active) {
 			CMenuForwarder * item = new CMenuForwarder(LOCALE_SUBTITLES_STOP, true, NULL, &SubtitleChanger, "off", CRCInput::RC_stop);
 			item->setItemButton(NEUTRINO_ICON_BUTTON_STOP, false);
 			AudioSelector->addItem(item);
