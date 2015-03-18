@@ -38,7 +38,6 @@
 
 #include <driver/screen_max.h>
 #include <driver/display.h>
-#include <system/helpers.h>
 #include <system/debug.h>
 
 #include <cs_api.h>
@@ -55,10 +54,10 @@
 #include <zapit/zapit.h>
 #include <zapit/scan.h>
 #include <zapit/femanager.h>
-#include <system/helpers.h>
 #include <gui/widget/messagebox.h>
 #include <gui/buildinfo.h>
 #include <gui/widget/buttons.h>
+#include <system/helpers.h>
 
 #if HAVE_COOL_HARDWARE
 extern int cs_test_card(int unit, char * str);
@@ -165,7 +164,7 @@ int CTestMenu::exec(CMenuTarget* parent, const std::string &actionKey)
 		fd = socket(AF_INET, SOCK_DGRAM, 0);
 
 		ifr.ifr_addr.sa_family = AF_INET;
-		cstrncpy(ifr.ifr_name, "eth0", sizeof(ifr.ifr_name));
+		strncpy(ifr.ifr_name, "eth0", IFNAMSIZ-1);
 
 		ret = ioctl(fd, SIOCGIFHWADDR, &ifr);
 		if (ret < 0)
@@ -319,60 +318,56 @@ int CTestMenu::exec(CMenuTarget* parent, const std::string &actionKey)
 	}
 	else if (actionKey.find("22kon") != std::string::npos)
 	{
-		int fnum = atoi(actionKey.substr(5, 1));
+		int fnum = atoi(actionKey.substr(5, 1).c_str());
 		printf("22kon: fe %d sat pos %d\n", fnum, test_pos[fnum]);
 		scansettings.sat_TP_freq = "12000000";
-		scansettings.satName = CServiceManager::getInstance()->GetSatelliteName(test_pos[fnum]);
-		CScanTs scanTs(FE_QPSK);
+		scansettings.satName =  CServiceManager::getInstance()->GetSatelliteName(test_pos[fnum]);
+		CScanTs scanTs(ALL_SAT);
 		scanTs.exec(NULL, "test");
 		return res;
 	}
 	else if (actionKey.find("22koff") != std::string::npos)
 	{
-		int fnum = atoi(actionKey.substr(6, 1));
+		int fnum = atoi(actionKey.substr(6, 1).c_str());
 		printf("22koff: fe %d sat pos %d\n", fnum, test_pos[fnum]);
 		scansettings.sat_TP_freq = "11000000";
 		scansettings.satName = CServiceManager::getInstance()->GetSatelliteName(test_pos[fnum]);
-		CScanTs scanTs(FE_QPSK);
+		CScanTs scanTs(ALL_SAT);
 		scanTs.exec(NULL, "test");
 		return res;
 	}
 	else if (actionKey.find("scan") != std::string::npos)
 	{
-		int fnum = atoi(actionKey.substr(4, 1));
+		int fnum = atoi(actionKey.substr(4, 1).c_str());
 		printf("scan: fe %d sat pos %d\n", fnum, test_pos[fnum]);
+		delivery_system_t delsys = ALL_SAT;
 
 		CFrontend *frontend = CFEManager::getInstance()->getFE(fnum);
-		switch (frontend->getInfo()->type) {
-			case FE_QPSK:
-				scansettings.satName = CServiceManager::getInstance()->GetSatelliteName(test_pos[fnum]);
-				scansettings.sat_TP_freq = (fnum & 1) ? "12439000": "12538000";
-				scansettings.sat_TP_rate = (fnum & 1) ? "2500000" : "41250000";
-				scansettings.sat_TP_fec  = (fnum & 1) ? FEC_3_4 : FEC_1_2;
-				scansettings.sat_TP_pol  = (fnum & 1) ? 0 : 1;
-				break;
-			case FE_QAM:
-				{
-					unsigned count = CFEManager::getInstance()->getFrontendCount();
-					for (unsigned i = 0; i < count; i++) {
-						CFrontend * fe = CFEManager::getInstance()->getFE(i);
-						if (fe->isCable())
-							fe->setMode(CFrontend::FE_MODE_UNUSED);
-					}
-					frontend->setMode(CFrontend::FE_MODE_INDEPENDENT);
-					scansettings.cableName     = "CST Berlin";
-					scansettings.cable_TP_freq = "474000";
-					scansettings.cable_TP_rate = "6875000";
-					scansettings.cable_TP_fec  = 1;
-					scansettings.cable_TP_mod  = 5;
-				}
-				break;
-			case FE_OFDM:
-			case FE_ATSC:
-				return res;
+		if (frontend->hasSat()) {
+			scansettings.satName = CServiceManager::getInstance()->GetSatelliteName(test_pos[fnum]);
+			scansettings.sat_TP_freq = to_string((fnum & 1) ? /*12439000*/ 3951000 : 4000000);
+			scansettings.sat_TP_rate = to_string((fnum & 1) ? /*2500*1000*/ 9520*1000 : 27500*1000);
+			scansettings.sat_TP_fec = FEC_3_4; //(fnum & 1) ? FEC_3_4 : FEC_1_2;
+			scansettings.sat_TP_pol = (fnum & 1) ? 1 : 0;
+		} else if (frontend->hasCable()) {
+			unsigned count = CFEManager::getInstance()->getFrontendCount();
+			for (unsigned i = 0; i < count; i++) {
+				CFrontend * fe = CFEManager::getInstance()->getFE(i);
+				if (fe->hasCable())
+					fe->setMode(CFrontend::FE_MODE_UNUSED);
+			}
+			frontend->setMode(CFrontend::FE_MODE_INDEPENDENT);
+			scansettings.cableName     = "CST Berlin";
+			scansettings.cable_TP_freq = "474000";
+			scansettings.cable_TP_rate = "6875000";
+			scansettings.cable_TP_fec  = 1;
+			scansettings.cable_TP_mod  = 5;
+			delsys = ALL_CABLE;
+		} else {
+			return res;
 		}
 
-		CScanTs scanTs(frontend->getInfo()->type);
+		CScanTs scanTs(delsys);
 		scanTs.exec(NULL, "manual");
 		return res;
 	}
@@ -552,7 +547,7 @@ int CTestMenu::exec(CMenuTarget* parent, const std::string &actionKey)
 		int hh = g_Font[SNeutrinoSettings::FONT_TYPE_MENU_TITLE]->getHeight();
 		if (footer == NULL){
 			footer = new CComponentsFooter (100, 30, 1000, hh, CComponentsFooter::CC_BTN_HELP | CComponentsFooter::CC_BTN_EXIT | CComponentsFooter::CC_BTN_MENU |CComponentsFooter::CC_BTN_MUTE_ZAP_ACTIVE, NULL, true);
-			int start = 5, btnw =90, btnh = 37;
+			//int start = 5, btnw =90, btnh = 37;
 			footer->setButtonFont(g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]);
 			footer->setIcon(NEUTRINO_ICON_INFO);
 
@@ -678,14 +673,6 @@ int CTestMenu::exec(CMenuTarget* parent, const std::string &actionKey)
 #endif
 		return res;
 	}
-	else if (actionKey == "window_close"){
-		if (window){
-			window->hide();
-			delete window;
-			window = NULL;
-		}
-		return res;
-	}
 	else if (actionKey == "running_clock"){	
 		if (clock_r == NULL){
 			clock_r = new CComponentsFrmClock(100, 50, 0, 50, "%H.%M:%S", true);
@@ -722,6 +709,21 @@ int CTestMenu::exec(CMenuTarget* parent, const std::string &actionKey)
 		}
 		return res;
 	}
+	else if (actionKey == "footer_key"){
+		neutrino_msg_t      msg;
+		neutrino_msg_data_t data;
+		CHintBox * hintBox = new CHintBox(LOCALE_MESSAGEBOX_INFO, "Footer-Key pressed. Press EXIT to return");
+		hintBox->paint();
+		while (1)
+		{
+			g_RCInput->getMsg(&msg, &data, 100);
+			if (msg == CRCInput::RC_home)
+				break;
+		}
+		delete hintBox;
+
+		return res;
+	}
 	
 	
 	return showTestMenu();
@@ -756,6 +758,16 @@ int CTestMenu::showTestMenu()
 	f_bi->setHint(NEUTRINO_ICON_HINT_IMAGEINFO, LOCALE_MENU_HINT_BUILDINFO);
 	w_test.addItem(f_bi);
 
+	//footer buttons
+	static const struct button_label footerButtons[2] = {
+		{ NEUTRINO_ICON_BUTTON_RED,	LOCALE_COLORCHOOSER_RED	},
+		{ NEUTRINO_ICON_BUTTON_GREEN,	LOCALE_COLORCHOOSER_GREEN }
+	};
+
+	w_test.setFooter(footerButtons, 2);
+	w_test.addKey(CRCInput::RC_red, this, "footer_key");
+	w_test.addKey(CRCInput::RC_green, this, "footer_key");
+
 	//exit
 	return w_test.exec(NULL, "");;
 }
@@ -776,7 +788,6 @@ void CTestMenu::showCCTests(CMenuWidget *widget)
 	widget->addItem(new CMenuForwarder("Footer", true, NULL, this, "footer"));
 	widget->addItem(new CMenuForwarder("Icon-Form", true, NULL, this, "iconform"));
 	widget->addItem(new CMenuForwarder("Window", true, NULL, this, "window"));
-	widget->addItem(new CMenuForwarder("Window-Close", true, NULL, this, "window_close"));
 	widget->addItem(new CMenuForwarder("Text-Extended", true, NULL, this, "text_ext"));
 	widget->addItem(new CMenuForwarder("Scrollbar", true, NULL, this, "scrollbar"));
 }
@@ -804,15 +815,15 @@ void CTestMenu::showHWTests(CMenuWidget *widget)
 		char title[100];
 		char scan[100];
 		sprintf(scan, "scan%d", i);
-		if (frontend->getInfo()->type == FE_QPSK) {
-			sprintf(title, "Satellite tuner %d: Scan %s", i+1, (i & 1) ? "12439-02500-H-5/6" : "12538-41250-V-1/2");
-		} else if (frontend->getInfo()->type == FE_QAM) {
+		if (frontend->hasSat()) {
+			sprintf(title, "Satellite tuner %d: Scan %s", i+1, (i & 1) ? /*"12439-02500-H-5/6"*/"3951-9520-V-3/4" : "4000-27500-V-3/4");
+		} else if (frontend->hasCable()) {
 			sprintf(title, "Cable tuner %d: Scan 474-6875-QAM-256", i+1);
 		} else
 			continue;
 
 		widget->addItem(new CMenuForwarder(title, true, NULL, this, scan));
-		if (frontend->getInfo()->type == FE_QPSK) {
+		if (frontend->hasSat()) {
 			frontend->setMode(CFrontend::FE_MODE_INDEPENDENT);
 
 			satellite_map_t satmap = CServiceManager::getInstance()->SatelliteList();
