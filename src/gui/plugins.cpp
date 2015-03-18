@@ -435,7 +435,7 @@ void CPlugins::startLuaPlugin(int number)
 	CLuaInstance *lua = new CLuaInstance();
 	lua->runScript(script);
 	delete lua;
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	frameBuffer->ClearFB();
 #endif
 	videoDecoder->Pig(-1, -1, -1, -1);
@@ -492,7 +492,7 @@ void CPlugins::startPlugin(int number)
 	my_system(2, plugin_list[number].pluginfile.c_str(), NULL);
 	//frameBuffer->setMode(720, 576, 8 * sizeof(fb_pixel_t));
 	frameBuffer->Unlock();
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	frameBuffer->ClearFB();
 #endif
 	videoDecoder->Pig(-1, -1, -1, -1);
