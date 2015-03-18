@@ -197,7 +197,7 @@ int CScanTs::exec(CMenuTarget* /*parent*/, const std::string & actionKey)
 		return menu_return::RETURN_EXIT_ALL;
 
 	CRecordManager::getInstance()->StopAutoRecord();
-	g_Zapit->stopPlayBack();
+	CNeutrinoApp::getInstance()->stopPlayBack();
 #ifdef ENABLE_PIP
 	CZapit::getInstance()->StopPip();
 #endif
