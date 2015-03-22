@@ -3,6 +3,7 @@ AM_INIT_AUTOMAKE([1.0.1 nostdinc])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES])
 
 TUXBOX_APPS
+TUXBOX_APPS_DVB
 TUXBOX_APPS_DIRECTORY
 TUXBOX_APPS_PKGCONFIG
 TUXBOX_BOXTYPE
@@ -31,48 +32,6 @@ fi
 if ! diff local_build_config.h.tmp local_build_config.h >/dev/null 2>&1; then
 	rm -f local_build_config.h
 	mv local_build_config.h.tmp local_build_config.h
-fi
-
-AC_ARG_ENABLE(ffmpegdec,
-	AS_HELP_STRING(--enable-ffmpegdec,include ffmpeg decoder support),
-	,[enable_ffmpegdec=no])
-
-AM_CONDITIONAL(ENABLE_FFMPEGDEC,test "$enable_ffmpegdec" = "yes")
-if test "$enable_ffmpegdec" = "yes"; then
-	AC_DEFINE(ENABLE_FFMPEGDEC,1,[include ffmpeg decoder support])
-fi
-
-if test x"$enable_ffmpegdec" != xyes; then
-
-AC_ARG_WITH([tremor], [AS_HELP_STRING([--with-tremor],
-	[use libvorbisidec instead of libogg/libvorbis])],
-	[TREMOR="$withval"],
-	[TREMOR=no])
-
-AC_ARG_WITH([tremor-static], [AS_HELP_STRING([--with-tremor-static],
-	[use statically linked libvorbisidec instead of libogg/libvorbis])],
-	[TREMOR_STATIC="$withval"],
-	[TREMOR_STATIC=no])
-
-if test "$TREMOR_STATIC" = "yes"; then
-	TREMOR=yes
-fi
-
-if test "$TREMOR" = "yes"; then
-	TUXBOX_APPS_LIB_PKGCONFIG(VORBISIDEC,vorbisidec)
-	AC_DEFINE(USE_TREMOR,1,use libvorbisidec/tremor library)
-fi
-
-if test "$TREMOR_STATIC" = "yes"; then
-	# hack to get the static lib location from the pkg-config data
-	VORBISIDEC_LIBS="$(echo $VORBISIDEC_LIBS | sed 's@-L@@; s@ -l.*@/libvorbisidec.a@;')"
-fi
-
-TUXBOX_APPS_LIB_PKGCONFIG_CHECK(ID3TAG,libid3tag)
-if test x"$ID3TAG_EXISTS" != xyes; then
-	TUXBOX_APPS_LIB_PKGCONFIG(ID3TAG,id3tag)
-fi
-
 else
 	rm -f local_build_config.h.tmp
 fi
@@ -81,8 +40,17 @@ if test "$BOXTYPE" = "tripledragon"; then
 	TUXBOX_APPS_LIB_PKGCONFIG(DIRECTFB, directfb)
 fi
 
-TUXBOX_APPS_LIB_CONFIG(CURL,curl-config)
-TUXBOX_APPS_LIB_CONFIG(FREETYPE,freetype-config)
+# TUXBOX_APPS_LIB_PKGCONFIG(OPENSSL,openssl)
+TUXBOX_APPS_LIB_PKGCONFIG(CURL,libcurl)
+TUXBOX_APPS_LIB_PKGCONFIG(FREETYPE,freetype2)
+# fallback to curl-config (which is ugly for cross-compilation)
+if test -z "$CURL_LIBS" -a -z "$CURL_CFLAGS"; then
+	TUXBOX_APPS_LIB_CONFIG(CURL,curl-config)
+fi
+# fallback to freetype-config (which is ugly for cross-compilation)
+if test -z "$FREETYPE_LIBS" -a -z "$FREETYPE_CFLAGS"; then
+	TUXBOX_APPS_LIB_CONFIG(FREETYPE,freetype-config)
+fi
 
 TUXBOX_APPS_LIB_PKGCONFIG(PNG,libpng)
 TUXBOX_APPS_LIB_PKGCONFIG(AVFORMAT,libavformat)
@@ -90,7 +58,7 @@ TUXBOX_APPS_LIB_PKGCONFIG(AVCODEC,libavcodec)
 TUXBOX_APPS_LIB_PKGCONFIG(AVUTIL,libavutil)
 TUXBOX_APPS_LIB_PKGCONFIG(SWRESAMPLE,libswresample)
 
-TUXBOX_APPS_LIB_PKGCONFIG(BLURAY,libbluray)
+#TUXBOX_APPS_LIB_PKGCONFIG(BLURAY,libbluray)
 TUXBOX_APPS_LIB_PKGCONFIG(SIGC,sigc++-2.0)
 
 #TUXBOX_APPS_LIB_PKGCONFIG(CONFIGFILE,tuxbox-configfile)
@@ -220,20 +188,22 @@ AC_ARG_ENABLE(pip,
 	[AC_DEFINE(ENABLE_PIP,1,[enable picture in picture support])])
 
 
-AM_CONDITIONAL(ENABLE_TEST_MENU,test "$enable_testmenu" = "yes")
-if test "$enable_testmenu" = "yes"; then
-	AC_DEFINE(ENABLE_TEST_MENU,1,[include test menu in neutrino main menu - not recommended for general users!])
-fi
+AC_ARG_ENABLE(testing,
+	AS_HELP_STRING(--enable-testing,include devel code parts for neutrino tests))
 
+AM_CONDITIONAL(ENABLE_TESTING,test "$enable_testing" = "yes")
+if test "$enable_testing" = "yes"; then
+	AC_DEFINE(ENABLE_TESTING,1,[include devel code parts for neutrino tests - not recommended for general users!])
+fi
 
 if test "$BOXTYPE" = "coolstream"; then
 if test -e ${srcdir}/lib/libcoolstream/nevis_ir.h; then
 	AC_DEFINE(HAVE_COOLSTREAM_NEVIS_IR_H,1,[Define to 1 if you have the <nevis_ir.h> header file.])
 fi
-HWLIB_CFLAGS='-I$(top_srcdir)/lib/libcoolstream'
+HWLIB_CFLAGS='-I$(top_srcdir)/lib/libcoolstream -I$(top_srcdir)/src/zapit/include'
 
 if test "$BOXMODEL" = "apollo"; then
-HWLIB_CFLAGS='-I$(top_srcdir)/lib/libcoolstream2'
+HWLIB_CFLAGS='-I$(top_srcdir)/lib/libcoolstream2 -I$(top_srcdir)/src/zapit/include'
 if test -e ${srcdir}/lib/libcoolstream2/cs_ir_generic.h; then
 	AC_DEFINE(HAVE_COOLSTREAM_CS_IR_GENERIC_H,1,[Define to 1 if you have the <cs_ir_generic.h> header file.])
 fi
