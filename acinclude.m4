@@ -510,6 +510,7 @@ AC_ARG_WITH(boxmodel,
 	[  --with-boxmodel         valid for coolstream: nevis, apollo
                           valid for dreambox: dm500, dm500plus, dm600pvr, dm56x0, dm7000, dm7020, dm7025
                           valid for ipbox: ip200, ip250, ip350, ip400
+                          valid for generic: raspi,
                           valid for duckbox: ufs910, ufs912, ufs913, ufs922, atevio7500, fortis_hdbox, octagon1008, hs7110, hs7810a, hs7119, hs7819, dp7000, cuberevo, cuberevo_mini, cuberevo_mini2, cuberevo_250hd, cuberevo_2000hd, ipbox9900, ipbox99, ipbox55, tf7700],
 	[case "${withval}" in
 		nevis|apollo)
@@ -528,6 +529,13 @@ AC_ARG_WITH(boxmodel,
 			;;
 		ip200|ip250|ip350|ip400)
 			if test "$BOXTYPE" = "ipbox"; then
+				BOXMODEL="$withval"
+			else
+				AC_MSG_ERROR([unknown model $withval for boxtype $BOXTYPE])
+			fi
+			;;
+		raspi)
+			if test "$BOXTYPE" = "generic"; then
 				BOXMODEL="$withval"
 			else
 				AC_MSG_ERROR([unknown model $withval for boxtype $BOXTYPE])
@@ -574,6 +582,8 @@ AM_CONDITIONAL(BOXMODEL_IP200,test "$BOXMODEL" = "ip200")
 AM_CONDITIONAL(BOXMODEL_IP250,test "$BOXMODEL" = "ip250")
 AM_CONDITIONAL(BOXMODEL_IP350,test "$BOXMODEL" = "ip350")
 AM_CONDITIONAL(BOXMODEL_IP400,test "$BOXMODEL" = "ip400")
+
+AM_CONDITIONAL(BOXMODEL_RASPI,test "$BOXMODEL" = "raspi")
 
 AM_CONDITIONAL(BOXMODEL_UFS910,test "$BOXMODEL" = "ufs910")
 AM_CONDITIONAL(BOXMODEL_UFS912,test "$BOXMODEL" = "ufs912")
@@ -634,6 +644,8 @@ elif test "$BOXMODEL" = "ip350"; then
 	AC_DEFINE(BOXMODEL_IP350, 1, [ipbox 350])
 elif test "$BOXMODEL" = "ip400"; then
 	AC_DEFINE(BOXMODEL_IP400, 1, [ipbox 400])
+elif test "$BOXMODEL" = "raspi"; then
+	AC_DEFINE(BOXMODEL_RASPI, 1, [Raspberry pi])
 elif test "$BOXMODEL" = "ufs910"; then
 	AC_DEFINE(BOXMODEL_UFS910, 1, [ufs910])
 elif test "$BOXMODEL" = "ufs912"; then
