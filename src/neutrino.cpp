@@ -937,24 +937,29 @@ int CNeutrinoApp::loadSetup(const char * fname)
 	// USERMENU -> in system/settings.h
 	//-------------------------------------------
 
+	g_settings.usermenu.clear();
 	if (configfile.getString("usermenu_key_red", "").empty() ||
-	    configfile.getString("usermenu_key_green", "").empty() ||
-	    configfile.getString("usermenu_key_yellow", "").empty() ||
-	    configfile.getString("usermenu_key_blue", "").empty()) {
+			configfile.getString("usermenu_key_green", "").empty() ||
+			configfile.getString("usermenu_key_yellow", "").empty() ||
+			configfile.getString("usermenu_key_blue", "").empty())
+	{
 		for(SNeutrinoSettings::usermenu_t *um = usermenu_default; um->key != CRCInput::RC_nokey; um++) {
 			SNeutrinoSettings::usermenu_t *u = new SNeutrinoSettings::usermenu_t;
 			*u = *um;
 			g_settings.usermenu.push_back(u);
 		}
 	} else {
+		bool unknown = configfile.getUnknownKeyQueryedFlag();
 		for (unsigned int i = 0; ; i++) {
 			std::string name = (i < 4) ? usermenu_default[i].name : to_string(i);
 			std::string usermenu_key("usermenu_key_");
 			usermenu_key += name;
 			int uk = configfile.getInt32(usermenu_key, CRCInput::RC_nokey);
 			if (!uk || uk == (int)CRCInput::RC_nokey) {
-				if (i > 3)
+				if (i > 3) {
+					configfile.setUnknownKeyQueryedFlag(unknown);
 					break;
+				}
 				continue;
 			}
 			SNeutrinoSettings::usermenu_t *u = new SNeutrinoSettings::usermenu_t;
@@ -1312,6 +1317,7 @@ void CNeutrinoApp::saveSetup(const char * fname)
 
 	saveKeys();
 
+	configfile.setInt32 ("key_playbutton", g_settings.key_playbutton );
 	configfile.setInt32( "timeshift_pause", g_settings.timeshift_pause );
 	configfile.setInt32( "temp_timeshift", g_settings.temp_timeshift );
 	configfile.setInt32( "auto_timeshift", g_settings.auto_timeshift );
