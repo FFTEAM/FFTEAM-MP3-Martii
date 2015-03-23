@@ -423,6 +423,12 @@ void CMsgBox::refreshTitle(void)
 	// first check if title is configured
 	if(	!(m_nMode & TITLE)) return;
 
+	CComponentsHeader header(m_cBoxFrameTitleRel.iX+m_cBoxFrame.iX,
+							m_cBoxFrameTitleRel.iY+m_cBoxFrame.iY,
+							m_cBoxFrameTitleRel.iWidth,
+							m_cBoxFrameTitleRel.iHeight, m_cTitle, m_cIcon);
+	header.paint(CC_SAVE_SCREEN_NO);
+#if 0
 	// draw the background
 	m_pcWindow->paintBoxRel(	m_cBoxFrameTitleRel.iX+m_cBoxFrame.iX,
 							m_cBoxFrameTitleRel.iY+m_cBoxFrame.iY,
@@ -454,6 +460,7 @@ void CMsgBox::refreshTitle(void)
 								m_cTitle.c_str(),
 								COL_MENUHEAD_TEXT);
 	}
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -640,14 +647,13 @@ int CMsgBox::exec( int timeout, int returnDefaultOnTimeout)
 	int return_button = m_nFootButtons;
 	int res = menu_return::RETURN_REPAINT;
 
-	// show message box
-	paint();
-
 	if (m_pcWindow == NULL)
 	{
 		return res; /* out of memory */
 	}
 
+	// show message box
+	paint();
 	if ( timeout == -1 )
 		timeout = g_settings.timing[SNeutrinoSettings::TIMING_EPG];
 
@@ -712,7 +718,7 @@ int CMsgBox::exec( int timeout, int returnDefaultOnTimeout)
 
 			refreshFoot();
 		}
-		else if(msg == CRCInput::RC_ok || msg == CRCInput::RC_info)
+		else if(msg == CRCInput::RC_ok)
 		{
 			loop = false;
 		}
@@ -864,4 +870,3 @@ int ShowMsg2UTF(	const char * const Title,
 
 	return res;
 }
-// vim:ts=4

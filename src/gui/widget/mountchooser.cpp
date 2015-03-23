@@ -53,7 +53,7 @@ CMountChooser::CMountChooser(const neutrino_locale_t Name, const std::string & I
 		{
 			std::string s = g_settings.network_nfs[i].local_dir + " (" + g_settings.network_nfs[i].ip + ":" + g_settings.network_nfs[i].dir + ")";
 			snprintf(indexStr,sizeof(indexStr),"%d",i);
-			addItem(new CMenuForwarder(s,true,NULL,this,(std::string("MID:") + std::string(indexStr)).c_str()),
+			addItem(new CMenuForwarder(s.c_str(),true,NULL,this,(std::string("MID:") + std::string(indexStr)).c_str()),
 				selectedLocalDir == g_settings.network_nfs[i].local_dir);
 		}
 	}	
@@ -72,7 +72,7 @@ int CMountChooser::exec(CMenuTarget* parent, const std::string & actionKey)
 		{
 			if (index)
 				*index = mount_id;
-			
+
 			if (localDir.empty())  // ???
 				localDir = g_settings.network_nfs[mount_id].local_dir;
 		}

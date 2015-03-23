@@ -1,22 +1,28 @@
 /*
-	shellwindow.cpp
-	(C)2013 by martii
+	Based up Neutrino-GUI - Tuxbox-Project
+	Copyright (C) 2001 by Steffen Hehn 'McClean'
+
+	Shell window class, visualize of system events on gui screen.
+
+	Implementation:
+	Copyright (C) 2013 martii
+	gitorious.org/neutrino-mp/martiis-neutrino-mp
+	Copyright (C) 2015 Stefan Seyfried
 
 	License: GPL
 
-	This program is free software; you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation; either version 2 of the License, or
-	(at your option) any later version.
+	This program is free software; you can redistribute it and/or
+	modify it under the terms of the GNU General Public
+	License as published by the Free Software Foundation; either
+	version 2 of the License, or (at your option) any later version.
 
 	This program is distributed in the hope that it will be useful,
 	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+	General Public License for more details.
 
 	You should have received a copy of the GNU General Public License
-	along with this program; if not, write to the Free Software
-	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+	along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 #ifdef HAVE_CONFIG_H
@@ -28,13 +34,18 @@
 
 #include <global.h>
 #include <neutrino.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <driver/framebuffer.h>
 #include <gui/widget/textbox.h>
 #include <stdio.h>
 #include <poll.h>
 #include <fcntl.h>
+#include <system/helpers.h>
+#include <errno.h>
 
 CShellWindow::CShellWindow(const std::string &command, const int _mode, int *res) {
+	pid_t pid;
 	textBox = NULL;
 	std::string cmd;
 	mode = _mode;
@@ -51,7 +62,7 @@ CShellWindow::CShellWindow(const std::string &command, const int _mode, int *res
 	}
 
 	cmd = command + " 2>&1";
-	FILE *f = popen(cmd.c_str(), "r");
+	FILE *f = my_popen(pid, cmd.c_str(), "r");
 	if (!f) {
 		if (res)
 			*res = -1;
@@ -71,27 +82,26 @@ CShellWindow::CShellWindow(const std::string &command, const int _mode, int *res
 	struct timeval tv;
 	gettimeofday(&tv,NULL);
 	uint64_t lastPaint = (uint64_t) tv.tv_usec + (uint64_t)((uint64_t) tv.tv_sec * (uint64_t) 1000000);
-	bool ok = true, nlseen = false, dirty = false, pushed = false;
+	bool ok = true, nlseen = false, dirty = false, incomplete = false;
 	char output[1024];
-	int off = 0;
 	std::string txt = "";
+	std::string line = "";
 
 	do {
 		uint64_t now;
 		fds.revents = 0;
 		int r = poll(&fds, 1, 300);
-
 		if (r > 0) {
 			if (!feof(f)) {
 				gettimeofday(&tv,NULL);
 				now = (uint64_t) tv.tv_usec + (uint64_t)((uint64_t) tv.tv_sec * (uint64_t) 1000000);
 
 				unsigned int lines_read = 0;
-				while (fgets(output + off, sizeof(output) - off, f)) {
-					char *outputp = output + off;
+				while (fgets(output, sizeof(output), f)) {
+					char *outputp = output;
 					dirty = true;
 
-					for (int i = off; output[i] && !nlseen; i++)
+					for (int i = 0; output[i] && !nlseen; i++)
 						switch (output[i]) {
 							case '\b':
 								if (outputp > output)
@@ -113,26 +123,26 @@ CShellWindow::CShellWindow(const std::string &command, const int _mode, int *res
 
 					if (outputp < output + sizeof(output))
 						*outputp = 0;
+					line += std::string(output);
+					if (incomplete)
+						lines.pop_back();
 					if (nlseen) {
-						pushed = false;
+						lines.push_back(line);
+						line.clear();
 						nlseen = false;
-						off = 0;
+						incomplete = false;
 					} else {
-						off = strlen(output);
-						if (pushed)
-							lines.pop_back();
+						lines.push_back(line);
+						incomplete = true;
 					}
-					lines.push_back(std::string((output)));
-					pushed = true;
 					if (lines.size() > lines_max)
 						lines.pop_front();
 					txt = "";
 					bool first = true;
 					for (std::list<std::string>::const_iterator it = lines.begin(), end = lines.end(); it != end; ++it) {
-						if (first)
-							first = false;
-						else
+						if (!first)
 							txt += '\n';
+						first = false;
 						txt += *it;
 					}
 					if (((lines_read == lines_max) && (lastPaint + 100000 < now)) || (lastPaint + 250000 < now)) {
@@ -150,7 +160,7 @@ CShellWindow::CShellWindow(const std::string &command, const int _mode, int *res
 
 		gettimeofday(&tv,NULL);
 		now = (uint64_t) tv.tv_usec + (uint64_t)((uint64_t) tv.tv_sec * (uint64_t) 1000000);
-		if (r < 1 || dirty || lastPaint + 250000 < now) {
+		if (!ok || (r < 1 && dirty && lastPaint + 250000 < now)) {
 			textBox->setText(&txt);
 			textBox->paint();
 			lastPaint = now;
@@ -158,13 +168,16 @@ CShellWindow::CShellWindow(const std::string &command, const int _mode, int *res
 		}
 	} while(ok);
 
-	int r = pclose(f);
+	fclose(f);
+	int s;
+	errno = 0;
+	int r = waitpid(pid, &s, 0);
 
 	if (res) {
 		if (r == -1)
-			*res = r;
+			*res = errno;
 		else
-			*res = WEXITSTATUS(r);
+			*res = WEXITSTATUS(s);
 	}
 }
 
@@ -174,7 +187,7 @@ CShellWindow::~CShellWindow()
 		int iw, ih;
 		frameBuffer->getIconSize(NEUTRINO_ICON_BUTTON_OKAY, &iw, &ih);
 		Font *font = g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL];
-		int b_width = font->getRenderWidth(g_Locale->getText(LOCALE_MESSAGEBOX_OK), true) + 36 + ih + (RADIUS_LARGE / 2);
+		int b_width = font->getRenderWidth(g_Locale->getText(LOCALE_MESSAGEBOX_OK)) + 36 + ih + (RADIUS_LARGE / 2);
 		int fh = font->getHeight();
 		int b_height = std::max(fh, ih) + 8 + (RADIUS_LARGE / 2);
 		int xpos = frameBuffer->getScreenWidth() - b_width;
@@ -186,9 +199,10 @@ CShellWindow::~CShellWindow()
 
 		neutrino_msg_t msg;
 		neutrino_msg_data_t data;
+		uint64_t timeoutEnd = CRCInput::calcTimeoutEnd(g_settings.timing[SNeutrinoSettings::TIMING_MENU] == 0 ? 0xFFFF : g_settings.timing[SNeutrinoSettings::TIMING_MENU]);
 		do
-			g_RCInput->getMsg(&msg, &data, 100);
-		while (msg != CRCInput::RC_ok && msg != CRCInput::RC_home);
+			g_RCInput->getMsgAbsoluteTimeout(&msg, &data, &timeoutEnd);
+		while (msg != CRCInput::RC_ok && msg != CRCInput::RC_home && msg != CRCInput::RC_timeout);
 
 		frameBuffer->Clear();
 		frameBuffer->blit();

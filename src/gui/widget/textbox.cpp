@@ -134,7 +134,7 @@ CTextBox::~CTextBox()
 {
 	//TRACE("[CTextBox] del\r\n");
 	m_cLineArray.clear();
-	hide();
+	//hide();
 	delete[] m_bgpixbuf;
 }
 
@@ -146,7 +146,6 @@ void CTextBox::initVar(void)
 
 	m_showTextFrame = 0;
 	m_nNrOfNewLine = 0;
-	m_nMaxLineWidth = 0;
 
 	m_cText	= "";
 	m_nMode = m_old_nMode 	= SCROLL;
@@ -180,15 +179,16 @@ void CTextBox::initVar(void)
 	m_textColor		= COL_MENUCONTENT_TEXT;
 	m_old_textColor 	= 0;
 	m_nPaintBackground 	= true;
+	m_SaveScreen		= false;
 	m_nBgRadius		= m_old_nBgRadius = 0;
 	m_nBgRadiusType 	= m_old_nBgRadiusType = CORNER_ALL;
 
 	m_cLineArray.clear();
 
-	m_blit			= true;
 	m_renderMode		= 0;
 
 // 	max_width 		= 0;
+	m_blit			= true;
 }
 
 void CTextBox::initFramesAndTextArray()
@@ -559,8 +559,6 @@ void CTextBox::refreshText(void)
 	int ay = /*m_cFrameTextRel.iY+*/m_cFrame.iY;
 	int dx = m_cFrameTextRel.iWidth;
 	int dy = m_cFrameTextRel.iHeight;
-	if (m_has_scrolled)
-		dx = m_nMaxTextWidth;
 	
 	//find changes
 	bool has_changed = hasChanged(&ax, &ay, &dx, &dy);
@@ -568,14 +566,14 @@ void CTextBox::refreshText(void)
 	//destroy pixel buffer on changed property values
 	if (has_changed){
 		if (m_bgpixbuf){
-			//TRACE("[CTextBox] %s destroy ol pixel buffer, has changes%d\r\n", __FUNCTION__, __LINE__);
+			//TRACE("[CTextBox] %s destroy ol pixel buffer, has changes %d\r\n", __FUNCTION__, __LINE__);
 			delete[] m_bgpixbuf;
 			m_bgpixbuf = NULL;
 		}
 	}
 
 	//save screen only if no paint of background required
-	if (!m_nPaintBackground){
+	if (!m_nPaintBackground && m_SaveScreen) {
 		if (m_bgpixbuf == NULL){
 			//TRACE("[CTextBox] %s save bg %d\r\n", __FUNCTION__, __LINE__);
 			m_bgpixbuf= new fb_pixel_t[dx * dy];
@@ -609,8 +607,7 @@ void CTextBox::refreshText(void)
 	if (has_changed){
 		//TRACE("[CTextBox] %s set current values %d\r\n", __FUNCTION__, __LINE__);
 		reInitToCompareVar(&ax, &ay, &dx, &dy);
-	} else if (!m_has_scrolled && m_old_cText == m_cText)
-		return;
+	}
 	m_has_scrolled = false;
 
 	if( m_nNrOfLines <= 0)
@@ -620,17 +617,19 @@ void CTextBox::refreshText(void)
 	int i;
 	int x_center = 0;
 
+	int lines = std::min(m_nLinesPerPage, m_nNrOfLines);
+
 	// set text y position
 	if (m_nMode & TOP)
 		// move to top of frame
 		y += m_nFontTextHeight + ((m_cFrameTextRel.iHeight - m_nFontTextHeight * m_nLinesPerPage) >> 1);
 	else if (m_nMode & BOTTOM)
 		// move to bottom of frame
-		y += m_cFrameTextRel.iHeight - (m_nNrOfLines > 1 ? (m_nNrOfLines-1)*m_nFontTextHeight : 0) - text_Vborder_width;
+		y += m_cFrameTextRel.iHeight - (lines > 1 ? (lines - 1)*m_nFontTextHeight : 0) - text_Vborder_width;
 		//m_nFontTextHeight + text_Vborder_width /*- ((m_cFrameTextRel.iHeight + m_nFontTextHeight*/ * m_nLinesPerPage/*) >> 1)*/;
 	else
 		// fit into mid of frame space
-		y += m_nFontTextHeight + ((m_cFrameTextRel.iHeight - m_nFontTextHeight * std::min(m_nLinesPerPage, m_nNrOfLines)) >> 1);
+		y += m_nFontTextHeight + ((m_cFrameTextRel.iHeight - m_nFontTextHeight * lines) >> 1);
 
 	for(i = m_nCurrentLine; i < m_nNrOfLines && i < m_nCurrentLine + m_nLinesPerPage; i++)
 	{

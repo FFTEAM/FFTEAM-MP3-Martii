@@ -485,8 +485,10 @@ int CStringInput::exec( CMenuTarget* parent, const std::string & )
 		else if ( (msg==CRCInput::RC_home) || (msg==CRCInput::RC_timeout) )
 		{
 			if ((*valueString != oldval) &&
-			     (ShowMsg(name, LOCALE_MESSAGEBOX_DISCARD, CMessageBox::mbrYes, CMessageBox::mbYes | CMessageBox::mbCancel) == CMessageBox::mbrCancel))
+			     (ShowMsg(name, LOCALE_MESSAGEBOX_DISCARD, CMessageBox::mbrYes, CMessageBox::mbYes | CMessageBox::mbCancel) == CMessageBox::mbrCancel)) {
+				timeoutEnd = CRCInput::calcTimeoutEnd(g_settings.timing[SNeutrinoSettings::TIMING_MENU] == 0 ? 0xFFFF : g_settings.timing[SNeutrinoSettings::TIMING_MENU]);
 				continue;
+			}
 
 			*valueString = oldval;
 			loop=false;
@@ -545,18 +547,10 @@ void CStringInput::hide()
 void CStringInput::paint(bool sms)
 {
 	frameBuffer->paintBoxRel(x + SHADOW_OFFSET, y + SHADOW_OFFSET, width, height, COL_MENUCONTENTDARK_PLUS_0, RADIUS_LARGE, CORNER_ALL); //round
-	frameBuffer->paintBoxRel(x, y, width, hheight, COL_MENUHEAD_PLUS_0, RADIUS_LARGE, CORNER_TOP); //round
 	frameBuffer->paintBoxRel(x, y + hheight, width, bheight, COL_MENUCONTENT_PLUS_0, sms ? 0 : RADIUS_LARGE, CORNER_BOTTOM);
 
-	int icol_w = 0, icol_h = 0, icol_o = 0;
-	if (!(iconfile.empty()))
-	{
-		frameBuffer->getIconSize(iconfile.c_str(), &icol_w, &icol_h);
-		frameBuffer->paintIcon(iconfile, x + (offset/2), y, hheight);
-		icol_o = icol_w + (offset/2);
-	}
-
-	g_Font[SNeutrinoSettings::FONT_TYPE_MENU_TITLE]->RenderString(x+ (offset/2)+ icol_o, y+ hheight, width- offset- icol_o, head.c_str(), COL_MENUHEAD_TEXT);
+	CComponentsHeader header(x, y, width, hheight, head, iconfile);
+	header.paint(CC_SAVE_SCREEN_NO);
 
 	int tmp_y = y+ hheight+ offset+ input_h+ offset;
 	if ((hint_1 != NONEXISTANT_LOCALE) || (hint_2 != NONEXISTANT_LOCALE))
@@ -574,7 +568,8 @@ void CStringInput::paint(bool sms)
 		tmp_y += offset;
 	}
 
-	icol_w = icol_h = 0;
+	int icol_w = 0;
+	int icol_h = 0;
 	if (sms)
 	{
 		frameBuffer->getIconSize(NEUTRINO_ICON_NUMERIC_PAD, &icol_w, &icol_h);
@@ -905,7 +900,7 @@ const char * CPLPINInput::getHint1(void)
 	}
 }
 
-#define borderwidth 4
+#define borderwidth SHADOW_OFFSET // FIXME: do we need border around ??
 
 int CPLPINInput::exec( CMenuTarget* parent, const std::string & )
 {

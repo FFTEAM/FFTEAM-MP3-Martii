@@ -277,9 +277,10 @@ void CMenuItem::paintItemButton(const bool select_mode, int item_height, const c
 
 	//define icon name depends of numeric value
 	bool isNumeric = CRCInput::isNumeric(directKey);
+#if 0
 	if (isNumeric && !g_settings.menu_numbers_as_icons)
 		icon_name = NULL;
-
+#endif
 	//define select icon
 	if (selected && offx > 0)
 	{
@@ -298,7 +299,7 @@ void CMenuItem::paintItemButton(const bool select_mode, int item_height, const c
 	{
 		frameBuffer->getIconSize(icon_name, &icon_w, &icon_h);
 
-		if (active  && icon_w>0 && icon_h>0 && icon_space_x >= icon_w)
+		if (/*active  &&*/ icon_w>0 && icon_h>0 && icon_space_x >= icon_w)
 		{
 			int icon_x = icon_space_mid - icon_w/2;
 			int icon_y = y + item_height/2 - icon_h/2;
@@ -761,10 +762,12 @@ int CMenuWidget::exec(CMenuTarget* parent, const std::string &)
 					break;
 				}
 			}
+#if 0
 			if (msg == (uint32_t) g_settings.key_pageup)
 				msg = CRCInput::RC_page_up;
 			else if (msg == (uint32_t) g_settings.key_pagedown)
 				msg = CRCInput::RC_page_down;
+#endif
 		}
 
 		if (handled)
@@ -1082,7 +1085,7 @@ void CMenuWidget::calcSize()
 
 	iconOffset= 0;
 	for (unsigned int i= 0; i< items.size(); i++)
-		if (items[i]->iconName && (!g_settings.menu_numbers_as_icons || !CRCInput::isNumeric(items[i]->directKey)))
+		if (items[i]->iconName /*&& !g_settings.menu_numbers_as_icons*/)
 		{
 			int w, h;
 			frameBuffer->getIconSize(items[i]->iconName, &w, &h);

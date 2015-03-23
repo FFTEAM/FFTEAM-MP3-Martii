@@ -116,7 +116,7 @@ void CMessageBox::Init(const CMessageBox::result_ &Default, const uint32_t ShowB
 			ButtonDistance = (m_width - b_width * ButtonCount) / (ButtonCount + 1);
 
 	/* this is ugly: re-init (CHintBoxExt) to recalculate the number of lines and pages */
-	init(m_caption, m_captionString, m_width, m_iconfile == "" ? NULL : m_iconfile.c_str());
+	init(m_caption, m_captionString, m_width, m_iconfile.empty() ? NULL : m_iconfile.c_str());
 	m_height += m_bbheight;
 }
 
@@ -289,7 +289,7 @@ int CMessageBox::exec(int timeout)
 
 int ShowMsg(const neutrino_locale_t Caption, const char * const Text, const CMessageBox::result_ &Default, const uint32_t ShowButtons, const char * const Icon, const int Width, const int timeout, bool returnDefaultOnTimeout)
 {
-   	CMessageBox* messageBox = new CMessageBox(Caption, Text, Width, Icon, Default, ShowButtons);
+	CMessageBox* messageBox = new CMessageBox(Caption, Text, Width, Icon, Default, ShowButtons);
 	messageBox->returnDefaultValueOnTimeout(returnDefaultOnTimeout);
 	messageBox->exec(timeout);
 	int res = messageBox->result;

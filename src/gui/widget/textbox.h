@@ -139,7 +139,7 @@ class CTextBox
 		int m_nNrOfPages;
 		int m_nNrOfLines;
 		int m_nNrOfNewLine;
-		int m_nMaxLineWidth;
+
 		int m_nLinesPerPage;
 		int m_nCurrentLine;
 		int m_nCurrentPage;
@@ -147,6 +147,7 @@ class CTextBox
 		int  m_nBgRadius;
 		int  m_nBgRadiusType;
 		bool m_nPaintBackground;
+		bool m_SaveScreen;
 
 		Font* m_pcFontText;
 		int m_nFontTextHeight;
@@ -160,7 +161,6 @@ class CTextBox
 		int text_Hborder_width;
 		int text_Vborder_width;
 		bool m_FontUseDigitHeight;
-
 		bool m_blit;
 		
 	public:
@@ -180,6 +180,7 @@ class CTextBox
 		void    scrollPageDown(const int pages);
 		void    scrollPageUp(const int pages);
 		void    enableBackgroundPaint(bool mode = true){m_nPaintBackground = mode;};
+		void    enableSaveScreen(bool mode = true){m_SaveScreen = mode;};
 		bool	setText(const std::string* newText, int max_width = 0, bool force_repaint = true);
 		void 	setTextColor(fb_pixel_t color_text){ m_textColor = color_text;};
 		void	setBackGroundRadius(const int radius, const int type = CORNER_ALL){m_nBgRadius = radius; m_nBgRadiusType = type;};
@@ -195,16 +196,15 @@ class CTextBox
 
 		inline	bool 	isPainted(void)			{if( frameBuffer == NULL) return (false); else return (true);};
 		inline	CBox	getWindowsPos(void)		{return(m_cFrame);};
-		inline	int	getMaxLineWidth(void)		{return(m_nMaxLineWidth);};
+		inline	int	getMaxLineWidth(void)		{return(m_nMaxTextWidth);};
 		inline  int     getLines(void)			{return(m_nNrOfLines);};
 		inline  int     getLinesPerPage(void)		{return m_nLinesPerPage;};
 		inline  int     getPages(void)			{return(m_nNrOfPages);};
 		inline	void	movePosition(int x, int y)	{m_cFrame.iX = x; m_cFrame.iY = y;};
 		int  getFontTextHeight();
-		
+		inline int	getTextMode()			{return m_nMode;};
 		void paint (void);
 		void hide (void);
-
 		void blit(bool b) { m_blit = b; };
 };
 
