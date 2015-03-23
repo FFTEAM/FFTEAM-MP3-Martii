@@ -32,7 +32,6 @@
 #include <neutrino.h>
 #include "cc_item_picture.h"
 #include <unistd.h>
-#include <system/helpers.h>
 #include <system/debug.h>
 
 extern CPictureViewer * g_PicViewer;
@@ -125,7 +124,7 @@ void CComponentsPicture::initCCItem()
 	if (pos == string::npos)
 		do_scale = false;
 
-	dprintf(DEBUG_INFO, "[CComponentsPicture] %s: detected image file: do_scale: %d (pos= %d), pic_name=%s\n", __func__, do_scale, pos, pic_name.c_str());
+	dprintf(DEBUG_INFO, "[CComponentsPicture] %s: detected image file: do_scale: %d (pos= %zd), pic_name=%s\n", __func__, do_scale, pos, pic_name.c_str());
 
 	//get current image size
 	getImageSize(&w_pic, &h_pic);

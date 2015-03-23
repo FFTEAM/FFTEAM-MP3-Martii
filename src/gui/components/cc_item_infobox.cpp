@@ -35,13 +35,19 @@
 using namespace std;
 
 //sub class CComponentsInfoBox from CComponentsItem
-CComponentsInfoBox::CComponentsInfoBox(	const int& x_pos, const int& y_pos, const int& w, const int& h,
+CComponentsInfoBox::CComponentsInfoBox(	const int& x_pos,
+					const int& y_pos,
+					const int& w,
+					const int& h,
 					std::string info_text,
 					const int mode,
 					Font* font_text,
 					CComponentsForm *parent,
 					bool has_shadow,
-					fb_pixel_t color_text, fb_pixel_t color_frame, fb_pixel_t color_body, fb_pixel_t color_shadow)
+					fb_pixel_t color_text,
+					fb_pixel_t color_frame,
+					fb_pixel_t color_body,
+					fb_pixel_t color_shadow)
 {
 	cc_item_type = CC_ITEMTYPE_TEXT_INFOBOX;
 
@@ -75,7 +81,7 @@ CComponentsInfoBox::~CComponentsInfoBox()
 
 void CComponentsInfoBox::setPicture(const std::string& picture_name)
 {
-	pic_name = picture_name;
+	pic_name 	= picture_name;
 }
 
 void CComponentsInfoBox::setPicture(const char* picture_name)
@@ -94,7 +100,7 @@ void CComponentsInfoBox::paintPicture()
 	pic = NULL;
 
 	//exit if no image definied
-	if (pic_name == "")
+	if (pic_name.empty())
 		return;
 
 	//init pic object and set icon paint position
@@ -137,6 +143,7 @@ void CComponentsInfoBox::paint(bool do_save_bg)
 		cctext->doPaintTextBoxBg(ct_paint_textbg);
 		cctext->doPaintBg(false);
 		cctext->setTextColor(ct_col_text);
+		cctext->enableTboxSaveScreen(save_tbox_screen);
 
 		//calculate vars for x-position and dimensions
 		int tx = x_offset + x_text + pic_w;

@@ -98,6 +98,8 @@ void CComponentsHeader::initVarHeader(	const int& x_pos, const int& y_pos, const
 	col_body	= color_body;
 	col_shadow	= color_shadow;
 	col_body 	= COL_MENUHEAD_PLUS_0;
+	col_body_gradient	= g_settings.gradiant;
+	cc_body_gradient_direction = CFrameBuffer::gradientVertical;
 	cch_text	= caption;
 	cch_icon_name	= icon_name;
 
@@ -284,7 +286,7 @@ void CComponentsHeader::addContextButton(const int& buttons)
 
 void CComponentsHeader::removeContextButtons()
 {
-	dprintf(DEBUG_DEBUG, "[CComponentsHeader]\t    [%s - %d] removing %u context buttons...\n", __func__, __LINE__, v_cch_btn.size());
+	dprintf(DEBUG_DEBUG, "[CComponentsHeader]\t    [%s - %d] removing %zu context buttons...\n", __func__, __LINE__, v_cch_btn.size());
 	v_cch_btn.clear();
 	if (cch_btn_obj)
 		cch_btn_obj->clear();
@@ -369,11 +371,12 @@ void CComponentsHeader::initCaption()
 		if (cch_caption_align == CTextBox::CENTER)
 			cch_text_x = CC_CENTERED;
 		cch_text_obj->setDimensionsAll(cch_text_x, cch_items_y, cc_text_w, height);
-		cch_text_obj->doPaintBg(true);
+		cch_text_obj->doPaintBg(false);
 		cch_text_obj->setText(cch_text, cch_caption_align, cch_font);
 		cch_text_obj->forceTextPaint(); //here required
 		cch_text_obj->setTextColor(cch_col_text);
 		cch_text_obj->setColorBody(col_body);
+		cch_text_obj->enableTboxSaveScreen(save_tbox_screen);
 
 		//corner of text item
 		cch_text_obj->setCorner(corner_rad-fr_thickness, corner_type);

@@ -29,6 +29,7 @@
 #include "cc_item_picture.h"
 #include "cc_item_text.h"
 #include "cc_frm_icons.h"
+#include <driver/colorgradient.h>
 
 //! Sub class of CComponentsForm. Shows a header with prepared items.
 /*!

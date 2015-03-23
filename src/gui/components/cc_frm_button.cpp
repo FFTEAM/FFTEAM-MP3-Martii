@@ -104,6 +104,10 @@ void CComponentsButton::initVarButton(	const int& x_pos, const int& y_pos, const
 	col_frame 	= color_frame;
 	col_body	= color_body;
 	col_shadow	= color_shadow;
+
+	col_body_gradient = g_settings.gradiant;
+	setColBodyGradient(CColorGradient::gradientDark2Light2Dark, CFrameBuffer::gradientVertical, CColorGradient::light);
+
 	cc_item_enabled  = enabled;
 	cc_item_selected = selected;
 	fr_thickness 	= 3;
@@ -118,6 +122,9 @@ void CComponentsButton::initVarButton(	const int& x_pos, const int& y_pos, const
 	cc_btn_font	= NULL;
 	cc_btn_icon	= icon_name;
 	cc_btn_capt	= caption;
+	cc_btn_msg	= CRCInput::RC_nokey;
+	cc_btn_result	= -1;
+	cc_btn_alias	= -1;
 
 	initParent(parent);
 	initCCBtnItems();
@@ -160,6 +167,7 @@ void CComponentsButton::initCaption()
 		if (cc_btn_capt_obj == NULL){
 			cc_btn_capt_obj = new CComponentsLabel();
 			cc_btn_capt_obj->doPaintBg(false);
+			cc_btn_capt_obj->enableTboxSaveScreen(save_tbox_screen);
 			addCCItem(cc_btn_capt_obj);
 		}
 	}else{
@@ -205,7 +213,7 @@ void CComponentsButton::initCaption()
 	//handle common position of icon and text inside container required for alignment
 	int w_required 	= fr_thickness + append_x_offset;
 	w_required 	+= cc_btn_icon_obj ? cc_btn_icon_obj->getWidth() + append_x_offset : 0;
-	w_required 	+= cc_btn_font ? cc_btn_font->getRenderWidth(cc_btn_capt, true) : 0;
+	w_required 	+= cc_btn_font ? cc_btn_font->getRenderWidth(cc_btn_capt) : 0;
 	w_required 	+= append_x_offset + fr_thickness;
 
 	//dynamic width

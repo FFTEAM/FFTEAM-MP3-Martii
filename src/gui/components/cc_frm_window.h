@@ -110,6 +110,9 @@ class CComponentsWindow : public CComponentsForm
 		///initialize position
 		void initWindowPos();
 
+		///returns true, if current page is changed, see also: setCurrentPage()
+		bool isPageChanged();
+
 	public:
 		enum
 		{
@@ -159,7 +162,7 @@ class CComponentsWindow : public CComponentsForm
 
 		///set caption in header from locales, see also getHeaderObject()
 		void setWindowCaption(neutrino_locale_t locale_text, const int& align_mode = CTextBox::NO_AUTO_LINEBREAK);
-		///set caption alignment
+		///set caption alignment, see CTextBox for possible modes
 		void setWindowCaptionAlignment(const int& align_mode){ccw_align_mode = align_mode;};
 
 		///set icon name in header, see also getHeaderObject()
@@ -192,6 +195,9 @@ class CComponentsWindow : public CComponentsForm
 		void paintCurPage(bool do_save_bg = CC_SAVE_SCREEN_NO);
 		///paint defined page of body, parameter number 0...n
 		void paintPage(const u_int8_t& page_number, bool do_save_bg = CC_SAVE_SCREEN_NO);
+		///enable/disable page scroll, parameter1 default enabled for up/down keys, only for body!
+		void enablePageScroll(const int& mode = PG_SCROLL_M_UP_DOWN_KEY);
+
 		///set width of body scrollbar
 		void setScrollBarWidth(const int& scrollbar_width);
 

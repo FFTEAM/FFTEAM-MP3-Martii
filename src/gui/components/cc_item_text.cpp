@@ -62,7 +62,7 @@ CComponentsText::CComponentsText(	const int x_pos, const int y_pos, const int w,
 
 CComponentsText::~CComponentsText()
 {
-	hide();
+	//hide();
 	clearCCText();
 }
 
@@ -146,6 +146,7 @@ void CComponentsText::initCCText()
 	ct_textbox->setTextColor(ct_col_text);
 	ct_textbox->setWindowMaxDimensions(iWidth, iHeight);
 	ct_textbox->setWindowMinDimensions(iWidth, iHeight);
+	ct_textbox->enableSaveScreen(save_tbox_screen);
 	ct_textbox->blit(false);
 
 	//observe behavior of parent form if available
@@ -166,6 +167,9 @@ void CComponentsText::initCCText()
 		ct_old_text 	= ct_text;
 		ct_old_col_text = ct_col_text;
 	}
+
+	//ensure clean font rendering on transparency background
+	ct_textbox->setTextRenderModeFullBG(!paint_bg);
 
 	dprintf(DEBUG_DEBUG, "[CComponentsText]   [%s - %d] init text: %s [x %d, y %d, w %d, h %d]\n", __func__, __LINE__, ct_text.c_str(), this->iX, this->iY, this->iWidth, this->iHeight);
 }

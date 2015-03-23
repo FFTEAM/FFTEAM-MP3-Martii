@@ -99,7 +99,7 @@ void CComponentsFrmClock::initTimeString()
 	struct tm t;
 	time_t ltime;
 	ltime=time(NULL);
-	strftime((char*) &cl_timestr, sizeof(cl_timestr), getTimeFormat(ltime), localtime_r(&ltime, &t));
+	strftime(cl_timestr, sizeof(cl_timestr), getTimeFormat(ltime), localtime_r(&ltime, &t));
 }
 
 // How does it works?
@@ -156,13 +156,9 @@ void CComponentsFrmClock::initCCLockItems()
 	
 	//calculate minimal separator width, we use char size of some possible chars
 	int minSepWidth = 0;
-	const char *sep = " .:";
-	while (*sep) {
-		char b[2];
-		b[0] = *sep++;
-		b[1] = 0;
-		minSepWidth = max((*getClockFont())->getRenderWidth(b), minSepWidth);
-	}
+	string sep[] ={" ", ".", ":"};
+	for (size_t i = 0; i < sizeof(sep)/sizeof(sep[0]); i++)
+		minSepWidth = max((*getClockFont())->getRenderWidth(sep[i]), minSepWidth);
 
 	//modify available label items with current segment chars
 	for (size_t i = 0; i < v_cc_items.size(); i++)
@@ -195,6 +191,9 @@ void CComponentsFrmClock::initCCLockItems()
 		lbl->setTextColor(cl_col_text);
 		lbl->setColorAll(col_frame, col_body, col_shadow);
 		lbl->setText(stmp, CTextBox::CENTER, *getClockFont());
+
+		lbl->doPaintTextBoxBg(paint_bg);
+		lbl->enableTboxSaveScreen(save_tbox_screen);
 
 		//use matching height for digits for better vertical centerring into form
 		CTextBox* ctb = lbl->getCTextBoxObject();
@@ -290,6 +289,7 @@ bool CComponentsFrmClock::startThread()
 			printf("[CComponentsFrmClock]    [%s]  pthread_create  %s\n", __func__, strerror(errno));
 			return false;
 		}
+		pthread_detach(cl_thread);
 	}
 	return  true;
 }
@@ -303,19 +303,20 @@ bool CComponentsFrmClock::stopThread()
 			printf("[CComponentsFrmClock]    [%s] pthread_cancel  %s\n", __func__, strerror(errno));
 			return false;
 		}
-
+#if 0
 		res = pthread_join(cl_thread, NULL);
 		if (res != 0){
 			printf("[CComponentsFrmClock]    [%s] pthread_join  %s\n", __func__, strerror(errno));
 			return false;
 		}
+#endif
 	}
-	kill();
+	hide();
 	cl_thread = 0;
 	return true;
 }
 
-bool CComponentsFrmClock::Start()
+bool CComponentsFrmClock::Start(bool do_save_bg)
 {
 	if (!activeClock)
 		return false;
@@ -323,7 +324,7 @@ bool CComponentsFrmClock::Start()
 		startThread();
 	if (cl_thread) {
 		//ensure paint of segements on first paint
-		paint();
+		paint(do_save_bg);
 		paintClock = true;
 	}
 	return cl_thread == 0 ? false : true;

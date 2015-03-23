@@ -27,18 +27,20 @@
 #define __COMPONENTS__
 
 #include "cc_types.h"
+#include "cc_signals.h"
 #include <gui/widget/textbox.h>
 #include <vector>
 #include <string>
 #include <driver/pictureviewer/pictureviewer.h>
 #include <gui/widget/icons.h>
 #include <driver/fade.h>
+#include <driver/colorgradient.h>
 /// Basic component class.
 /*!
 Basic attributes and member functions for component sub classes
 */
 
-class CComponents : public COSDFader
+class CComponents : public CComponentsSignals, public COSDFader
 {
 	private:
 		///pixel buffer handling, returns pixel buffer depends of given parameters
@@ -66,7 +68,8 @@ class CComponents : public COSDFader
 		int corner_type;
 		///property: defined radius of corner, without effect, if corner_type=0
 		int corner_rad;
-		
+		///property: tag for component, can contain any value if required, default value is NULL, you can fill with a cast, see also setTag() and getTag() 
+		void *cc_tag;
 		///property: color of body
 		fb_pixel_t col_body;
 		///property: color of shadow
@@ -75,6 +78,25 @@ class CComponents : public COSDFader
 		fb_pixel_t col_frame;
 		///property: color of frame if component is selected, Note: fr_thickness_sel must be set
 		fb_pixel_t col_frame_sel;
+
+		///property: contains data for gradiant handling
+		gradientData_t cc_gradientData;
+		///gradiant pixel buffer
+		fb_pixel_t *cc_body_gradientBuf;
+		///property: true component can paint gradient, see also enableColBodyGradient()
+		bool col_body_gradient;
+		///property: background gradient mode
+		int cc_body_gradient_mode;
+		///property: background gradient intensity
+		int cc_body_gradient_intensity;
+		///property: background gradient intensity value min
+		uint8_t cc_body_gradient_intensity_v_min;
+		///property: background gradient intensity value max
+		uint8_t cc_body_gradient_intensity_v_max;
+		///property: background gradient saturation
+		uint8_t cc_body_gradient_saturation;
+		///property: background gradient direction
+		int cc_body_gradient_direction;
 
 		///property: true=component has shadow
 		bool shadow;
@@ -92,6 +114,7 @@ class CComponents : public COSDFader
 		bool is_painted;
 		///mode: true=activate rendering of basic elements (frame, shadow and body)
 		bool paint_bg;
+		bool save_tbox_screen;
 		///mode:  true=allows painting of item, see also allowPaint()
 		bool cc_allow_paint;
 
@@ -161,6 +184,11 @@ class CComponents : public COSDFader
 		///return/set (pass through) position and dimensions of component at once
 		inline virtual void getDimensions(int* xpos, int* ypos, int* w, int* h){*xpos=x; *ypos=y; *w=width; *h=height;};
 
+		///sets tag as void*, see also cc_tag
+		virtual void setTag(void* tag){cc_tag = tag;};
+		///gets tag as void*, see also cc_tag
+		inline virtual void* getTag(){return cc_tag;};
+
 		///set frame color
 		inline virtual void setColorFrame(fb_pixel_t color){col_frame = color;};
 		///set selected frame color
@@ -172,6 +200,16 @@ class CComponents : public COSDFader
 		///set all basic framebuffer element colors at once
 		///Note: Possible color values are defined in "gui/color.h" and "gui/customcolor.h"
 		inline virtual void setColorAll(fb_pixel_t color_frame, fb_pixel_t color_body, fb_pixel_t color_shadow){col_frame = color_frame; col_body = color_body; col_shadow = color_shadow;};
+		///set color gradient on/off
+		virtual void enableColBodyGradient(bool do_paint_gradient);
+		///set color gradient properties, possible parameter values for mode and intensity to find in CColorGradient, in driver/framebuffer.h>
+		virtual void setColBodyGradient(const int& mode, const int& direction, const int& intensity = CColorGradient::normal, uint8_t v_min=0x40, uint8_t v_max=0xE0, uint8_t s=0xC0)
+						{ cc_body_gradient_mode = mode;
+						  cc_body_gradient_direction = direction;
+						  cc_body_gradient_intensity=intensity;
+						  cc_body_gradient_intensity_v_min=v_min;
+						  cc_body_gradient_intensity_v_max=v_max;
+						  cc_body_gradient_saturation=s; };
 
 		///get frame color
 		inline virtual fb_pixel_t getColorFrame(){return col_frame;};
@@ -208,6 +246,8 @@ class CComponents : public COSDFader
 		virtual bool isPainted(){return is_painted;}
 		///allows paint of elementary item parts (shadow, frame and body), similar as background, set it usually to false, if item used in a form
 		virtual void doPaintBg(bool do_paint){paint_bg = do_paint;};
+		// enable/disable CTextBox screen saving on paint
+		virtual void enableTboxSaveScreen(bool enable){ save_tbox_screen = enable; };
 
 		///allow/disalows paint of item and its contents, but initialize of other properties are not touched
 		///this can be understood as a counterpart to isPainted(), but before paint and value of is_painted is modified temporarily till next paint of item //TODO: is this sufficiently?
@@ -235,6 +275,8 @@ class CComponentsItem : public CComponents
 		///property: page number, this defines current item page location, means: this item is embedded in a parent container on page number n, see also setPageNumber()
 		///default value is 0 for page one, any value > 0 causes handling for mutilple pages at parent container
 		uint8_t cc_page_number;
+		///specifies that some certain operations especially eg. exec events for that item are possible, see also setFocus(), hasFocus()
+		bool cc_has_focus;
 
 		///Pointer to the form object in which this item is embedded.
 		///Is typically the type CComponentsForm or derived classes, default intialized with NULL
@@ -263,6 +305,10 @@ class CComponentsItem : public CComponents
 		virtual CComponentsForm* getParent(){return cc_parent;};
 		///property: returns true if item is added to a form
 		virtual bool isAdded();
+		///indicates wether item has focus
+		virtual bool hasFocus(){return cc_has_focus;}
+		///set or unset focus of item, stand alone items without parent have always set focus to true, inside of a parent form object, always the last added item has focus
+		virtual void setFocus(bool focus);
 
 		///abstract: paint item, arg: do_save_bg see paintInit() above
 		virtual void paint(bool do_save_bg = CC_SAVE_SCREEN_YES) = 0;
@@ -314,6 +360,9 @@ class CComponentsItem : public CComponents
 		virtual void setHeightP(const uint8_t& h_percent);
 		///set item width, parameter as uint8_t, as percent value related to current width of parent form or screen
 		virtual void setWidthP(const uint8_t& w_percent);
+
+		///sub: init body color gradient
+		virtual void initBodyGradient();
 };
 
 #endif
