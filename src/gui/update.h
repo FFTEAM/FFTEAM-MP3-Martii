@@ -53,6 +53,7 @@ class CFlashUpdate : public CProgressWindow
 	std::string sysfs;
 	char	fileType;
 	int 	width;
+	bool	notify;
 	
 	std::string installedVersion;
 	std::string newVersion;
@@ -66,6 +67,8 @@ class CFlashUpdate : public CProgressWindow
  public:
 	CFlashUpdate();
 	int exec( CMenuTarget* parent, const std::string & actionKey );
+	bool checkOnlineVersion();
+	void enableNotify(bool enable) { notify = enable; }
 
 };
 

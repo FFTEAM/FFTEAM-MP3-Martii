@@ -279,7 +279,6 @@ class CMovieBrowser : public CMenuTarget
 
 	private: // Variables
 		CFrameBuffer * framebuffer;
-		CFrameBuffer * m_pcWindow;
 
 		CListFrame* m_pcBrowser;
 		CListFrame* m_pcLastPlay;
@@ -322,6 +321,7 @@ class CMovieBrowser : public CMenuTarget
 		bool m_showLastPlayFiles;
 		bool m_showMovieInfo;
 		bool m_showFilter;
+		bool newHeader;
 
 		MI_MOVIE_INFO* m_movieSelectionHandler;
 		int m_currentStartPos;
@@ -343,16 +343,20 @@ class CMovieBrowser : public CMenuTarget
 		MB_SETTINGS m_settings;
 		std::vector<MB_DIR> m_dir;
 
+		CComponentsChannelLogo* CChannelLogo;
+
 		int movieInfoUpdateAll[MB_INFO_MAX_NUMBER];
 		int movieInfoUpdateAllIfDestEmptyOnly;
 
 		std::vector<std::string> PicExts;
 		std::string getScreenshotName(std::string movie);
 
+		//bool restart_mb_timeout;
 		int menu_ret;
 
 		cNKFeedParser nkparser;
 		std::string nkcategory_name;
+
 		cYTFeedParser ytparser;
 		int show_mode;
 		CMenuWidget *yt_menue;
@@ -381,6 +385,7 @@ class CMovieBrowser : public CMenuTarget
 		int exec(CMenuTarget* parent, const std::string & actionKey);
 		std::string getCurrentDir(void); //P1 for FileBrowser compatibility
 		CFile* getSelectedFile(void); //P1 for FileBrowser compatibility
+		bool getSelectedFiles(CFileList &flist, P_MI_MOVIE_LIST &mlist); //P1 for FileBrowser compatibility
 		MI_MOVIE_BOOKMARKS* getCurrentMovieBookmark(void){if(m_movieSelectionHandler == NULL) return NULL; return(&(m_movieSelectionHandler->bookmarks));};
 		int getCurrentStartPos(void){return(m_currentStartPos);}; //P1 return start position in [s]
 		MI_MOVIE_INFO* getCurrentMovieInfo(void){return(m_movieSelectionHandler);}; //P1 return start position in [s]
@@ -430,6 +435,7 @@ class CMovieBrowser : public CMenuTarget
 		bool onButtonPressBookmarkList(neutrino_msg_t msg); // P3
 		bool onButtonPressMovieInfoList(neutrino_msg_t msg); // P2
 		void markItem(CListFrame *list);
+		void scrollBrowserItem(bool next, bool page);
 		void onSetFocus(MB_FOCUS new_focus); // P2
 		void onSetFocusNext(void); // P2
 		void onSetFocusPrev(void); // P2
@@ -474,6 +480,10 @@ class CMovieBrowser : public CMenuTarget
 		void info_hdd_level(bool paint_hdd=false);
 
 		neutrino_locale_t getFeedLocale(void);
+		void clearListLines();
+		void clearSelection();
+		bool supportedExtension(CFile &file);
+		bool addFile(CFile &file, int dirItNr);
 };
 
 // Class to show Moviebrowser Information, to be used by menu

@@ -47,7 +47,7 @@
 #include <gui/widget/messagebox.h>
 #include <gui/osd_setup.h>
 #include <gui/psisetup.h>
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 #include <gui/widget/colorchooser.h>
 #endif
 
@@ -60,7 +60,7 @@
 
 #include <cs_api.h>
 #include <video.h>
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 #include <zapit/zapit.h>
 #include "3dsetup.h"
 #include "screensetup.h"
@@ -130,7 +130,7 @@ const CMenuOptionChooser::keyval VIDEOMENU_VIDEOSIGNAL_TD_OPTIONS[VIDEOMENU_VIDE
 };
 #endif
 
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 #define VIDEOMENU_COLORFORMAT_TDT_ANALOG_OPTION_COUNT 4
 const CMenuOptionChooser::keyval VIDEOMENU_COLORFORMAT_TDT_ANALOG_OPTIONS[VIDEOMENU_COLORFORMAT_TDT_ANALOG_OPTION_COUNT] =
 {
@@ -271,7 +271,7 @@ CMenuOptionChooser::keyval_ext VIDEOMENU_VIDEOMODE_OPTIONS[VIDEOMENU_VIDEOMODE_O
 #endif
 	{ VIDEO_STD_AUTO,    NONEXISTANT_LOCALE, "Auto"         }
 };
-#elif HAVE_SPARK_HARDWARE || HAVE_AZBOX_HARDWARE
+#elif HAVE_SPARK_HARDWARE || HAVE_AZBOX_HARDWARE || HAVE_DUCKBOX_HARDWARE
 CMenuOptionChooser::keyval_ext VIDEOMENU_VIDEOMODE_OPTIONS[VIDEOMENU_VIDEOMODE_OPTION_COUNT] =
 {
 	{ -1,                NONEXISTANT_LOCALE, "SECAM"	},
@@ -358,7 +358,7 @@ int CVideoSettings::showVideoSetup()
 	CMenuOptionChooser * vs_colorformat_analog = NULL;
 	CMenuOptionChooser * vs_colorformat_hdmi = NULL;
 
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	vs_colorformat_analog = new CMenuOptionChooser(LOCALE_VIDEOMENU_COLORFORMAT_ANALOG, &g_settings.analog_mode1, VIDEOMENU_COLORFORMAT_TDT_ANALOG_OPTIONS, VIDEOMENU_COLORFORMAT_TDT_ANALOG_OPTION_COUNT, true, this, CRCInput::RC_nokey, "", true);
 	vs_colorformat_analog->setHint("", LOCALE_MENU_HINT_VIDEO_COLORFORMAT_ANALOG);
 	vs_colorformat_hdmi = new CMenuOptionChooser(LOCALE_VIDEOMENU_COLORFORMAT_HDMI, &g_settings.hdmi_mode, VIDEOMENU_COLORFORMAT_TDT_HDMI_OPTIONS, VIDEOMENU_COLORFORMAT_TDT_HDMI_OPTION_COUNT, true, this, CRCInput::RC_nokey, "", true);
@@ -386,10 +386,12 @@ int CVideoSettings::showVideoSetup()
 			vs_chinch_ch->setHint("", LOCALE_MENU_HINT_VIDEO_CINCH_MODE);
 		}
 	}
+#ifndef BOXMODEL_APOLLO
 	else if (g_info.hw_caps->has_SCART) /* TRIPLEDRAGON hack... :-) */
 	{
 		vs_scart_ch = new CMenuOptionChooser(LOCALE_VIDEOMENU_SCART, &g_settings.analog_mode1, VIDEOMENU_VIDEOSIGNAL_TD_OPTIONS, VIDEOMENU_VIDEOSIGNAL_TD_OPTION_COUNT, true, this);
 	}
+#endif
 #endif
 
 	//4:3 mode
@@ -423,9 +425,8 @@ int CVideoSettings::showVideoSetup()
 		for (int i = 0; i < VIDEOMENU_VIDEOMODE_OPTION_COUNT; i++)
 			if (VIDEOMENU_VIDEOMODE_OPTIONS[i].key != -1)
 				videomodes.addItem(new CMenuOptionChooser(VIDEOMENU_VIDEOMODE_OPTIONS[i].valname, &g_settings.enabled_video_modes[i], OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true, &anotify));
-		//anotify.changeNotify(NONEXISTANT_LOCALE, 0);
 
-		vs_videomodes_fw = new CMenuForwarder(LOCALE_VIDEOMENU_ENABLED_MODES, true, NULL, &videomodes, NULL, CRCInput::RC_mode);
+		vs_videomodes_fw = new CMenuForwarder(LOCALE_VIDEOMENU_ENABLED_MODES, true, NULL, &videomodes, NULL, (neutrino_msg_t) g_settings.key_switchformat);
 		vs_videomodes_fw->setHint("", LOCALE_MENU_HINT_VIDEO_MODES);
 	}
 
@@ -462,10 +463,8 @@ int CVideoSettings::showVideoSetup()
 	if (vs_videomodes_fw != NULL)
 		videosetup->addItem(vs_videomodes_fw);	  //video modes submenue
 
-#if HAVE_SPARK_HARDWARE
-
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	CColorSetupNotifier *colorSetupNotifier = new CColorSetupNotifier();
-//0xAARRGGBB
 	uint32_t video_mixer_color = g_settings.video_mixer_color;
 	unsigned char video_mixer_blue  = (unsigned char)(video_mixer_color & 0xff); video_mixer_color >>= 8;
 	unsigned char video_mixer_green = (unsigned char)(video_mixer_color & 0xff); video_mixer_color >>= 8;
@@ -532,7 +531,7 @@ int CVideoSettings::showVideoSetup()
 #endif
 	int res = videosetup->exec(NULL, "");
 	selected = videosetup->getSelected();
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	g_settings.video_mixer_color  = 0xff;              g_settings.video_mixer_color <<= 8;
 	g_settings.video_mixer_color |= video_mixer_red;   g_settings.video_mixer_color <<= 8;
 	g_settings.video_mixer_color |= video_mixer_green; g_settings.video_mixer_color <<= 8;
@@ -554,7 +553,7 @@ void CVideoSettings::setVideoSettings()
 #endif
 #ifdef BOXMODEL_APOLLO
 	changeNotify(LOCALE_VIDEOMENU_ANALOG_MODE, NULL);
-#elif HAVE_SPARK_HARDWARE
+#elif HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	changeNotify(LOCALE_VIDEOMENU_COLORFORMAT_ANALOG, NULL);
 	changeNotify(LOCALE_VIDEOMENU_COLORFORMAT_HDMI, NULL);
 #else
@@ -585,7 +584,7 @@ void CVideoSettings::setVideoSettings()
 	changeNotify(LOCALE_VIDEOMENU_CONTRAST, NULL);
 	changeNotify(LOCALE_VIDEOMENU_SATURATION, NULL);
 #endif
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	frameBuffer->setMixerColor(g_settings.video_mixer_color);
 #endif
 #ifdef ENABLE_PIP
@@ -597,7 +596,7 @@ void CVideoSettings::setupVideoSystem(bool do_ask)
 {
 	printf("[neutrino VideoSettings] %s setup videosystem...\n", __FUNCTION__);
 	videoDecoder->SetVideoSystem(g_settings.video_Mode); //FIXME
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	frameBuffer->resChange();
 #endif
 
@@ -610,7 +609,7 @@ void CVideoSettings::setupVideoSystem(bool do_ask)
 			{
 				g_settings.video_Mode = prev_video_mode;
 				videoDecoder->SetVideoSystem(g_settings.video_Mode);
-#if HAVE_SPARK_HARDWARE 
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 				frameBuffer->resChange();
 #endif
 			}
@@ -683,11 +682,11 @@ bool CVideoSettings::changeNotify(const neutrino_locale_t OptionName, void * /* 
 		videoDecoder->SetControl(VIDEO_CONTROL_HUE, val);
 	}
 #endif
-#if HAVE_SPARK_HARDWARE
-        else if (ARE_LOCALES_EQUAL(OptionName, LOCALE_VIDEOMENU_COLORFORMAT_ANALOG)){
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
+	else if (ARE_LOCALES_EQUAL(OptionName, LOCALE_VIDEOMENU_COLORFORMAT_ANALOG)) {
 		videoDecoder->SetColorFormat((COLOR_FORMAT) g_settings.analog_mode1);
 	}
-        else if (ARE_LOCALES_EQUAL(OptionName, LOCALE_VIDEOMENU_COLORFORMAT_HDMI)){
+	else if (ARE_LOCALES_EQUAL(OptionName, LOCALE_VIDEOMENU_COLORFORMAT_HDMI)) {
 		videoDecoder->SetColorFormat((COLOR_FORMAT) g_settings.hdmi_mode);
 	}
 #endif
@@ -782,7 +781,7 @@ void CVideoSettings::nextMode(void)
 					break;
 				i++;
 				if (i >= VIDEOMENU_VIDEOMODE_OPTION_COUNT) {
-					CVFD::getInstance()->showServicename(g_RemoteControl->getCurrentChannelName());
+					CVFD::getInstance()->showServicename(g_RemoteControl->getCurrentChannelName(), g_RemoteControl->getCurrentChannelNumber());
 					return;
 				}
 			}
@@ -793,7 +792,7 @@ void CVideoSettings::nextMode(void)
 			g_settings.video_Mode = VIDEOMENU_VIDEOMODE_OPTIONS[curmode].key;
 			//CVFD::getInstance()->ShowText(text);
 			videoDecoder->SetVideoSystem(g_settings.video_Mode);
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 			frameBuffer->resChange();
 #endif
 			//return;
@@ -802,10 +801,10 @@ void CVideoSettings::nextMode(void)
 		else
 			break;
 	}
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	frameBuffer->resChange();
 #endif
-	CVFD::getInstance()->showServicename(g_RemoteControl->getCurrentChannelName());
+	CVFD::getInstance()->showServicename(g_RemoteControl->getCurrentChannelName(), g_RemoteControl->getCurrentChannelNumber());
 	//ShowHint(LOCALE_VIDEOMENU_VIDEOMODE, text, 450, 2);
 }
 

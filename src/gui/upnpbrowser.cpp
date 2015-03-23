@@ -135,10 +135,8 @@ int CUpnpBrowserGui::exec(CMenuTarget* parent, const std::string & /*actionKey*/
 		m_x = ConnectLineBox_Width;
 	m_y=getScreenStartY(m_height);
 
-#if 0
 	// Stop sectionsd
 	g_Sectionsd->setPauseScanning(true);
-#endif
 
 	m_deviceliststart=0;
 	m_selecteddevice=0;
@@ -149,17 +147,12 @@ int CUpnpBrowserGui::exec(CMenuTarget* parent, const std::string & /*actionKey*/
 	if (CAudioPlayer::getInstance()->getState() != CBaseDec::STOP)
 		CAudioPlayer::getInstance()->stop();
 
-	//g_Zapit->setStandby(false);
-
-#if 0
 	// Start Sectionsd
 	g_Sectionsd->setPauseScanning(false);
-#endif
 	videoDecoder->StopPicture();
 	m_frameBuffer->Clear();
 	g_Zapit->startPlayBack();
 
-	//g_Zapit->unlockPlayBack();
 	CZapit::getInstance()->EnablePlayback(true);
 	CNeutrinoApp::getInstance()->handleMsg(NeutrinoMessages::CHANGEMODE , m_LastMode);
 	g_RCInput->postMsg(NeutrinoMessages::SHOW_INFOBAR, 0);
@@ -594,7 +587,7 @@ void CUpnpBrowserGui::playnext(void)
 		{
 			if (i->first=="NumberReturned")
 			{
-				if (atoi(i->second) != 1)
+				if (atoi(i->second.c_str()) != 1)
 				{
 					m_folderplay = false;
 					return;
@@ -1143,7 +1136,7 @@ void CUpnpBrowserGui::paintItemInfo(UPnPEntry *entry)
 				g_PicViewer->rescaleImageDimensions(&flogo_w, &flogo_h, m_title_height*2, m_title_height-14);
 			}
 		}
-		g_PicViewer->DisplayImage(tmpname.c_str(), m_x+m_width-flogo_w-2-RADIUS_MID, m_y + 2, flogo_w, flogo_h, CFrameBuffer::TM_NONE);
+		g_PicViewer->DisplayImage(tmpname.c_str(), m_x+m_width-flogo_w-2-RADIUS_MID, m_y + 2, flogo_w, flogo_h);
 	}
 }
 

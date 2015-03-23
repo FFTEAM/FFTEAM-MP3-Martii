@@ -69,7 +69,7 @@ CStartUpWizard::~CStartUpWizard()
 const CMenuOptionChooser::keyval WIZARD_SETUP_TYPE[] =
 {
 	{ 0, LOCALE_WIZARD_SETUP_EASY },
-	{ 1, LOCALE_WIZARD_SETUP_ADVANCED },
+	{ 1, LOCALE_WIZARD_SETUP_ADVANCED }
 };
 
 int CStartUpWizard::exec(CMenuTarget* parent, const string & /*actionKey*/)
@@ -92,7 +92,7 @@ int CStartUpWizard::exec(CMenuTarget* parent, const string & /*actionKey*/)
 	osdl_setup.exec(NULL, "");
 
 #if 0
-	if(ShowMsg (LOCALE_WIZARD_WELCOME_HEAD, LOCALE_WIZARD_WELCOME_TEXT, CMessageBox::mbrYes, CMessageBox::mbYes | CMessageBox::mbrCancel) == CMessageBox::mbrYes)
+	if(ShowMsg (LOCALE_WIZARD_WELCOME_HEAD, g_Locale->getText(LOCALE_WIZARD_WELCOME_TEXT), CMessageBox::mbrYes, CMessageBox::mbYes | CMessageBox::mbrCancel) == CMessageBox::mbrYes)
 #endif
 	{
 		int advanced = 1;
@@ -140,7 +140,6 @@ int CStartUpWizard::exec(CMenuTarget* parent, const string & /*actionKey*/)
 				CZapit::getInstance()->PrepareChannels();
 			}
 		}
-#if 0 // skip this for now -- no terrestrial support, and no FastScan on SPARK --martii
 		if(res != menu_return::RETURN_EXIT_ALL)
 		{
 			CScanSetup::getInstance()->setWizardMode(CScanSetup::SCAN_SETUP_MODE_WIZARD);
@@ -152,12 +151,10 @@ int CStartUpWizard::exec(CMenuTarget* parent, const string & /*actionKey*/)
 				CZapit::getInstance()->GetConfig(zapitCfg);
 #ifdef ENABLE_FASTSCAN
 				if (CFEManager::getInstance()->haveSat()) {
-#ifdef ENABLE_FASTSCAN
 					CMenuWidget fastScanMenu(LOCALE_SATSETUP_FASTSCAN_HEAD, NEUTRINO_ICON_SETTINGS, 45, MN_WIDGET_ID_SCAN_FAST_SCAN);
 					fastScanMenu.setWizardMode(true);
 					CScanSetup::getInstance()->addScanMenuFastScan(&fastScanMenu);
 					res = fastScanMenu.exec(NULL, "");
-#endif
 				}
 #endif
 				if (CFEManager::getInstance()->haveCable()) {
@@ -169,7 +166,6 @@ int CStartUpWizard::exec(CMenuTarget* parent, const string & /*actionKey*/)
 			}
 			CScanSetup::getInstance()->setWizardMode(CScanSetup::SCAN_SETUP_MODE_WIZARD_NO);
 		}
-#endif
 	}
 
 	killBackgroundLogo();

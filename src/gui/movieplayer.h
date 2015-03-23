@@ -133,17 +133,8 @@ class CMoviePlayerGui : public CMenuTarget
 
 	unsigned long long last_read;
 
-#if 0
-	/* subtitles vars */
-	int numsubs;
-	std::string    slanguage[REC_MAX_APIDS];
-	int spids[REC_MAX_APIDS];
-	int sub_supported[REC_MAX_APIDS];
-	int currentspid;
-	int min_x, min_y, max_x, max_y;
-	time_t end_time;
-#endif
 
+	/* playback from MB */
 	bool isMovieBrowser;
 	bool isHTTP;
 	bool isUPNP;
@@ -157,7 +148,7 @@ class CMoviePlayerGui : public CMenuTarget
 	MI_MOVIE_INFO * p_movie_info;
 	MI_MOVIE_INFO mi;
 	const static int MOVIE_HINT_BOX_TIMER = 5;	// time to show bookmark hints in seconds
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	CFrameBuffer::Mode3D old3dmode;
 #endif
 
@@ -206,12 +197,6 @@ class CMoviePlayerGui : public CMenuTarget
 	void ShowAbortHintBox(void);
 	void HideHintBox(void);
 
-#if 0
-	void selectSubtitle();
-	void showSubtitle(neutrino_msg_data_t data);
-	void clearSubtitle();
-	void selectChapter();
-#endif
 	void selectAutoLang();
 	void parsePlaylist(CFile *file);
 	bool mountIso(CFile *file);
@@ -240,7 +225,6 @@ class CMoviePlayerGui : public CMenuTarget
 	void UpdatePosition();
 	int timeshift;
 	int file_prozent;
-	cPlayback *getPlayback() { return playback; }
 	void SetFile(std::string &name, std::string &file, std::string info1="", std::string info2="") { pretty_name = name; file_name = file; info_1 = info1; info_2 = info2; }
 	unsigned int getAPID(void);
 	unsigned int getAPID(unsigned int i);
@@ -249,6 +233,7 @@ class CMoviePlayerGui : public CMenuTarget
 	bool setAPID(unsigned int i);
 	AUDIO_FORMAT GetStreamType(void) { return StreamType; }
 	void SetStreamType(void);
+	cPlayback *getPlayback() { return playback; }
 	unsigned int getAPIDCount(void);
 	std::string getAPIDDesc(unsigned int i);
 	unsigned int getSubtitleCount(void);

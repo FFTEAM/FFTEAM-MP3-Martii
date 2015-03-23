@@ -95,6 +95,9 @@ libneutrino_gui_a_SOURCES = \
 	subchannel_select.cpp \
 	themes.cpp \
 	timeosd.cpp \
+	update.cpp \
+	update_menue.cpp \
+	update_settings.cpp \
 	user_menue.cpp \
 	user_menue_setup.cpp \
 	vfd_setup.cpp \
@@ -134,7 +137,7 @@ endif
 libneutrino_gui_a_SOURCES += \
 	luainstance.cpp
 
-if ENABLE_TEST_MENU
+if ENABLE_TESTING
 libneutrino_gui_a_SOURCES += \
 	test_menu.cpp
 endif

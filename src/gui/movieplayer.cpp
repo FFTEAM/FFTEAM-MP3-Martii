@@ -36,6 +36,7 @@
 #include <gui/audio_select.h>
 #include <gui/epgview.h>
 #include <gui/eventlist.h>
+#include <gui/filebrowser.h>
 #include <gui/movieplayer.h>
 #include <gui/infoviewer.h>
 #include <gui/timeosd.h>
@@ -43,6 +44,7 @@
 #include <gui/infoclock.h>
 #include <gui/plugins.h>
 #include <gui/videosettings.h>
+#include <gui/widget/messagebox.h>
 #include <driver/screenshot.h>
 #include <driver/volume.h>
 #include <driver/display.h>
@@ -50,6 +52,8 @@
 #include <driver/record.h>
 #include <eitd/edvbstring.h>
 #include <system/helpers.h>
+
+#include <src/mymenu.h>
 
 #include <unistd.h>
 #include <stdlib.h>
@@ -71,12 +75,13 @@
 #include <driver/nglcd.h>
 bool glcd_play = false;
 #endif
+#include <iconv.h>
 #include <gui/widget/stringinput_ext.h>
 #include <gui/screensetup.h>
 #include <system/set_threadname.h>
 #include <OpenThreads/ScopedLock>
 
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 #include <libavcodec/avcodec.h>
 #endif
 
@@ -1183,9 +1188,8 @@ void CMoviePlayerGui::PlayFileLoop(void)
 				FileTime.show(position, true);
 				time_forced = true;
 			}
-
 			if (timeshift == TSHIFT_MODE_OFF)
-				callInfoViewer(/*duration, position*/);
+				callInfoViewer();
 			else if (time_forced)
 				FileTime.show(position, true);
 
@@ -1826,7 +1830,7 @@ void CMoviePlayerGui::showHelpTS()
 
 void CMoviePlayerGui::StopSubtitles(bool enable_glcd_mirroring __attribute__((unused)))
 {
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	printf("[CMoviePlayerGui] %s\n", __FUNCTION__);
 	int ttx, ttxpid, ttxpage;
 
@@ -1847,7 +1851,7 @@ void CMoviePlayerGui::StopSubtitles(bool enable_glcd_mirroring __attribute__((un
 
 void CMoviePlayerGui::StartSubtitles(bool show __attribute__((unused)))
 {
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	printf("[CMoviePlayerGui] %s: %s\n", __FUNCTION__, show ? "Show" : "Not show");
 #ifdef ENABLE_GRAPHLCD
 	nGLCD::MirrorOSD(false);
@@ -1991,7 +1995,7 @@ bool CMoviePlayerGui::getAPID(unsigned int i, int &apid, unsigned int &is_ac3)
 
 size_t CMoviePlayerGui::GetReadCount()
 {
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	uint64_t this_read = 0;
 	this_read = playback->GetReadCount();
 	uint64_t res;

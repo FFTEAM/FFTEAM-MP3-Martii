@@ -29,11 +29,11 @@
 #include <gui/sleeptimer.h>
 #include <gui/infoviewer.h>
 
+#include <system/helpers.h>
 #include <gui/widget/stringinput.h>
 
 #include <timerdclient/timerdclient.h>
 
-#include <system/helpers.h>
 #include <global.h>
 
 #include <daemonc/remotecontrol.h>
@@ -99,7 +99,7 @@ int CSleepTimerWidget::exec(CMenuTarget* parent, const std::string &/*actionKey*
 		return res;
 	}
 
-	int new_val = atoi(value);
+	int new_val = atoi(value.c_str());
 	if(permanent) {
 		g_settings.shutdown_min = new_val;
 		printf("permanent sleeptimer min: %d\n", g_settings.shutdown_min);

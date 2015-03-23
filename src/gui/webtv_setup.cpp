@@ -109,8 +109,7 @@ int CWebTVSetup::Show()
 	item_offset = m->getItemsCount();
 	for (std::list<std::string>::iterator it = g_settings.webtv_xml.begin(); it != g_settings.webtv_xml.end(); ++it)
 		m->addItem(new CMenuForwarder(*it, true, NULL, this, "c"));
-	m->setFooter(CWebTVSetupFooterButtons, CWebTVSetupFooterButtonCount); //Why we need here an extra buttonbar?
-
+	m->setFooter(CWebTVSetupFooterButtons, CWebTVSetupFooterButtonCount);
 	int res = m->exec(NULL, "");
 	m->hide();
 	if (changed) {
@@ -123,9 +122,7 @@ int CWebTVSetup::Show()
 			g_Zapit->reinitChannels();
 			changed = false;
 	}
-
 	delete m;
-
 	return res;
 }
 // vim:ts=4

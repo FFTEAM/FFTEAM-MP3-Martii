@@ -33,7 +33,6 @@
 #include <config.h>
 #endif
 
-#include <unistd.h>
 
 #include "osdlang_setup.h"
 
@@ -77,6 +76,7 @@ int COsdLangSetup::exec(CMenuTarget* parent, const std::string &actionKey)
 
 	if (!actionKey.empty()) {
 		g_settings.language = actionKey;
+		g_PluginList->loadPlugins();
 		g_Locale->loadLocale(g_settings.language.c_str());
 		return menu_return::RETURN_EXIT;
 	}
@@ -146,15 +146,21 @@ CMenuOptionStringChooser* COsdLangSetup::getTzItems()
 		{
 			if (!strcmp(xmlGetName(search), "zone"))
 			{
-				std::string name = xmlGetAttribute(search, "name");
-				std::string zone = xmlGetAttribute(search, "zone");
+				const char* zptr = xmlGetAttribute(search, "zone");
+				std::string zone;
+				if(zptr)
+					zone = zptr;
 				//printf("Timezone: %s -> %s\n", name.c_str(), zone.c_str());
 				if (access("/usr/share/zoneinfo/" + zone, R_OK))
 					printf("[neutrino] timezone file '%s' not installed\n", zone.c_str());
 				else
 				{
-					tzSelect->addOption(name);
-					found = true;
+					const char* ptr = xmlGetAttribute(search, "name");
+					if(ptr){
+						std::string name = ptr;
+						tzSelect->addOption(name);
+						found = true;
+					}
 				}
 			}
 			search = search->xmlNextNode;
@@ -172,14 +178,12 @@ CMenuOptionStringChooser* COsdLangSetup::getTzItems()
 	return tzSelect;
 }
 
-
 //shows locale setup for language selection
 void COsdLangSetup::showLanguageSetup(CMenuWidget *osdl_setup)
 {
 	struct dirent **namelist;
 	int n;
-	//		printf("scanning locale dir now....(perhaps)\n");
-	char *pfad[] = {(char *) DATADIR "/neutrino/locale",(char *) CONFIGDIR "/locale"};
+	const char *pfad[] = {DATADIR "/neutrino/locale", "/var/tuxbox/locale"};
 
 	osdl_setup->addIntroItems();
 

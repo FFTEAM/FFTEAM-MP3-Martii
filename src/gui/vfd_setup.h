@@ -59,7 +59,6 @@
 		
 		bool vfd_enabled; 
 #endif
-		
 		CStringInput * dim_time;
 
 	public:

@@ -116,7 +116,7 @@ static void XML_ADD_TAG_UNSIGNED(std::string &_xml_text_, const char *_tag_name_
 	_xml_text_ += ">\n";
 }
 
-static void XML_ADD_TAG_LONG(std::string &_xml_text_, const char *_tag_name_, uint64_t _tag_content_)
+static void XML_ADD_TAG_LONG(std::string &_xml_text_, const char *_tag_name_, long int _tag_content_)
 {
 	_xml_text_ += "\t\t<";
 	_xml_text_ += _tag_name_;
@@ -382,7 +382,7 @@ bool CMovieInfo::parseXmlTree(char */*text*/, MI_MOVIE_INFO * /*movie_info*/)
 	}
 
 	delete parser;
-	if (movie_info->epgInfo2.empty()) {
+	if (movie_info->epgInfo2 == "") {
 		movie_info->epgInfo2 = movie_info->epgInfo1;
 		//movie_info->epgInfo1 = "";
 	}
@@ -797,7 +797,7 @@ bool CMovieInfo::parseXmlQuickFix(std::string &_text, MI_MOVIE_INFO * movie_info
 		}
 	}
 
-	if (movie_info->epgInfo2.empty()) {
+	if (movie_info->epgInfo2 == "") {
 		movie_info->epgInfo2 = movie_info->epgInfo1;
 		//movie_info->epgInfo1 = "";
 	}
@@ -963,7 +963,7 @@ bool CMovieInfo::loadFile(CFile & file, std::string &buffer)
 	int fd = open(file.Name.c_str(), O_RDONLY);
 	if (fd == -1)		// cannot open file, return!!!!!
 	{
-		TRACE("[mi] loadXml: cannot open (%s)\r\n", file.Name.c_str());
+		TRACE("[mi] loadXml: cannot open (%s)\r\n", file.getFileName().c_str());
 		return false;
 	}
 	struct stat st;
@@ -973,7 +973,7 @@ bool CMovieInfo::loadFile(CFile & file, std::string &buffer)
 	}
 	char buf[st.st_size];
 	if (st.st_size != read(fd, buf, st.st_size)) {
-		TRACE("[mi] loadXml: cannot read (%s)\r\n", file.Name.c_str());
+		TRACE("[mi] loadXml: cannot read (%s)\r\n", file.getFileName().c_str());
 		result = false;
 	} else
 		buffer = std::string(buf, st.st_size);

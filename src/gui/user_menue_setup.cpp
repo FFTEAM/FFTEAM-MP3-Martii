@@ -52,7 +52,7 @@
 #include <system/debug.h>
 
 static bool usermenu_show = true;
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 static bool usermenu_show_three_d_mode = true;
 #else
 static bool usermenu_show_three_d_mode = false;

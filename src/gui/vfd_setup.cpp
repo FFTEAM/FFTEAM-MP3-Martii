@@ -185,7 +185,7 @@ int CVfdSetup::showSetup()
 	vfds->addItem(mf);
 
 	//led menu
-	if(cs_get_revision() > 7)
+	if (cs_get_revision() > 7) // not HD1 and BSE
 	{
  		CMenuWidget * ledMenu = new CMenuWidget(LOCALE_LCDMENU_HEAD, NEUTRINO_ICON_LCD, width, MN_WIDGET_ID_VFDSETUP_LED_SETUP);
 		showLedSetup(ledMenu);
@@ -193,7 +193,7 @@ int CVfdSetup::showSetup()
 		mf->setHint("", LOCALE_MENU_HINT_POWER_LEDS);
 		vfds->addItem(mf);
 	}
-	if(cs_get_revision() == 9)
+	if (cs_get_revision() == 9)
 	{
  		CMenuWidget * blMenu = new CMenuWidget(LOCALE_LCDMENU_HEAD, NEUTRINO_ICON_LCD, width, MN_WIDGET_ID_VFDSETUP_BACKLIGHT);
 		showBacklightSetup(blMenu);

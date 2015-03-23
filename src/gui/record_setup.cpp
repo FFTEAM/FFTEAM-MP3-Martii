@@ -99,8 +99,8 @@ int CRecordSetup::exec(CMenuTarget* parent, const std::string &actionKey)
 				timeshiftDir = g_settings.network_nfs_recordingdir + "/.timeshift";
 				safe_mkdir(timeshiftDir.c_str());
 				printf("New timeshift dir: %s\n", timeshiftDir.c_str());
-				CRecordManager::getInstance()->SetTimeshiftDirectory(timeshiftDir);
 			}
+			CRecordManager::getInstance()->SetTimeshiftDirectory(timeshiftDir);
 			cHddStat::getInstance()->setDir(g_settings.network_nfs_recordingdir);
 		}
 		return res;
@@ -215,7 +215,7 @@ int CRecordSetup::showRecordSetup()
 	startstop_msg->setHint("", LOCALE_MENU_HINT_RECORD_STARTSTOP_MSG);
 	recordingSettings->addItem(startstop_msg);
 
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	CMenuOptionNumberChooser *ch;
 	ch = new CMenuOptionNumberChooser(LOCALE_EXTRA_RECORD_BUFSIZE, &g_settings.recording_bufsize, true, 1, 25, NULL);
 	ch->setNumberFormat("%d MB");
@@ -280,14 +280,14 @@ void CRecordSetup::showRecordTimerSetup(CMenuWidget *menu_timersettings)
 
 	//start
 	CMenuOptionNumberChooser *ch = new CMenuOptionNumberChooser(LOCALE_TIMERSETTINGS_RECORD_SAFETY_TIME_BEFORE,
-		&g_settings.record_safety_time_before, true, 0, 99);
+		&g_settings.record_safety_time_before, true, 0, 99, this);
 	ch->setNumberFormat(nf);
 	ch->setHint("", LOCALE_MENU_HINT_RECORD_TIMEBEFORE);
 	menu_timersettings->addItem(ch);
 
 	//end
 	ch = new CMenuOptionNumberChooser(LOCALE_TIMERSETTINGS_RECORD_SAFETY_TIME_AFTER,
-		&g_settings.record_safety_time_after, true, 0, 99);
+		&g_settings.record_safety_time_after, true, 0, 99, this);
 	ch->setNumberFormat(nf);
 	ch->setHint("", LOCALE_MENU_HINT_RECORD_TIMEAFTER);
 	menu_timersettings->addItem(ch);

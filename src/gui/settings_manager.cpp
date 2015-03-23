@@ -148,11 +148,14 @@ int CSettingsManager::showMenu()
 	CDataResetNotifier * resetNotifier = new CDataResetNotifier();
 
 	CMenuWidget * mset = new CMenuWidget(LOCALE_MAINSETTINGS_HEAD, NEUTRINO_ICON_SETTINGS, width, MN_WIDGET_ID_SETTINGS_MNGR);
-	mset->addIntroItems(NONEXISTANT_LOCALE, LOCALE_EXTRA_NEUTRINOSETTINGS_TITLE);
+	mset->addIntroItems(LOCALE_MAINSETTINGS_MANAGE);
 
-	CMenuForwarder * mf = new CMenuForwarder(LOCALE_RESET_SETTINGS,   true, NULL, resetNotifier,    "settings",     CRCInput::RC_recall);
+	CMenuForwarder * mf;
+	mf = new CMenuForwarder(LOCALE_RESET_SETTINGS,   true, NULL, resetNotifier,    "settings",     CRCInput::RC_recall);
 	mf->setHint(NEUTRINO_ICON_HINT_RESET, LOCALE_MENU_HINT_RESET); // FIXME: RC-button RECALL is broken
 	mset->addItem(mf);
+
+	mset->addItem(GenericMenuSeparatorLine);
 
 	mf = new CMenuForwarder(LOCALE_EXTRA_SAVECONFIG, true, NULL, this, "saveconfig", CRCInput::RC_red);
 	mf->setHint(NEUTRINO_ICON_HINT_SAVEAS, LOCALE_MENU_HINT_SAVEAS);
@@ -162,7 +165,7 @@ int CSettingsManager::showMenu()
 	mf->setHint(NEUTRINO_ICON_HINT_LOAD, LOCALE_MENU_HINT_LOAD);
 	mset->addItem(mf);
 
-	mset->addItem(new CMenuSeparator(CMenuSeparator::LINE | CMenuSeparator::STRING, LOCALE_EXTRA_IMAGESETTINGS_TITLE));
+	mset->addItem(GenericMenuSeparatorLine);
 
 	mf = new CMenuForwarder(LOCALE_SETTINGS_BACKUP, true, NULL, this, "backup",  CRCInput::RC_yellow);
 	mf->setHint(NEUTRINO_ICON_HINT_BACKUP, LOCALE_MENU_HINT_BACKUP);

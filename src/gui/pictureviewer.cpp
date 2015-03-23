@@ -74,6 +74,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 
+#include <zapit/zapit.h>
 #include <video.h>
 extern cVideo * videoDecoder;
 extern CInfoClock *InfoClock;
@@ -167,8 +168,8 @@ int CPictureViewerGui::exec(CMenuTarget* parent, const std::string & actionKey)
 	fheight = g_Font[SNeutrinoSettings::FONT_TYPE_MENU]->getHeight();
 
         //get footerHeight from paintButtons
-	buttons1Height = ::paintButtons(PictureViewerButtons1, PictureViewerButtons1Count, 0, 0, 0, 0, 0, false);
-	buttons2Height = ::paintButtons(PictureViewerButtons2, PictureViewerButtons2Count, 0, 0, 0, 0, 0, false);
+	buttons1Height = ::paintButtons(0, 0, 0, PictureViewerButtons1Count, PictureViewerButtons1, 0, 0, "", false, COL_INFOBAR_SHADOW_TEXT, NULL, 0, false);
+	buttons2Height = ::paintButtons(0, 0, 0, PictureViewerButtons2Count, PictureViewerButtons2, 0, 0, "", false, COL_INFOBAR_SHADOW_TEXT, NULL, 0, false);
 	footerHeight = buttons1Height + buttons2Height;
 
 	listmaxshow = (height-theight-footerHeight)/(fheight);
@@ -188,22 +189,19 @@ int CPictureViewerGui::exec(CMenuTarget* parent, const std::string & actionKey)
 	if (parent)
 		parent->hide();
 
+	// remember last mode
+	m_LastMode = CNeutrinoApp::getInstance()->getMode();
 	// tell neutrino we're in pic_mode
 	CNeutrinoApp::getInstance()->handleMsg( NeutrinoMessages::CHANGEMODE , NeutrinoMessages::mode_pic );
-	// remember last mode
-	m_LastMode=(CNeutrinoApp::getInstance()->getLastMode() | NeutrinoMessages::norezap);
 
 	if (!audioplayer) { // !!! why? !!!
-		//g_Zapit->setStandby(true);
-		g_Zapit->lockPlayBack();
+		CNeutrinoApp::getInstance()->stopPlayBack(true);
 
 		// blank background screen
 		videoDecoder->setBlank(true);
 
-#if 0
 		// Stop Sectionsd
 		g_Sectionsd->setPauseScanning(true);
-#endif
 	}
 
 	// Save and Clear background
@@ -219,13 +217,11 @@ int CPictureViewerGui::exec(CMenuTarget* parent, const std::string & actionKey)
 	m_viewer->Cleanup();
 
 	if (!audioplayer) { // !!! why? !!!
-		//g_Zapit->setStandby(false);
-		CNeutrinoApp::getInstance()->handleMsg(NeutrinoMessages::EVT_PROGRAMLOCKSTATUS, (neutrino_msg_data_t) 0x200);
+		//g_Zapit->unlockPlayBack();
+		CZapit::getInstance()->EnablePlayback(true);
 
-#if 0
 		// Start Sectionsd
 		g_Sectionsd->setPauseScanning(false);
-#endif
 	}
 
 	// Restore previous background
@@ -462,7 +458,7 @@ int CPictureViewerGui::show()
 							pic.Type     = tmp.substr(tmp.rfind('.')+1);
 							struct stat statbuf;
 							if (stat(pic.Filename.c_str(),&statbuf) != 0)
-								printf("stat error");
+								fprintf(stderr, "stat '%s' error: %m\n", pic.Filename.c_str());
 							pic.Date     = statbuf.st_mtime;
 							playlist.push_back(pic);
 						}
@@ -560,12 +556,6 @@ int CPictureViewerGui::show()
 					update=true;
 				}
 			}
-#if HAVE_SPARK_HARDWARE
-			else
-			{
-				m_viewer->Zoom(0.0); // Reset original view
-			}
-#endif
 		}
 		else if ( msg == CRCInput::RC_6 )
 		{
@@ -712,7 +702,8 @@ void CPictureViewerGui::paintItem(int pos)
 		tmp += " (";
 		tmp += playlist[liststart+pos].Type;
 		tmp += ')';
-		std::string timestring = strftime("%d-%m-%Y %H:%M", gmtime(&playlist[liststart+pos].Date));
+		char timestring[18];
+		strftime(timestring, 18, "%d-%m-%Y %H:%M", gmtime(&playlist[liststart+pos].Date));
 		int w = g_Font[SNeutrinoSettings::FONT_TYPE_MENU]->getRenderWidth(timestring);
 		g_Font[SNeutrinoSettings::FONT_TYPE_MENU]->RenderString(x+10,ypos+fheight, width-30 - w, tmp, color, fheight);
 		g_Font[SNeutrinoSettings::FONT_TYPE_MENU]->RenderString(x+width-20-w,ypos+fheight, w, timestring, color, fheight);
@@ -798,7 +789,8 @@ void CPictureViewerGui::view(unsigned int index, bool unscaled)
 	selected=index;
 
 	CVFD::getInstance()->showMenuText(0, playlist[index].Name.c_str());
-	//std::string timestring = strftime("%d-%m-%Y %H:%M", gmtime(&playlist[index].Date));
+	char timestring[19];
+	strftime(timestring, 18, "%d-%m-%Y %H:%M", gmtime(&playlist[index].Date));
 	//CVFD::getInstance()->showMenuText(1, timestring); //FIXME
 
 	if (m_state==MENU)

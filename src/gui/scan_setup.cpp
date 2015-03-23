@@ -443,11 +443,6 @@ int CScanSetup::exec(CMenuTarget* parent, const std::string &actionKey)
 				//...then start scan
 				CScanTs scanTs(delsys);
 				scanTs.exec(NULL, scants_key[i]);
-#if 0
-				/* FIXME save fst version. other than fast scan will reset it to 0
-				   to disable fast scan updates */
-				scansettings.fst_version = CServiceScan::getInstance()->GetFstVersion();
-#endif
 				if (as == "fast") {
 					scansettings.fst_update = 1;
 					if (is_wizard)

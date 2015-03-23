@@ -212,8 +212,8 @@ int COsdSetup::exec(CMenuTarget* parent, const std::string &actionKey)
 			g_settings.font_file = fileBrowser.getSelectedFile()->Name;
 			printf("[neutrino] new font file %s\n", fileBrowser.getSelectedFile()->Name.c_str());
 			CNeutrinoApp::getInstance()->SetupFonts(CNeutrinoFonts::FONTSETUP_ALL);
-			osdFontFile = getBaseName(fileBrowser.getSelectedFile()->Name);
-			mfFontFile->setOption(osdFontFile);
+			osdFontFile = "(" + getBaseName(fileBrowser.getSelectedFile()->Name) + ")";
+			mfFontFile->setOption(osdFontFile.c_str());
 		}
 		return res;
 	}
@@ -229,8 +229,8 @@ int COsdSetup::exec(CMenuTarget* parent, const std::string &actionKey)
 			ttx_font_file = fileBrowser.getSelectedFile()->Name;
 			printf("[neutrino] ttx font file %s\n", fileBrowser.getSelectedFile()->Name.c_str());
 			CNeutrinoApp::getInstance()->SetupFonts(CNeutrinoFonts::FONTSETUP_NEUTRINO_FONT | CNeutrinoFonts::FONTSETUP_NEUTRINO_FONT_INST);
-			osdTtxFontFile = getBaseName(fileBrowser.getSelectedFile()->Name);
-			mfTtxFontFile->setOption(osdTtxFontFile);
+			osdTtxFontFile = "(" + getBaseName(fileBrowser.getSelectedFile()->Name) + ")";
+			mfTtxFontFile->setOption(osdTtxFontFile.c_str());
 		}
 		return res;
 	}
@@ -260,13 +260,11 @@ int COsdSetup::exec(CMenuTarget* parent, const std::string &actionKey)
 		CMenuOptionNumberChooser* mc = new CMenuOptionNumberChooser(LOCALE_FONTMENU_SCALING_X, &g_settings.screen_xres, true, 50, 200, this);
 		mc->setNumericInput(true);
 		mc->setNumberFormat("%d%%");
-		mc->setHint("", LOCALE_MENU_HINT_FONT_SCALING_X);
 		fontscale.addItem(mc);
 
 		mc = new CMenuOptionNumberChooser(LOCALE_FONTMENU_SCALING_Y, &g_settings.screen_yres, true, 50, 200, this);
 		mc->setNumericInput(true);
 		mc->setNumberFormat("%d%%");
-		mc->setHint("", LOCALE_MENU_HINT_FONT_SCALING_Y);
 		fontscale.addItem(mc);
 
 		res = fontscale.exec(NULL, "");
@@ -384,7 +382,7 @@ const CMenuOptionChooser::keyval INFOBAR_CASYSTEM_MODE_OPTIONS[INFOBAR_CASYSTEM_
 	{ 0, LOCALE_OPTIONS_ON },
 	{ 1, LOCALE_MISCSETTINGS_INFOBAR_CASYSTEM_MODE },
 	{ 2, LOCALE_MISCSETTINGS_INFOBAR_CASYSTEM_MINI },
-	{ 3, LOCALE_OPTIONS_OFF  },
+	{ 3, LOCALE_OPTIONS_OFF  }
 };
 
 #define INFOBAR_INFOVIEWERECM_MODE_OPTION_COUNT 3
@@ -392,14 +390,14 @@ const CMenuOptionChooser::keyval INFOBAR_INFOVIEWERECM_MODE_OPTIONS[INFOBAR_INFO
 {
 	{ 0, LOCALE_OPTIONS_OFF  },
 	{ 1, LOCALE_MISCSETTINGS_INFOBAR_INFOVIEWERECM_OPTION1 },
-	{ 2, LOCALE_MISCSETTINGS_INFOBAR_INFOVIEWERECM_OPTION2 },
+	{ 2, LOCALE_MISCSETTINGS_INFOBAR_INFOVIEWERECM_OPTION2 }
 };
 
 #define SHOW_INFOMENU_MODE_OPTION_COUNT 2
 const CMenuOptionChooser::keyval SHOW_INFOMENU_MODE_OPTIONS[SHOW_INFOMENU_MODE_OPTION_COUNT] =
 {
 	{ 0, LOCALE_MAINMENU_HEAD },
-	{ 1, LOCALE_MAINMENU_SERVICE },
+	{ 1, LOCALE_MAINMENU_SERVICE }
 };
 
 #define MENU_CORNERSETTINGS_TYPE_OPTION_COUNT 2
@@ -435,11 +433,11 @@ const CMenuOptionChooser::keyval  VOLUMEBAR_DISP_POS_OPTIONS[VOLUMEBAR_DISP_POS_
 #define MENU_DISP_POS_OPTIONS_COUNT 5
 const CMenuOptionChooser::keyval  MENU_DISP_POS_OPTIONS[MENU_DISP_POS_OPTIONS_COUNT]=
 {
-        { 0 , LOCALE_SETTINGS_POS_DEFAULT_CENTER },
-        { 1 , LOCALE_SETTINGS_POS_TOP_LEFT },
-        { 2 , LOCALE_SETTINGS_POS_TOP_RIGHT },
-        { 3 , LOCALE_SETTINGS_POS_BOTTOM_LEFT },
-        { 4 , LOCALE_SETTINGS_POS_BOTTOM_RIGHT }
+	{ 0 , LOCALE_SETTINGS_POS_DEFAULT_CENTER },
+	{ 1 , LOCALE_SETTINGS_POS_TOP_LEFT },
+	{ 2 , LOCALE_SETTINGS_POS_TOP_RIGHT },
+	{ 3 , LOCALE_SETTINGS_POS_BOTTOM_LEFT },
+	{ 4 , LOCALE_SETTINGS_POS_BOTTOM_RIGHT }
 };
 
 #define INFOBAR_SHOW_RES_MODE_OPTION_COUNT 3
@@ -478,25 +476,25 @@ const CMenuOptionChooser::keyval OPTIONS_COLORED_EVENTS_OPTIONS[OPTIONS_COLORED_
 {
 	{ 0, LOCALE_MISCSETTINGS_COLORED_EVENTS_0 },	//none
 	{ 1, LOCALE_MISCSETTINGS_COLORED_EVENTS_1 },	//current
-	{ 2, LOCALE_MISCSETTINGS_COLORED_EVENTS_2 },	//next
+	{ 2, LOCALE_MISCSETTINGS_COLORED_EVENTS_2 } 	//next
 };
 
 /* these are more descriptive... */
-#define _LOCALE_PROGRESSBAR_COLOR_MATRIX	LOCALE_MISCSETTINGS_PROGRESSBAR_DESIGN_0
-#define _LOCALE_PROGRESSBAR_COLOR_VERTICAL	LOCALE_MISCSETTINGS_PROGRESSBAR_DESIGN_1
-#define _LOCALE_PROGRESSBAR_COLOR_HORIZONTAL	LOCALE_MISCSETTINGS_PROGRESSBAR_DESIGN_2
-#define _LOCALE_PROGRESSBAR_COLOR_FULL		LOCALE_MISCSETTINGS_PROGRESSBAR_DESIGN_3
-#define _LOCALE_PROGRESSBAR_COLOR_MONO		LOCALE_MISCSETTINGS_PROGRESSBAR_DESIGN_4
+#define _LOCALE_PROGRESSBAR_COLOR_MATRIX        LOCALE_MISCSETTINGS_PROGRESSBAR_DESIGN_0
+#define _LOCALE_PROGRESSBAR_COLOR_VERTICAL      LOCALE_MISCSETTINGS_PROGRESSBAR_DESIGN_1
+#define _LOCALE_PROGRESSBAR_COLOR_HORIZONTAL    LOCALE_MISCSETTINGS_PROGRESSBAR_DESIGN_2
+#define _LOCALE_PROGRESSBAR_COLOR_FULL          LOCALE_MISCSETTINGS_PROGRESSBAR_DESIGN_3
+#define _LOCALE_PROGRESSBAR_COLOR_MONO          LOCALE_MISCSETTINGS_PROGRESSBAR_DESIGN_4
 
 #define PROGRESSBAR_COLOR_OPTION_COUNT 6
 const CMenuOptionChooser::keyval PROGRESSBAR_COLOR_OPTIONS[PROGRESSBAR_COLOR_OPTION_COUNT] =
 {
-	{ CProgressBar::PB_OFF,		LOCALE_OPTIONS_OFF },
-	{ CProgressBar::PB_MONO,	_LOCALE_PROGRESSBAR_COLOR_MONO },
-	{ CProgressBar::PB_MATRIX,	_LOCALE_PROGRESSBAR_COLOR_MATRIX },
-	{ CProgressBar::PB_LINES_V,	_LOCALE_PROGRESSBAR_COLOR_VERTICAL },
-	{ CProgressBar::PB_LINES_H,	_LOCALE_PROGRESSBAR_COLOR_HORIZONTAL },
-	{ CProgressBar::PB_COLOR,	_LOCALE_PROGRESSBAR_COLOR_FULL },
+	{ CProgressBar::PB_OFF,         LOCALE_OPTIONS_OFF },
+	{ CProgressBar::PB_MONO,        _LOCALE_PROGRESSBAR_COLOR_MONO },
+	{ CProgressBar::PB_MATRIX,      _LOCALE_PROGRESSBAR_COLOR_MATRIX },
+	{ CProgressBar::PB_LINES_V,     _LOCALE_PROGRESSBAR_COLOR_VERTICAL },
+	{ CProgressBar::PB_LINES_H,     _LOCALE_PROGRESSBAR_COLOR_HORIZONTAL },
+	{ CProgressBar::PB_COLOR,       _LOCALE_PROGRESSBAR_COLOR_FULL },
 };
 
 #define PROGRESSBAR_TIMESCALE_INVERT_OPTION_COUNT 2
@@ -942,6 +940,11 @@ int COsdSetup::showOsdSetup()
 	mfWindowSize->setHint("", LOCALE_MENU_HINT_WINDOW_SIZE);
 	osd_menu->addItem(mfWindowSize);
 
+	// color gradient
+	mc = new CMenuOptionChooser(LOCALE_COLOR_GRADIENT, &g_settings.gradiant, MESSAGEBOX_NO_YES_OPTIONS, MESSAGEBOX_NO_YES_OPTION_COUNT, true, this );
+	mc->setHint("", LOCALE_MENU_HINT_COLOR_GRADIENT);
+	osd_menu->addItem(mc);
+
 	osd_menu->addItem(GenericMenuSeparatorLine);
 
 	// scrambled
@@ -985,8 +988,10 @@ void COsdSetup::showOsdMenueColorSetup(CMenuWidget *menu_colors)
 
 	CColorChooser* chHeadcolor = new CColorChooser(LOCALE_COLORMENU_BACKGROUND, &t.menu_Head_red, &t.menu_Head_green, &t.menu_Head_blue,
 			&t.menu_Head_alpha, colorSetupNotifier);
+	chHeadcolor->setGradient(CColorChooser::gradient_head_body);
 	CColorChooser* chHeadTextcolor = new CColorChooser(LOCALE_COLORMENU_TEXTCOLOR, &t.menu_Head_Text_red, &t.menu_Head_Text_green, &t.menu_Head_Text_blue,
 			NULL, colorSetupNotifier);
+	chHeadTextcolor->setGradient(CColorChooser::gradient_head_text);
 	CColorChooser* chContentcolor = new CColorChooser(LOCALE_COLORMENU_BACKGROUND, &t.menu_Content_red, &t.menu_Content_green, &t.menu_Content_blue,
 			&t.menu_Content_alpha, colorSetupNotifier);
 	CColorChooser* chContentTextcolor = new CColorChooser(LOCALE_COLORMENU_TEXTCOLOR, &t.menu_Content_Text_red, &t.menu_Content_Text_green, &t.menu_Content_Text_blue,
@@ -1116,18 +1121,18 @@ void COsdSetup::showOsdFontSizeSetup(CMenuWidget *menu_fonts)
 	CMenuWidget *fontSettings = menu_fonts;
 	CMenuForwarder * mf;
 
-	fontSettings->addIntroItems(LOCALE_FONTMENU_HEAD, LOCALE_FONTMENU_FONTS);
+	fontSettings->addIntroItems(LOCALE_FONTMENU_HEAD);
 
 	// select gui font file
 	osdFontFile = g_settings.font_file;
-	osdFontFile = getBaseName(osdFontFile);
+	osdFontFile = "(" + getBaseName(osdFontFile) + ")";
 	mfFontFile = new CMenuForwarder(LOCALE_COLORMENU_FONT, true, osdFontFile.c_str(), this, "select_font", CRCInput::RC_red);
 	mfFontFile->setHint("", LOCALE_MENU_HINT_FONT_GUI);
 	fontSettings->addItem(mfFontFile);
 
 	// select teletext font file
 	osdTtxFontFile = g_settings.ttx_font_file;
-	osdTtxFontFile = getBaseName(osdTtxFontFile);
+	osdTtxFontFile = "(" + getBaseName(osdTtxFontFile) + ")";
 	mfTtxFontFile = new CMenuForwarder(LOCALE_COLORMENU_FONT_TTX, true, osdTtxFontFile.c_str(), this, "ttx_font",  CRCInput::RC_green);
 	mfTtxFontFile->setHint("", LOCALE_MENU_HINT_FONT_TTX);
 	fontSettings->addItem(mfTtxFontFile);
@@ -1199,21 +1204,22 @@ void COsdSetup::showOsdTimeoutSetup(CMenuWidget* menu_timeout)
 #define LOCALE_MISCSETTINGS_INFOBAR_DISP_OPTIONS_COUNT 7
 const CMenuOptionChooser::keyval  LOCALE_MISCSETTINGS_INFOBAR_DISP_OPTIONS[LOCALE_MISCSETTINGS_INFOBAR_DISP_OPTIONS_COUNT]=
 {
-   { 0 , LOCALE_MISCSETTINGS_INFOBAR_DISP_0 },
-   { 1 , LOCALE_MISCSETTINGS_INFOBAR_DISP_1 },
-   { 2 , LOCALE_MISCSETTINGS_INFOBAR_DISP_2 },
-   { 3 , LOCALE_MISCSETTINGS_INFOBAR_DISP_3 },
-   { 4 , LOCALE_MISCSETTINGS_INFOBAR_DISP_4 },
-   { 5 , LOCALE_MISCSETTINGS_INFOBAR_DISP_5 },
-   { 6 , LOCALE_MISCSETTINGS_INFOBAR_DISP_6 }
+	{ 0 , LOCALE_MISCSETTINGS_INFOBAR_DISP_0 },
+	{ 1 , LOCALE_MISCSETTINGS_INFOBAR_DISP_1 },
+	{ 2 , LOCALE_MISCSETTINGS_INFOBAR_DISP_2 },
+	{ 3 , LOCALE_MISCSETTINGS_INFOBAR_DISP_3 },
+	{ 4 , LOCALE_MISCSETTINGS_INFOBAR_DISP_4 },
+	{ 5 , LOCALE_MISCSETTINGS_INFOBAR_DISP_5 },
+	{ 6 , LOCALE_MISCSETTINGS_INFOBAR_DISP_6 }
 };
+
 #define LOCALE_MISCSETTINGS_INFOBAR_PROGRESSBAR_COUNT 4
-const CMenuOptionChooser::keyval  LOCALE_MISCSETTINGS_INFOBAR_PROGRESSBAR_OPTIONS[LOCALE_MISCSETTINGS_INFOBAR_PROGRESSBAR_COUNT]=
+const CMenuOptionChooser::keyval LOCALE_MISCSETTINGS_INFOBAR_PROGRESSBAR_OPTIONS[LOCALE_MISCSETTINGS_INFOBAR_PROGRESSBAR_COUNT]=
 {
-   { 0 , LOCALE_MISCSETTINGS_PROGRESSBAR_INFOBAR_POSITION_0 },
-   { 1 , LOCALE_MISCSETTINGS_PROGRESSBAR_INFOBAR_POSITION_1 },
-   { 2 , LOCALE_MISCSETTINGS_PROGRESSBAR_INFOBAR_POSITION_2 },
-   { 3 , LOCALE_MISCSETTINGS_PROGRESSBAR_INFOBAR_POSITION_3 }
+	{ 0 , LOCALE_MISCSETTINGS_PROGRESSBAR_INFOBAR_POSITION_0 },
+	{ 1 , LOCALE_MISCSETTINGS_PROGRESSBAR_INFOBAR_POSITION_1 },
+	{ 2 , LOCALE_MISCSETTINGS_PROGRESSBAR_INFOBAR_POSITION_2 },
+	{ 3 , LOCALE_MISCSETTINGS_PROGRESSBAR_INFOBAR_POSITION_3 }
 };
 
 //menus
@@ -1244,9 +1250,9 @@ void COsdSetup::showOsdMenusSetup(CMenuWidget *menu_menus)
 #define HDD_STATFS_OPTION_COUNT 3
 const CMenuOptionChooser::keyval HDD_STATFS_OPTIONS[HDD_STATFS_OPTION_COUNT] =
 {
-	{ SNeutrinoSettings::HDD_STATFS_OFF,		LOCALE_OPTIONS_OFF },
-	{ SNeutrinoSettings::HDD_STATFS_ALWAYS,		LOCALE_HDD_STATFS_ALWAYS },
-	{ SNeutrinoSettings::HDD_STATFS_RECORDING,	LOCALE_HDD_STATFS_RECORDING }
+	{ SNeutrinoSettings::HDD_STATFS_OFF,            LOCALE_OPTIONS_OFF },
+	{ SNeutrinoSettings::HDD_STATFS_ALWAYS,         LOCALE_HDD_STATFS_ALWAYS },
+	{ SNeutrinoSettings::HDD_STATFS_RECORDING,      LOCALE_HDD_STATFS_RECORDING }
 };
 
 //infobar
@@ -1343,7 +1349,7 @@ void COsdSetup::showOsdInfobarSetup(CMenuWidget *menu_infobar)
 	// radiotext
 	mc = new CMenuOptionChooser(LOCALE_MISCSETTINGS_RADIOTEXT, &g_settings.radiotext_enable, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true, this);
 	mc->setHint("", LOCALE_MENU_HINT_INFOBAR_RADIOTEXT);
- 	menu_infobar->addItem(mc);
+	menu_infobar->addItem(mc);
 }
 
 //eventlist
@@ -1410,6 +1416,10 @@ bool COsdSetup::changeNotify(const neutrino_locale_t OptionName, void * data)
 			g_InfoViewer = new CInfoViewer;
 		g_InfoViewer->changePB();
 		return false;
+	}
+	else if(ARE_LOCALES_EQUAL(OptionName, LOCALE_COLOR_GRADIENT)) {
+		osd_menu->hide();
+		return true;
 	}
 	else if(ARE_LOCALES_EQUAL(OptionName, LOCALE_COLORMENU_OSD_PRESET)) {
 		int preset = * (int *) data;
@@ -1594,7 +1604,7 @@ void COsdSetup::paintWindowSize(int w, int h)
 		win_demo = new CComponentsShapeSquare(0, 0, 0, 0);
 		win_demo->setFrameThickness(8);
 		win_demo->setShadowOnOff(CC_SHADOW_OFF);
-		win_demo->setColorBody(COL_BACKGROUND_PLUS_0);
+		win_demo->setColorBody(COL_BACKGROUND);
 		win_demo->setColorFrame(COL_RED);
 		win_demo->doPaintBg(true);
 	}

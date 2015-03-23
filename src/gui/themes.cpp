@@ -51,7 +51,8 @@
 #include "themes.h"
 
 #define THEMEDIR DATADIR "/neutrino/themes/"
-#define USERDIR "/var" THEMEDIR
+#define THEMEDIR_VAR "/var/tuxbox/themes/"
+#define USERDIR CONFIGDIR "/themes/"
 #define FILE_PREFIX ".theme"
 
 CThemes::CThemes()
@@ -81,10 +82,10 @@ int CThemes::exec(CMenuTarget* parent, const std::string & actionKey)
 			if ( strstr(themeFile.c_str(), "{U}") != 0 ) 
 			{
 				themeFile.erase(0, 3);
-				readFile((char*)((std::string)USERDIR + themeFile + FILE_PREFIX).c_str());
+				readFile(((std::string)THEMEDIR_VAR + themeFile + FILE_PREFIX).c_str());
 			} 
 			else
-				readFile((char*)((std::string)THEMEDIR + themeFile + FILE_PREFIX).c_str());
+				readFile(((std::string)THEMEDIR + themeFile + FILE_PREFIX).c_str());
 		}
 		return res;
 	}
@@ -103,7 +104,7 @@ void CThemes::readThemes(CMenuWidget &themes)
 {
 	struct dirent **themelist;
 	int n;
-	const char *pfade[] = {THEMEDIR, USERDIR};
+	const char *pfade[] = {THEMEDIR, THEMEDIR_VAR};
 	bool hasCVSThemes, hasUserThemes;
 	hasCVSThemes = hasUserThemes = false;
 	std::string userThemeFile = "";
@@ -132,9 +133,9 @@ void CThemes::readThemes(CMenuWidget &themes)
 					*pos = '\0';
 					if ( p == 1 ) {
 						userThemeFile = "{U}" + (std::string)file;
-						oj = new CMenuForwarder(file, true, NULL, this, userThemeFile.c_str());
+						oj = new CMenuForwarder(file, true, "", this, userThemeFile.c_str());
 					} else
-						oj = new CMenuForwarder(file, true, NULL, this, file);
+						oj = new CMenuForwarder(file, true, "", this, file);
 					themes.addItem( oj );
 				}
 				free(themelist[count]);
@@ -146,6 +147,8 @@ void CThemes::readThemes(CMenuWidget &themes)
 
 int CThemes::Show()
 {
+	move_userDir();
+
 	std::string file_name = "";
 
 	CMenuWidget themes (LOCALE_COLORMENU_MENUCOLORS, NEUTRINO_ICON_SETTINGS, width);
@@ -160,21 +163,21 @@ int CThemes::Show()
 	CKeyboardInput nameInput(LOCALE_COLORTHEMEMENU_NAME, &file_name);
 	CMenuForwarder *m1 = new CMenuForwarder(LOCALE_COLORTHEMEMENU_SAVE, true , NULL, &nameInput, NULL, CRCInput::RC_green);
 
-	if (mkdirhier(USERDIR) && errno != EEXIST) {
-		printf("[neutrino theme] error creating %s\n", USERDIR);
+	if (mkdirhier(THEMEDIR_VAR) && errno != EEXIST) {
+		printf("[neutrino theme] error creating %s\n", THEMEDIR_VAR);
 	}
-	if (access(USERDIR, F_OK) == 0 ) {
+	if (access(THEMEDIR_VAR, F_OK) == 0 ) {
 		themes.addItem(GenericMenuSeparatorLine);
 		themes.addItem(m1);
 	} else {
 		delete m1;
-		printf("[neutrino theme] error accessing %s\n", USERDIR);
+		printf("[neutrino theme] error accessing %s\n", THEMEDIR_VAR);
 	}
 
 	int res = themes.exec(NULL, "");
 
-	if (file_name.length() > 1) {
-		saveFile((char*)((std::string)USERDIR + file_name + FILE_PREFIX).c_str());
+	if (!file_name.empty()) {
+		saveFile(((std::string)THEMEDIR_VAR + file_name + FILE_PREFIX).c_str());
 	}
 
 	if (hasThemeChanged) {
@@ -200,11 +203,11 @@ void CThemes::rememberOldTheme(bool remember)
 	}
 }
 
-void CThemes::readFile(char* themename)
+void CThemes::readFile(const char *themename)
 {
 	if(themefile.loadConfig(themename))
 	{
-		CNeutrinoApp::getInstance()->getTheme(themefile);
+		getTheme(themefile);
 
 		notifier = new CColorSetupNotifier;
 		notifier->changeNotify(NONEXISTANT_LOCALE, NULL);
@@ -215,19 +218,157 @@ void CThemes::readFile(char* themename)
 		printf("[neutrino theme] %s not found\n", themename);
 }
 
-void CThemes::saveFile(char * themename)
+void CThemes::saveFile(const char *themename)
 {
-	CNeutrinoApp::getInstance()->setTheme(themefile);
+	setTheme(themefile);
 
 	if (!themefile.saveConfig(themename))
 		printf("[neutrino theme] %s write error\n", themename);
 }
 
-
-
 // setup default Colors
 void CThemes::setupDefaultColors()
 {
 	CConfigFile empty(':');
-	CNeutrinoApp::getInstance()->getTheme(empty);
+	getTheme(empty);
+}
+
+void CThemes::setTheme(CConfigFile &configfile)
+{
+	SNeutrinoTheme &t = g_settings.theme;
+	configfile.setInt32( "menu_Head_alpha", t.menu_Head_alpha );
+	configfile.setInt32( "menu_Head_red", t.menu_Head_red );
+	configfile.setInt32( "menu_Head_green", t.menu_Head_green );
+	configfile.setInt32( "menu_Head_blue", t.menu_Head_blue );
+	configfile.setInt32( "menu_Head_Text_alpha", t.menu_Head_Text_alpha );
+	configfile.setInt32( "menu_Head_Text_red", t.menu_Head_Text_red );
+	configfile.setInt32( "menu_Head_Text_green", t.menu_Head_Text_green );
+	configfile.setInt32( "menu_Head_Text_blue", t.menu_Head_Text_blue );
+	configfile.setInt32( "menu_Content_alpha", t.menu_Content_alpha );
+	configfile.setInt32( "menu_Content_red", t.menu_Content_red );
+	configfile.setInt32( "menu_Content_green", t.menu_Content_green );
+	configfile.setInt32( "menu_Content_blue", t.menu_Content_blue );
+	configfile.setInt32( "menu_Content_Text_alpha", t.menu_Content_Text_alpha );
+	configfile.setInt32( "menu_Content_Text_red", t.menu_Content_Text_red );
+	configfile.setInt32( "menu_Content_Text_green", t.menu_Content_Text_green );
+	configfile.setInt32( "menu_Content_Text_blue", t.menu_Content_Text_blue );
+	configfile.setInt32( "menu_Content_Selected_alpha", t.menu_Content_Selected_alpha );
+	configfile.setInt32( "menu_Content_Selected_red", t.menu_Content_Selected_red );
+	configfile.setInt32( "menu_Content_Selected_green", t.menu_Content_Selected_green );
+	configfile.setInt32( "menu_Content_Selected_blue", t.menu_Content_Selected_blue );
+	configfile.setInt32( "menu_Content_Selected_Text_alpha", t.menu_Content_Selected_Text_alpha );
+	configfile.setInt32( "menu_Content_Selected_Text_red", t.menu_Content_Selected_Text_red );
+	configfile.setInt32( "menu_Content_Selected_Text_green", t.menu_Content_Selected_Text_green );
+	configfile.setInt32( "menu_Content_Selected_Text_blue", t.menu_Content_Selected_Text_blue );
+	configfile.setInt32( "menu_Content_inactive_alpha", t.menu_Content_inactive_alpha );
+	configfile.setInt32( "menu_Content_inactive_red", t.menu_Content_inactive_red );
+	configfile.setInt32( "menu_Content_inactive_green", t.menu_Content_inactive_green );
+	configfile.setInt32( "menu_Content_inactive_blue", t.menu_Content_inactive_blue );
+	configfile.setInt32( "menu_Content_inactive_Text_alpha", t.menu_Content_inactive_Text_alpha );
+	configfile.setInt32( "menu_Content_inactive_Text_red", t.menu_Content_inactive_Text_red );
+	configfile.setInt32( "menu_Content_inactive_Text_green", t.menu_Content_inactive_Text_green );
+	configfile.setInt32( "menu_Content_inactive_Text_blue", t.menu_Content_inactive_Text_blue );
+	configfile.setInt32( "infobar_alpha", t.infobar_alpha );
+	configfile.setInt32( "infobar_red", t.infobar_red );
+	configfile.setInt32( "infobar_green", t.infobar_green );
+	configfile.setInt32( "infobar_blue", t.infobar_blue );
+	configfile.setInt32( "infobar_Text_alpha", t.infobar_Text_alpha );
+	configfile.setInt32( "infobar_Text_red", t.infobar_Text_red );
+	configfile.setInt32( "infobar_Text_green", t.infobar_Text_green );
+	configfile.setInt32( "infobar_Text_blue", t.infobar_Text_blue );
+	configfile.setInt32( "colored_events_alpha", t.colored_events_alpha );
+	configfile.setInt32( "colored_events_red", t.colored_events_red );
+	configfile.setInt32( "colored_events_green", t.colored_events_green );
+	configfile.setInt32( "colored_events_blue", t.colored_events_blue );
+	configfile.setInt32( "clock_Digit_alpha", t.clock_Digit_alpha );
+	configfile.setInt32( "clock_Digit_red", t.clock_Digit_red );
+	configfile.setInt32( "clock_Digit_green", t.clock_Digit_green );
+	configfile.setInt32( "clock_Digit_blue", t.clock_Digit_blue );
+}
+
+void CThemes::getTheme(CConfigFile &configfile)
+{
+	SNeutrinoTheme &t = g_settings.theme;
+	t.menu_Head_alpha = configfile.getInt32( "menu_Head_alpha", 0x0e );
+	t.menu_Head_red = configfile.getInt32( "menu_Head_red", 0x00 );
+	t.menu_Head_green = configfile.getInt32( "menu_Head_green", 0x00 );
+	t.menu_Head_blue = configfile.getInt32( "menu_Head_blue", 0x06 );
+	t.menu_Head_Text_alpha = configfile.getInt32( "menu_Head_Text_alpha", 0x00 );
+	t.menu_Head_Text_red = configfile.getInt32( "menu_Head_Text_red", 0x64 );
+	t.menu_Head_Text_green = configfile.getInt32( "menu_Head_Text_green", 0x41 );
+	t.menu_Head_Text_blue = configfile.getInt32( "menu_Head_Text_blue", 0x00 );
+	t.menu_Content_alpha = configfile.getInt32( "menu_Content_alpha", 0x14 );
+	t.menu_Content_red = configfile.getInt32( "menu_Content_red", 0x0f );
+	t.menu_Content_green = configfile.getInt32( "menu_Content_green", 0x0f );
+	t.menu_Content_blue = configfile.getInt32( "menu_Content_blue", 0x0f );
+	t.menu_Content_Text_alpha = configfile.getInt32( "menu_Content_Text_alpha", 0x00 );
+	t.menu_Content_Text_red = configfile.getInt32( "menu_Content_Text_red", 0x64 );
+	t.menu_Content_Text_green = configfile.getInt32( "menu_Content_Text_green", 0x64 );
+	t.menu_Content_Text_blue = configfile.getInt32( "menu_Content_Text_blue", 0x64 );
+	t.menu_Content_Selected_alpha = configfile.getInt32( "menu_Content_Selected_alpha", 0x14 );
+	t.menu_Content_Selected_red = configfile.getInt32( "menu_Content_Selected_red", 0x64 );
+	t.menu_Content_Selected_green = configfile.getInt32( "menu_Content_Selected_green", 0x3C );
+	t.menu_Content_Selected_blue = configfile.getInt32( "menu_Content_Selected_blue", 0x00 );
+	t.menu_Content_Selected_Text_alpha = configfile.getInt32( "menu_Content_Selected_Text_alpha", 0x00 );
+	t.menu_Content_Selected_Text_red = configfile.getInt32( "menu_Content_Selected_Text_red", 0x00 );
+	t.menu_Content_Selected_Text_green = configfile.getInt32( "menu_Content_Selected_Text_green", 0x00 );
+	t.menu_Content_Selected_Text_blue = configfile.getInt32( "menu_Content_Selected_Text_blue", 0x00 );
+	t.menu_Content_inactive_alpha = configfile.getInt32( "menu_Content_inactive_alpha", 0x05 );
+	t.menu_Content_inactive_red = configfile.getInt32( "menu_Content_inactive_red", 0x0f );
+	t.menu_Content_inactive_green = configfile.getInt32( "menu_Content_inactive_green", 0x0f );
+	t.menu_Content_inactive_blue = configfile.getInt32( "menu_Content_inactive_blue", 0x0f );
+	t.menu_Content_inactive_Text_alpha = configfile.getInt32( "menu_Content_inactive_Text_alpha", 0x00 );
+	t.menu_Content_inactive_Text_red = configfile.getInt32( "menu_Content_inactive_Text_red", 50 );
+	t.menu_Content_inactive_Text_green = configfile.getInt32( "menu_Content_inactive_Text_green", 50 );
+	t.menu_Content_inactive_Text_blue = configfile.getInt32( "menu_Content_inactive_Text_blue", 50 );
+	t.infobar_alpha = configfile.getInt32( "infobar_alpha", 0x14 );
+	t.infobar_red = configfile.getInt32( "infobar_red", 0x0f );
+	t.infobar_green = configfile.getInt32( "infobar_green", 0x0f );
+	t.infobar_blue = configfile.getInt32( "infobar_blue", 0x0f );
+	t.infobar_Text_alpha = configfile.getInt32( "infobar_Text_alpha", 0x00 );
+	t.infobar_Text_red = configfile.getInt32( "infobar_Text_red", 0x64 );
+	t.infobar_Text_green = configfile.getInt32( "infobar_Text_green", 0x64 );
+	t.infobar_Text_blue = configfile.getInt32( "infobar_Text_blue", 0x64 );
+	t.colored_events_alpha = configfile.getInt32( "colored_events_alpha", 0x00 );
+	t.colored_events_red = configfile.getInt32( "colored_events_red", 95 );
+	t.colored_events_green = configfile.getInt32( "colored_events_green", 70 );
+	t.colored_events_blue = configfile.getInt32( "colored_events_blue", 0 );
+	t.clock_Digit_alpha = configfile.getInt32( "clock_Digit_alpha", t.menu_Content_Text_alpha );
+	t.clock_Digit_red = configfile.getInt32( "clock_Digit_red", t.menu_Content_Text_red );
+	t.clock_Digit_green = configfile.getInt32( "clock_Digit_green", t.menu_Content_Text_green );
+	t.clock_Digit_blue = configfile.getInt32( "clock_Digit_blue", t.menu_Content_Text_blue );
+}
+
+void CThemes::move_userDir()
+{
+	if (access(USERDIR, F_OK) == 0)
+	{
+		if (mkdirhier(THEMEDIR_VAR) && errno != EEXIST)
+		{
+			printf("[neutrino theme] error creating %s\n", THEMEDIR_VAR);
+			return;
+		}
+		struct dirent **themelist;
+		int n = scandir(USERDIR, &themelist, 0, alphasort);
+		if (n < 0)
+		{
+			perror("loading themes: scandir");
+			return;
+		}
+		else
+		{
+			for (int count = 0; count < n; count++)
+			{
+				const char *file = themelist[count]->d_name;
+				if (strcmp(file, ".") == 0 || strcmp(file, "..") == 0)
+					continue;
+				const char *dest = ((std::string)USERDIR + file).c_str();
+				const char *target = ((std::string)THEMEDIR_VAR + file).c_str();
+				printf("[neutrino theme] moving %s to %s\n", dest, target);
+				rename(dest, target);
+			}
+		}
+		printf("[neutrino theme] removing %s\n", USERDIR);
+		remove(USERDIR);
+	}
 }

@@ -121,11 +121,6 @@ int CMediaPlayerSetup::showMediaPlayerSetup()
 	mf->setHint(NEUTRINO_ICON_HINT_MB, LOCALE_MENU_HINT_MOVIEBROWSER_SETUP);
 	mediaSetup->addItem(mf);
 
-	CFileBrowserSetup fsetup;
-	mf = new CMenuForwarder(LOCALE_MOVIEPLAYER_FILEPLAYBACK, true, NULL, &fsetup, "show_menu", CRCInput::convertDigitToKey(shortcut++));
-	mf->setHint(NEUTRINO_ICON_HINT_FILEPLAY, LOCALE_MENU_HINT_FILEPLAY_SETUP);
-	mediaSetup->addItem(mf);
-
 	mf = new CMenuForwarder(LOCALE_MOVIEPLAYER_YTPLAYBACK, true, NULL, &msetup, "show_ytmenu", CRCInput::convertDigitToKey(shortcut++));
 	mf->setHint(NEUTRINO_ICON_HINT_YTPLAY, LOCALE_MENU_HINT_YTPLAY_SETUP);
 	mediaSetup->addItem(mf);

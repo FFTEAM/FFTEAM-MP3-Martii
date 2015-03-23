@@ -41,7 +41,7 @@
 
 #include "update_menue.h"
 #include "update_settings.h"
-
+#include "gui/opkg_manager.h"
 #include <gui/widget/icons.h>
 #include <driver/screen_max.h>
 #include <system/debug.h>
@@ -82,12 +82,6 @@ int CSoftwareUpdate::showSoftwareUpdate()
 
 	//flashing
 	CFlashUpdate flash;
-#if 0
-	neutrino_locale_t up_text = (g_settings.softupdate_mode == 0) ? LOCALE_FLASHUPDATE_CHECKUPDATE_LOCAL : LOCALE_FLASHUPDATE_CHECKUPDATE_INTERNET;
-	update_item = new CMenuForwarder(up_text, true, NULL, &flash, NULL, CRCInput::RC_red);
-	update_item->setHint("", LOCALE_MENU_HINT_SOFTUPDATE_CHECK);
-	softUpdate.addItem(update_item);
-#endif
 
 	update_item = new CMenuForwarder(LOCALE_FLASHUPDATE_CHECKUPDATE_INTERNET, true, NULL, &flash, "inet", CRCInput::RC_red);
 	update_item->setHint("", LOCALE_MENU_HINT_SOFTUPDATE_CHECK);
@@ -111,6 +105,13 @@ int CSoftwareUpdate::showSoftwareUpdate()
 	mf = new CMenuForwarder(LOCALE_FLASHUPDATE_EXPERTFUNCTIONS, true, NULL, &mtdexpert, NULL, CRCInput::RC_blue);
 	mf->setHint("", LOCALE_MENU_HINT_SOFTUPDATE_EXPERT);
 	softUpdate.addItem(mf);
+
+	//firmware update via opkg
+	if (COPKGManager::hasOpkgSupport()) {
+		mf = new CMenuForwarder(LOCALE_OPKG_TITLE, true, NULL, new COPKGManager());
+		mf->setHint(NEUTRINO_ICON_HINT_SW_UPDATE, LOCALE_MENU_HINT_OPKG);
+		softUpdate.addItem(mf);
+	}
 
 #ifdef BOXMODEL_APOLLO
 	softUpdate.addItem(GenericMenuSeparatorLine);

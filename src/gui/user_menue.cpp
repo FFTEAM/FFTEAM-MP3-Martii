@@ -61,12 +61,17 @@
 #endif
 #include "pluginlist.h"
 #include "infoclock.h"
+#include "mediaplayer.h"
+#include "rc_lock.h"
 
 #include <global.h>
 #include <neutrino.h>
 #include <mymenu.h>
 
 #include <gui/widget/icons.h>
+#include <gui/network_setup.h>
+#include <gui/update_menue.h>
+#include <gui/hdd_menu.h>
 
 #include <driver/radiotext.h>
 #include <driver/record.h>
@@ -96,6 +101,7 @@ CUserMenu::~CUserMenu()
 bool CUserMenu::showUserMenu(neutrino_msg_t msg)
 {
 	int button = -1;
+	int dummy = 0;
 	unsigned ums = g_settings.usermenu.size();
 	for (unsigned int i = 0; i < ums; i++)
 		if (g_settings.usermenu[i]->key == msg) {
@@ -232,13 +238,12 @@ bool CUserMenu::showUserMenu(neutrino_msg_t msg)
 			break;
 		case SNeutrinoSettings::ITEM_EPG_MISC:
 		{
-#if 0
-			int dummy = g_Sectionsd->getIsScanningActive();
+			dummy = g_Sectionsd->getIsScanningActive();
 			keyhelper.get(&key,&icon);
+			//          new CMenuOptionChooser(LOCALE_VIDEOMENU_VIDEOMODE, &g_settings.video_Mode, VIDEOMENU_VIDEOMODE_OPTIONS, VIDEOMENU_VIDEOMODE_OPTION_COUNT, true, this, CRCInput::RC_nokey, "", true);
 			menu_item = new CMenuOptionChooser(LOCALE_MAINMENU_PAUSESECTIONSD, &dummy, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true, this , key, icon );
-			menu_items++;
 			menu->addItem(menu_item, false);
-#endif
+
 			keyhelper.get(&key,&icon);
 			menu_item = new CMenuForwarder(LOCALE_MAINMENU_CLEARSECTIONSD, true, NULL, neutrino, "clearSectionsd", key,icon);
 			// FIXME menu_item->setHint("", NONEXISTANT_LOCALE);
@@ -296,10 +301,6 @@ bool CUserMenu::showUserMenu(neutrino_msg_t msg)
 				continue;
 			for (unsigned int count = 0; count < number_of_plugins; count++)
 			{
-#if 0
-				bool show = g_PluginList->getType(count) == CPlugins::P_TYPE_TOOL ||
-					g_PluginList->getType(count) == CPlugins::P_TYPE_LUA;
-#endif
 				bool show = false;
 				if (g_settings.personalize[SNeutrinoSettings::P_UMENU_PLUGIN_TYPE_GAMES])
 					show = show || g_PluginList->getType(count) == CPlugins::P_TYPE_GAME;
@@ -327,7 +328,7 @@ bool CUserMenu::showUserMenu(neutrino_msg_t msg)
 		}
 		case SNeutrinoSettings::ITEM_VTXT:
 			keyhelper.get(&key,&icon, feat_key[g_settings.personalize[SNeutrinoSettings::P_FEAT_KEY_VTXT]].key); //CRCInput::RC_blue
-			menu_item = new CMenuForwarder(LOCALE_USERMENU_ITEM_VTXT, true, NULL, &StreamFeaturesChanger, "teletext", key, icon);
+			menu_item = new CMenuForwarder(LOCALE_USERMENU_ITEM_VTXT, true, NULL, CPluginsExec::getInstance(), "teletext", key, icon);
 			// FIXME menu_item->setHint("", NONEXISTANT_LOCALE);
 			break;
 		case SNeutrinoSettings::ITEM_IMAGEINFO:
@@ -369,7 +370,7 @@ bool CUserMenu::showUserMenu(neutrino_msg_t msg)
 			menu_item = new CMenuForwarder(LOCALE_SERVICEMENU_RESTART_TUNER, true, NULL, neutrino, "restarttuner", key, icon);
 			menu_item->setHint(NEUTRINO_ICON_HINT_RELOAD_CHANNELS, LOCALE_MENU_HINT_RESTART_TUNER);
 			break;
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 		case SNeutrinoSettings::ITEM_THREE_D_MODE:
 			keyhelper.get(&key,&icon);
 			menu_item = new CMenuForwarder(LOCALE_THREE_D_SETTINGS, true, NULL, neutrino, "3dmode", key, icon);
@@ -412,6 +413,16 @@ bool CUserMenu::showUserMenu(neutrino_msg_t msg)
 			keyhelper.get(&key,&icon);
 			menu_item = new CMenuForwarder(LOCALE_HDD_SETTINGS, true, NULL, neutrino, "hddmenu", key, icon);
 			menu_item->setHint(NEUTRINO_ICON_HINT_HDD, LOCALE_MENU_HINT_HDD);
+			break;
+		case SNeutrinoSettings::ITEM_NETSETTINGS:
+			keyhelper.get(&key,&icon);
+			menu_item = new CMenuForwarder(LOCALE_MAINSETTINGS_NETWORK, true, NULL, CNetworkSetup::getInstance(), NULL, key, icon);
+			menu_item->setHint(NEUTRINO_ICON_HINT_NETWORK, LOCALE_MENU_HINT_NETWORK);
+			break;
+		case SNeutrinoSettings::ITEM_SWUPDATE:
+			keyhelper.get(&key,&icon);
+			menu_item = new CMenuDForwarder(LOCALE_SERVICEMENU_UPDATE, true, NULL, new CSoftwareUpdate(), NULL, key, icon);
+			menu_item->setHint(NEUTRINO_ICON_HINT_SW_UPDATE, LOCALE_MENU_HINT_SW_UPDATE);
 			break;
 		case -1: // plugin
 		    {
@@ -559,7 +570,6 @@ const char *CUserMenu::getUserMenuButtonName(int button, bool &active)
 	return "";
 }
 
-#if 1
 /**************************************************************************************
 *          changeNotify - features menu recording start / stop                        *
 **************************************************************************************/
@@ -570,13 +580,4 @@ bool CUserMenu::changeNotify(const neutrino_locale_t OptionName, void * Data)
 	}
 	
 	return false;
-}
-#endif
-
-int CUserMenu::exec(CMenuTarget* /*parent*/, const std::string & actionKey)
-{
-	if (actionKey == "")
-		return menu_return::RETURN_NONE;
-	g_PluginList->startPlugin(actionKey.c_str());
-	return menu_return::RETURN_EXIT;
 }
