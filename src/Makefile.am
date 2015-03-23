@@ -79,11 +79,11 @@ neutrino_LDADD = \
 	$(top_builddir)/lib/libdvbsub/libdvbsub.a \
 	$(top_builddir)/lib/libiw/libiw.a \
 	$(top_builddir)/lib/jsoncpp/libjsoncpp.a \
-	@BLURAY_LIBS@ \
 	@CURL_LIBS@ \
 	@FREETYPE_LIBS@ \
 	@PNG_LIBS@ \
 	@LIBCS_LIBS@ \
+	@SIGC_LIBS@ \
 	-ldvbsi++ \
 	-ljpeg \
 	-lOpenThreads \
