@@ -424,7 +424,7 @@ void nGLCD::Run(void)
 
 	struct timespec ts;
 
-	CSectionsdClient::CurrentNextInfo info_CurrentNext;                                 
+	CSectionsdClient::CurrentNextInfo info_CurrentNext;
 	channel_id = -1;
 	info_CurrentNext.current_zeit.startzeit = 0;
 	info_CurrentNext.current_zeit.dauer = 0;
@@ -518,7 +518,7 @@ void nGLCD::Run(void)
 				g_PicViewer->getSize(bmpShot, &bw, &bh);
 				if (bw > 0 && bh > 0) {
 					int lcd_width = bitmap->Width();
-				    int lcd_height = bitmap->Height();
+					int lcd_height = bitmap->Height();
 					if (!showImage(bmpShot, (uint32_t) bw, (uint32_t) bh, 0, 0, (uint32_t) lcd_width, lcd_height, false, true))
 						usleep(1000000);
 					else {
@@ -660,9 +660,9 @@ void nGLCD::Run(void)
 			lcd->Refresh(false);
 		}
 		if (doRescan) {
-		    doRescan = false;
+			doRescan = false;
 			Update();
-	    }
+		}
 		lcd->DeInit();
 		delete lcd;
 		lcd = NULL;
@@ -678,10 +678,10 @@ void nGLCD::StandbyMode(bool b) {
 	if (nglcd) {
 		if (g_settings.glcd_time_in_standby) {
 			nglcd->doStandbyTime = b;
-		    nglcd->doStandby = false;
+			nglcd->doStandby = false;
 		} else {
 			nglcd->doStandbyTime = false;
-		    nglcd->doStandby = b;
+			nglcd->doStandby = b;
 		}
 		nglcd->doMirrorOSD = false;
 		nglcd->UpdateBrightness();
