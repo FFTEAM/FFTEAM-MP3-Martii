@@ -28,7 +28,6 @@
 #include <system/fsmounter.h>
 #include <system/helpers.h>
 #include <eitd/sectionsd.h>
-#include <driver/display.h>
 
 #include <stdio.h>
 #include <unistd.h>
@@ -43,13 +42,13 @@
 
 #include <global.h>
 #include <neutrino.h>
+#include <driver/display.h>
 
 #if HAVE_TRIPLEDRAGON
 /* TD kernel 2.6.12 is too old and does not have writesize yet, use oobsize instead */
 #define writesize oobsize
 #endif
 
-#if !HAVE_SPARK_HARDWARE
 CFlashTool::CFlashTool()
 {
 	statusViewer = NULL;
@@ -166,7 +165,7 @@ bool CFlashTool::program( const std::string & filename, int globalProgressEndEra
 	int globalProgressBegin = 0;
 
 	if(g_settings.epg_save)
-		CNeutrinoApp::getInstance()->saveEpg(false);
+		CNeutrinoApp::getInstance()->saveEpg(true);
 
 	if(statusViewer)
 		statusViewer->showLocalStatus(0);
@@ -177,7 +176,8 @@ bool CFlashTool::program( const std::string & filename, int globalProgressEndEra
 	}
 
 	char buf1[1024];
-	cstrncpy(buf1, filename, sizeof(buf1));
+	memset(buf1, 0, sizeof(buf1));
+	strncpy(buf1, filename.c_str(), sizeof(buf1)-1);
 	char* dn = dirname(buf1);
 	std::string flashfile;
 
@@ -200,7 +200,8 @@ bool CFlashTool::program( const std::string & filename, int globalProgressEndEra
 #endif
 
 	if ((strcmp(dn, "/tmp") != 0) && !skipCopy) {
-		cstrncpy(buf1, filename, sizeof(buf1));
+		memset(buf1, 0, sizeof(buf1));
+		strncpy(buf1, filename.c_str(), sizeof(buf1)-1);
 		flashfile = (std::string)"/tmp/" + basename(buf1);
 		CFileHelpers fh;
 		printf("##### [CFlashTool::program] copy flashfile to %s\n", flashfile.c_str());
@@ -250,7 +251,7 @@ bool CFlashTool::program( const std::string & filename, int globalProgressEndEra
 		statusViewer->showLocalStatus(0);
 		statusViewer->showStatusMessageUTF(g_Locale->getText(LOCALE_FLASHUPDATE_PROGRAMMINGFLASH)); // UTF-8
 	}
-#ifdef VFD_UPDATE
+#ifndef VFD_UPDATE
 	CVFD::getInstance()->ShowText("Write Flash");
 #endif
 
@@ -303,14 +304,15 @@ bool CFlashTool::program( const std::string & filename, int globalProgressEndEra
 		write(fd, buf, meminfo.writesize);
 		fsize -= block;
 		mtdoffset += meminfo.writesize;
+		int prog = int(100-(100./filesize*fsize));
 		if(statusViewer) {
-			char prog = char(100-(100./filesize*fsize));
 			statusViewer->showLocalStatus(prog);
 			if(globalProgressEndFlash!=-1) {
 				int globalProg = globalProgressBegin + int((globalProgressEndFlash-globalProgressBegin) * prog/100. );
 				statusViewer->showGlobalStatus(globalProg);
 			}
 		}
+		printf( "Writing %u Kbyte @ 0x%08X -- %2u %% complete.\n", block/1024, mtdoffset, prog);
 	}
 
 	if(statusViewer)
@@ -321,9 +323,7 @@ bool CFlashTool::program( const std::string & filename, int globalProgressEndEra
 	// FIXME error message
 	if (fsize)
 		return false;
-#ifdef VFD_UPDATE
 	CVFD::getInstance()->ShowText("Flash OK.");
-#endif
 	return true;
 }
 
@@ -361,7 +361,7 @@ bool CFlashTool::erase(int globalProgressEnd)
 
 	CNeutrinoApp::getInstance()->stopDaemonsForFlash();
 
-#ifdef VFD_UPDATE
+#ifndef VFD_UPDATE
 	CVFD::getInstance()->ShowText("Erase Flash");
 #endif
 
@@ -445,7 +445,6 @@ void CFlashTool::reboot()
 	::reboot(RB_AUTOBOOT);
 	::exit(0);
 }
-#endif
 
 //-----------------------------------------------------------------------------------------------------------------
 CFlashVersionInfo::CFlashVersionInfo(const std::string & versionString)
@@ -474,25 +473,37 @@ CFlashVersionInfo::CFlashVersionInfo(const std::string & versionString)
 
 	version = atoi(&releaseCycle[0]) * 100 + atoi(&releaseCycle[2]);
 	// recover date
+	struct tm tt;
+	memset(&tt, 0, sizeof(tt));
 	date[0] = versionString[10];
 	date[1] = versionString[11];
 	date[2] = '.';
+	tt.tm_mday = atoi(&date[0]);
+
 	date[3] = versionString[8];
 	date[4] = versionString[9];
 	date[5] = '.';
+	tt.tm_mon = atoi(&date[3]) - 1;
+
 	date[6] = versionString[4];
 	date[7] = versionString[5];
 	date[8] = versionString[6];
 	date[9] = versionString[7];
 	date[10] = 0;
+	tt.tm_year = atoi(&date[6]) - 1900;
 
 	// recover time stamp
 	time[0] = versionString[12];
 	time[1] = versionString[13];
 	time[2] = ':';
+	tt.tm_hour = atoi(&time[0]);
+
 	time[3] = versionString[14];
 	time[4] = versionString[15];
 	time[5] = 0;
+	tt.tm_min = atoi(&time[3]);
+
+	datetime = mktime(&tt);
 }
 
 const char *CFlashVersionInfo::getDate(void) const
@@ -540,7 +551,6 @@ int CFlashVersionInfo::getVersion(void) const
 
 //-----------------------------------------------------------------------------------------------------------------
 
-#if !HAVE_SPARK_HARDWARE
 CMTDInfo::CMTDInfo()
 {
 	getPartitionInfo();
@@ -686,4 +696,3 @@ printf("systemFS: %d dev %s\n", i, getMTDFileName(i).c_str());
 	}
 	return "";
 }
-#endif

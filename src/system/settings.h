@@ -501,6 +501,7 @@ struct SNeutrinoSettings
 	int key_channelList_addrecord;
 	int key_channelList_addremind;
 
+	int key_playbutton;
 	int key_quickzap_up;
 	int key_quickzap_down;
 	int key_bouquet_up;
@@ -513,6 +514,7 @@ struct SNeutrinoSettings
 	int key_list_end;
 	int key_power_off;
 	int menu_left_exit;
+	int audio_run_player;
 	int key_click;
 	int timeshift_pause;
 	int auto_timeshift;
@@ -959,6 +961,7 @@ class CScanSettings
 		int		fast_type;
 		int		fast_op;
 		int		fst_version;
+		int		fst_update;
 		int		cable_nid;
 
 		std::string	satName;
