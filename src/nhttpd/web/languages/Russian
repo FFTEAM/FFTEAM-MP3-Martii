@@ -1,0 +1,603 @@
+﻿#	yWeb language file (Russian)
+#	language version: 1.1
+#	$Date$
+#	$Revision$
+=========== GENERAL / GLOBAL
+global.no_iframes=Ваш браузер не поддерживает Iframe
+clear=Очистить
+submit=Отправить
+action=Действия
+user=Пользователь
+password=Пароль
+language=Язык
+general=Общие
+logos=Логотипы
+url=URL
+server=Сервер
+refreshing=Обновление
+refresh=Обновить
+record=Запись
+zap=zap
+lookup=Поиск
+save_values_desc=Отправить и сохранить значения
+save_values=Сохранение значения
+administration=Администратор
+normal=Нормальный
+management=Управление
+uninstaller=Деинсталляция
+send=Отправить
+save=Сохранить
+save_all=Сохранить всё
+cancel=Отмена
+apply=&Auml;nderungen anwenden
+apply_desc=Liest die Konfigurationsdatei von Neutrino neu ein
+answer=Ответ
+reboot=Перезагрузка
+shutdown=Завершение работы
+status=Статус
+restart=Рестарт GUI
+on=Вкл
+off=Откл
+download=Скачать
+back=Назад
+date=Дата
+from=От
+to=Кому
+program=Программа
+others=Другое
+description=Описание
+color=Цвет
+tag=День
+empty=Пусто
+check=Проверить
+help=Справка
+attention=Внимание!
+directory=Каталог
+filename=Имя
+restriced_by_management_ip=Ограничение управлением IP
+automatic=Автоматически
+show=показать
+hide=скрыть
+
+# =========Main Menue
+main.boxcontrol=Ресивер
+main.boxcontrol_desc=Ресивер и букеты
+main.live=В живую
+main.live_desc=ТВ/Радио, EPG, синхронизация и настройки таймеров
+main.tools=Инструменты
+main.tools_desc=Монтирование, тонкие настройки
+main.settings=Параметры
+main.settings_desc=Параметры Web, плагины
+main.extensions=Обновление
+main.extensions_desc=Обновления пользователя
+main.info=Информация
+main.info_desc=Информация о yWeb
+main.live_tv_desc=ТВ
+main.live_tv_popup_desc=ТВ (окно)
+main.remote_full_desc=Пульт и OSD
+main.stream_to_vlc_client_desc=Сохранить в *.m3u
+main.version=Версия
+
+#========= Boxcontrol Menue
+bc.menue.bouquets_desc=Переключение каналов
+bc.menue.bouquets=Букеты
+bc.menue.control_desc=Функции управления ресивером
+bc.menue.control=Управление
+bc.menue.messages_desc=Отправка сообщений в ресивер
+bc.menue.messages=Сообщения
+bc.menue.remote_desc=Пульт дистанционного управления
+bc.menue.remote=Дистанционно
+bc.menue.lcd_screenshot_desc=Сделать скриншот LCD
+bc.menue.lcd_screenshot=LCD экран
+bc.menue.lcd_screenshot_desc_ni="Lcshot" не установлен в/bin или в/var/bin
+bc.menue.screenshot=Скриншот
+bc.menue.screenshot_desc=Сделать скриншоты OSD и/или ТВ
+
+bc.menue.decrease_volume=Уменьшить громкость
+bc.menue.increase_volume=Увеличить громкость
+bc.menue.mute_volume=Без звука
+bc.menue.switch_to_tv=Переключиться на ТВ
+bc.menue.switch_to_radio=Переключиться на Радио
+bc.menue.webinf_slavebox=Веб-интерфейс
+bc.menue.volumen_display=Уровень громкости
+
+bc.menue.signal=Уровень сигнала
+
+========= Boxcontrol
+bc.control.freemem=Родительский контроль
+bc.control.lock=Замок
+bc.control.unlock=Разблокировать
+bc.control.standby_mode=Режим ожидания
+bc.control.recording_mode=Режим записи
+bc.control.box=Ресивер
+bc.control.remote=Пульт
+bc.control.playback=Воспроизведение
+bc.control.epg_sectiond=EPG
+bc.control.live_lock=Живой замок
+bc.control.reboot.ask=Перезагрузить?
+bc.control.reboot=Перезагрузка
+bc.control.shutdown.ask=Выключить?
+bc.control.shutdown=Завершение работы
+bc.control.status=Статус
+bc.control.restart=Рестарт GUI
+
+========= Boxcontrol - Сообщение
+bc.msg.message_to_screen_desc=Введите сообщение, чтобы отправить на экран телевизора
+bc.msg.message_to_screen=Сообщение на экране
+bc.msg.popup_to_screen=Всплывающее сообщение
+bc.msg.send_message=Отправить сообщение
+
+======== Boxcontrol - Скриншот
+bc.screenshot.create=Скриншот
+bc.screenshot.delete=Удалить скриншот
+bc.screenshot.zoom=Увеличить скриншот
+bc.screenshot.wait_text=Создание скриншота
+bc.screenshot.checkenable=OSD и/или телевизор должны быть включены!
+
+========= Boxcontrol - Others
+bc.channels=Каналы
+
+====== EXtension
+ext.installer_updater=Установки/Обновления
+ext.uninstaller=Удаление обновлений
+ext.search_for_ext=Поиск обновлений
+ext.installed_extensions=Установленные обновления
+ext.type=Тип
+ext.extension=Обновление
+ext.tag=Имя
+ext.version=Версия
+ext.size=Размер
+ext.uninstall=Удалить
+ext.info=Информация
+ext.free=Бесплатно
+ext.action=Действия
+ext.status=Статус
+ext.preview=Новые параметры обновления (предварительный просмотр)
+ext.update_preview=Просмотр списка обновлений
+ext.your=Ваша
+ext.update=Обновление
+ext.update_install=Обновление/Установка
+ext.site=Сайт
+ext.refresh_now=Настройки сохранены. Теперь обновите меню!
+ext.ext_saved=Обновления сохранены
+
+====== Bouquet
+bou.bouquet=Букеты
+bou.bouquets_must_be_saved=Все букеты должны быть сохранены!
+bou.bouquet_editor=Редактор букетов
+bou.bouquet_add=Добавить букет
+bou.name_of_bouquet=Имя букета
+bou.rename_bouquet=Переименование букета
+bou.move_up=Переместить вверх
+bou.move_down=Переместить вниз
+bou.remove=Убрать
+bou.delete=Удалить
+bou.add=Добавить
+bou.rename=Переименовать
+bou.bouqets_saved=Сохранить букеты
+bou.delete1=Действительно удалить букет?
+bou.delete2=
+bou.no_bouquet_name=Нет имени букета
+
+========EPG
+epg.get_epg=Получить EPG
+epg.epg_plus=Подробнее
+epg.select_bouquet=Выберите букет - каналы будут обновлены
+epg.hover_for_details=Перейти к программе для получения более подробной информации
+epg.refresh=Получить или обновить EPG
+epg.past_hours=Прошедшие часы
+epg.next_hours=Следующий час
+epg.set_timer=Установите время записи
+epg.zap_to=Установите время выключения в канала
+
+========EPG Streaminfo
+epg.si.streaminfo=Информация о потоке
+epg.si.resolution=Разрешение
+epg.si.ratio=Соотношение сторон
+epg.si.fps=Кадров в секунду
+epg.si.audiotype=Тип аудио
+epg.si.frequence=Частота
+epg.si.onid=Исходный код сети
+epg.si.sid=Идентификатор
+epg.si.tsid=Транспондер
+epg.si.vpid=Видео PID
+epg.si.pmtpid=Таблица PID
+epg.si.pcrpid=Референс программы
+epg.si.apid=Аудио PID
+epg.si.vtxtpid=Телетекст PID
+epg.si.crypt=Система кодировки
+
+========Settings
+set.reload_neutrino=Перезагрузить Нейтрино
+set.reboot_required=Требуется перезагрузка
+set.sync_with_neutrino_desc=После изменения параметров через yWeb: <br/>Выберите в ТВ "Menu->Сервис->Перезагрузить Нейтрино-МР", чтобы принять изменения в Нейтрино<br/><br/>После изменения параметров в Нейтрино: <br/>Выберите в ТВ "Menu->Настройки->Сохранить настройки сейчас", чтобы принять изменения и перезагрузить эту страницу
+set.sync_with_neutrino=Синхронизация с Нейтрино
+
+=======Settings General & Menue
+set.menue.webserver=Web-сервер
+set.menue.timer_settings=Параметры таймера
+set.menue.zapit=Сеттинги каналов
+set.menue.backup_restore=Резервное копирование и восстановление
+set.menue.bouquet_editor=Редактор букетов
+set.menue.video_audio=Аудио/Видео
+set.menue.parental=Родительский контроль
+set.menue.direct_recording=Прямая запись
+set.menue.recording=Запись
+set.menue.audio_player=Аудио-плеер
+set.menue.esound_server=Сервер "Esound"
+set.menue.movieplayer=Видео-плеер
+set.menue.pictureviewer=Просмотр изображений
+set.menue.lcd_display=LCD дисплей
+set.menue.key_settings=Раскладка клавиатуры
+set.menue.boot_options=Варианты загрузки
+set.menue.peronalization=Персонализация
+set.menue.plugins=Плагины
+set.menue.others=Другое
+========Neutrino Settings - Recording
+set.rec.rec_dest=Установки записи
+set.rec.device=Устройство записи
+set.rec.recmode=Режим записи
+set.rec.server=Сервер
+set.rec.recorder=Видеомагнитофон
+set.rec.file=Файл
+set.rec.recserver_ip=IP сервера
+set.rec.recserver_port=Порт сервера
+set.rec.recserver_wol=Сервер WOL
+set.rec.mac_adress=MAC-адрес
+set.rec.rec_behavior=Параметры записи
+set.rec.stop_playback=Остановка воспроизведения
+set.rec.epg_sectionsd_desc=Откл/Вкл/Рестарт
+set.rec.epg_sectionsd=EPG
+set.rec.dont_stop=Не останавливать
+set.rec.stop=Стоп
+set.rec.restart=Рестарт GUI
+set.rec.zap=Zap объявление
+set.rec.scart=Предотвращение переключения Scart
+set.rec.spts=Запись в режиме SPTS
+set.rec.timer_settings=Параметры таймера
+set.rec.start_delay=Задержка записи (сек)
+set.rec.stop_delay=Задержка остановки (сек)
+set.rec.zap_delay=Zap задержка (сек)
+set.rec.audio_channels=Аудио каналы
+set.rec.audio_standard=Запись стандартного аудио канала
+set.rec.audio_alternate=Запись альтернативного аудио канала
+set.rec.audio_ac3=Запись ac3 аудио канала
+set.rec.channeldir=Сохранить
+set.rec.epg_end=Запись до конца EPG
+set.rec.recordtime=Время записи в часах
+set.rec.timeshift_desc=Таймшифт
+set.rec.timeshift.pause=Начинать с клавиши "pause"
+set.rec.timeshift.auto_record=Авто-запись (в сек, 0 = отключено)
+set.rec.timeshift.auto_delete=Авто-удаление
+set.rec.timeshift.tmp_timeshift=Временный таймшифт
+
+========Neutrino Settings - Movieplayer
+set.mp.sources=Источники
+set.mp.streamingserver_ip=IP сервера
+set.mp.streamingserver_port=Порт сервера
+set.mp.streamingserver=Сервер
+set.mp.dvd_device=Устройство DVD
+set.mp.vlc_dir=Каталог (VLC)
+set.mp.transcoding=Перекодирование
+set.mp.video_datarate=Скорость передачи данных видео
+set.mp.transcode=Перекодировать
+set.mp.video_codec=MPEG видео кодек
+set.mp.resolution=Resolution
+set.mp.audio_datarate=Скорость передачи данных аудио
+set.mp.transcode_audio=Перекодировать аудио (dvd/vcd/mpg)
+set.mp.force_ac3=AC3 с помощью avi
+set.mp.player=Играть
+set.mp.start_directory=Каталог
+set.mp.only_movieplayer=Только Movieplayer1
+set.mp.used_buffer=Использовать буфер (WabberQueue)
+set.mp.number_buffersegments=Размен буфера
+set.mp.picture_in_browser=ТВ картинка в браузере
+
+========Neutrino Settings - Parental
+set.parental.activate=Активировать
+set.parental.type.never=Никогда
+set.parental.type.bouquet=Букет
+set.parental.type.preset=Предустановка
+set.parental.minimum_age=Минимальный возраст
+set.parental.pin=PIN
+
+========Settings NHTTP
+set.nhttpd.webserver=Web-сервер
+set.nhttpd.authentication=Аутентификация
+set.nhttpd.client_without_authentication_desc=Клиент без аутентификации. Введите IP
+set.nhttpd.client_without_authentication=Клиент без аутентификации
+set.nhttpd.active_after_boot=Активно после загрузки
+set.nhttpd.port=Порт
+set.nhttpd.threading=Работа с потоками
+set.nhttpd.alternate_web_folder=Альтернативная веб-папка
+set.nhttpd.hosted_folder=Подключенный каталог
+set.nhttpd.allowed_file_extensions=Расширения файлов / MIME
+set.nhttpd.allow_all_file_extensions=Разрешить все расширения файлов
+set.nhttpd.url_of_logos_desc=Введите URL или каталог логотипов
+set.nhttpd.url_of_logos=URL или каталог логотипов
+set.nhttpd.display_logos=Отображать логотипы
+set.nhttpd.pid_separator=Разделитель для PID в URL-адресах
+set.nhttpd.server=Сервер
+set.nhttpd.ips_without_keep_alive_desc=(Сервера разделяйте запятыми)
+set.nhttpd.ips_without_keep_alive=Не активные IP
+set.nhttpd.cache=Кэш
+set.nhttpd.cache_info=Инфо кэша
+set.nhttpd.clear_cache=Очистить кэш
+set.nhttpd.server_configuration=Конфигурация сервера
+set.nhttpd.check_password=Пароль должен содержать минимум 4 знака
+set.nhttpd.check_port=Введите порт
+
+=========Settings yWeb
+set.yweb.enter_ip_desc=Введите IP-адрес (xxx.xxx.xxx.xxx)
+set.yweb.enter_mac_desc=Введите MAC-адрес (xx:xx:xx:xx:xx:xx)
+set.yweb.description=Описание
+set.yweb.enter_description_desc=Введите описание
+set.yweb.management_IPs=IP-адрес
+set.yweb.wake_on_lan=Lan-адрес
+set.yweb.box_tag_desc=Имя в поле в верхнем меню
+set.yweb.box_tag=Поле тега
+set.yweb.box_color_desc=Цвет в топ-меню. Например, введите 2188e0 без #
+set.yweb.box_color=Цвет
+set.yweb.start_page=Стартовая страница
+set.yweb.remote=Пульт
+
+========Settings Picture viewer
+set.pv.pictureviewer=Просмотр изображений
+set.pv.scale=Масштабирование
+set.pv.scale.none=Нет
+set.pv.scale.simple=Простое
+set.pv.scale.complex=Комплекс
+set.pv.slideshow_duration=Время показа слайдов
+set.pv.start_dir=Начальный каталог
+set.pv.decoding_server_ip=Декодирование сервера IP
+set.pv.decoding_server_port=Декодирование порта сервера</td>
+
+========Settings Audioplayer
+set.ap.audioplayer=Аудио-плеер
+set.ap.display_order.actor_title=Автор, название
+set.ap.display_order.title_actor=Название, автор
+set.ap.display_order=Вывести на дисплей
+set.ap.select_actual_track=Выбор трека
+set.ap.search_by_name=Поиск по названию
+set.ap.repeat_mode=Активировать режим повтора
+set.ap.show_playlist=Показать плейлисты
+set.ap.screensaver=Экранная заставка (мин, 0 = выключено)
+set.ap.decode_priority=Высокий приоритет декодирования
+set.ap.start_dir=Начальный каталог
+set.ap.parse_shoutcast=Данные SHOUTcast
+
+========Settings Timer
+set.timer.header=Параметры таймера
+set.timer.username=Имя пользователя
+set.timer.password=Пароль
+set.timer.klack.url_desc=("&" будут преобразованы в ";" при сохранении)
+set.timer.klack.url=Персональный URL-адрес
+set.timer.klack.security_code_desc=Ваш код безопасности без логина
+set.timer.klack.security_code=Код безопасности
+set.timer.channel_name_replacelist=Имя канала в списке
+
+========Settings Backup/Restore
+set.settings.backup=Резервное копирование
+set.settings.backup_desc=Резервное копирование настроек
+set.settings.restore=Восстановление
+set.settings.restore_desc=Загрузка и восстановление настроек. Перезагрузка ресивера
+set.settings.warning=Резервную копию желательно применять только для того имиджа, из которого она создана!
+
+============ Tools Info
+tools.info.show_messages=Ядро
+tools.info.processes=Процессы
+tools.info.memory=Память
+tools.info.cpu_info=Информация о ЦП
+tools.info.mem_info=Информация о памяти
+tools.info.partitions=Разделы
+tools.info.mtd=MTD
+tools.info.stat=Статистика
+tools.info.version=Версия
+
+============ Tools yInstaller
+tools.yinstaller.no_file_given=Нет файлов
+tools.yinstaller.space.mtd=Общее пространство
+tools.yinstaller.space.used=Используется
+tools.yinstaller.space.free=Свободно
+tools.yinstaller.space.percentage=Процент использования
+tools.yinstaller.not_determine=Не могу определить свободное пространство
+tools.yinstaller.head=Установка
+tools.yinstaller.tar_file=Файл *.tar
+tools.yinstaller.upload_install=Загрузка и установка
+
+============ Tools
+tools.automount_desc=Монтирование
+tools.automount=Авто-монтаж
+tools.mounts_desc=Монтирование дисков
+tools.mounts=Монтаж дисков
+tools.wake_on_lan=Вкл LAN
+tools.check_install=Проверка установки
+tools.expert=Эксперт
+tools.image_desc=Резервное копирование имиджа
+tools.image=Имидж
+tools.command_shell=Командная строка
+tools.not_installed=Нет
+tools.cmd_shell.output_desc=Авто-прокрутка вывода (Только IE)
+tools.path=Путь
+tools.command=Команда
+tools.cmd.enter_command=Введите команду
+tools.cmd.execute_command=Выполнение команды
+tools.boot_logo=Лого загрузки
+tools.filemgr_desc=Dateien und Verzeichnisse organisieren
+tools.filemgr=Dateimanager
+
+=========== LIVE Menue
+live.heading=ТВ/Радио/Таймер
+live.live=В живую
+live.tv_popup_desc=ТВ (окно)
+live.tv=ТВ
+live.radio_popup_desc=Радио (окно)
+live.radio=Радио
+live.double_view=Двойной просмотр
+live.timer=Таймер
+live.epg=EPG
+live.epg_plus_popup_desc=EPG + (окно)
+live.epg_plus=EPG +
+live.timer_sync=Синхронизация таймера
+
+=========== LIVE tv/radio
+live.get_stream_info=Получение информации
+live.getting_bouquets=Загрузка букетов
+live.getting_channels=Загрузка каналов
+live.select_resolution=Выберите разрешение
+live.change_channel=Изменение канала
+live.view_epg=Просмотреть EPG выбранного канала
+live.reload=Перезагрузить букеты и каналы
+live.getting_subchannels=Получение подканалов
+live.mute=Без звука/Звук
+live.stop=Стоп
+live.play_or_pause=Воспроизведение или пауза
+live.lower_volume=Уменьшить громкость
+live.higher_volume=Увеличить громкость
+live.fullscreen=Переключиться в полноэкранный режим - или использовать двойной щелчок
+live.lock_unlock=Блокировка/Разблокировка ТВ (режим записи, rc, lcd)
+live.toggle_udp=Вкл/Выкл UDP
+live.settings=Параметры LiveView
+live.snapshot=Создание скриншота
+live.record=Режим записи
+live.transcode=Режим транскодирования
+live.build_vlc=... Управления VLC ...
+live.select_bouquet=Выберите букет - каналы будут обновлены
+live.select_channel=Выберите канал
+live.live_popup_msg=Under Live-View do not zap channels direct by the web or by the box' RC.
+live.unlock=Разблокировать RC
+
+=========== LIVE Record
+live.rec.record_mode=Режим записи
+live.rec.filename=Имя файла
+live.rec.display_on=Отображать на
+live.rec.transcoding_on=Транскодирование в
+live.rec.record=Запись
+live.rec.stop_record=Остановить запись
+live.rec.tanscode= Перекодировать запись
+live.rec.profile=Профиль
+live.rec.video=Видео
+live.rec.width=Ширина
+live.rec.height=Высота
+live.rec.codec=Кодек
+live.rec.bitrate=Битрейт
+live.rec.scale=Шкала
+live.rec.audio=Аудио
+live.rec.channels=Каналы
+live.rec.trans_broadcast=Перекодировать трансляцию
+live.rec.access=Доступ к
+live.rec.type=Тип
+live.rec.ip_port=IP порта
+
+=========== LIVE Settings
+live.set.vlc_settings=Настройки VLC (IE &amp; Mozilla >= 0.8.6.1)
+live.set.deinterlace=Деинтерлейсинг
+live.set.http_caching=http кэширования
+live.set.udp_defaul=UDP по умолчанию
+live.set.slavebox_ip=IP ресивера
+live.set.enter_ip=Введите IP (xxx.xxx.xxx.xxx) ресивера
+live.set.vlc_rec_dir=Каталог записи VLC
+live.set.refresh_liveview=Обновить LiveView
+
+=========== LIVE Timer Edit
+live.timer_edit.timer=Таймер
+live.timer_edit.times=Параметры
+live.timer_edit.alarm_date=Дата выполнения
+live.timer_edit.time=Время
+live.timer_edit.stop_date=Дата остановки
+live.timer_edit.repeat=Повтор
+live.timer_edit.repeat1=Повторов (0 = неограниченно)
+live.timer_edit.weekdays.format=(Пн-Вс, X = таймер)
+live.timer_edit.weekdays=Будни
+live.timer_edit.values=Значения
+live.timer_edit.channel=Канал
+live.timer_edit.apids=APID-ы
+live.timer_edit.apids.default=По умолчанию
+live.timer_edit.apids.standard=Стандарт
+live.timer_edit.apids.alt=Альтернатива
+live.timer_edit.apids.ac3=AC3
+live.timer_edit.apids=APid-ы
+live.timer_edit.standby=Режим ожидания
+live.timer_edit.plugin=Плагин
+live.timer_edit.rec_dir=Каталог для записи
+live.timer_edit.description=Описание
+
+=========== LIVE Timer Sync
+live.timer-sync.get_timer=Получить таймер
+live.timer-sync.header=Синхронизация таймера
+live.timer-sync.timer_source=Источник таймера
+live.timer-sync.rec_dir=Каталог записи 
+live.timer-sync.settings=Параметры
+live.timer-sync.debugging=Отладка
+live.timer-sync.get_selected=Получить выбранное
+live.timer-sync.clear_all=Очистить все
+live.timer-sync.timer_preview=Список таймеров
+live.timer-sync.start_time=Время начала
+live.timer-sync.end_time=Время окончания
+live.timer-sync.channel=Канал
+live.timer-sync.programm=Программа
+live.timer-sync.source=Источник
+live.timer-sync.set_timer=Установка таймера
+live.timer-sync.clear_log=Очистить журнал
+live.timer-sync.log=Лог
+live.timer-sync.action=Действия
+live.timer-sync.status=Статус
+
+========== INFO
+info.help=Справка
+info.About=О программе
+info.check_for_updates=Проверить наличие обновлений
+info.your_version=Ваша версия
+info.actual_version=Актуальная версия
+
+=========Remote control
+rc.key_power=Режим ожидания
+rc.key_mute=Отключение звука
+rc.key_1=1
+rc.key_2=2
+rc.key_3=3
+rc.key_4=4
+rc.key_5=5
+rc.key_6=6
+rc.key_7=7
+rc.key_8=8
+rc.key_9=9
+rc.key_0=0
+rc.key_text=Текст
+rc.key_favorites=Избранное
+rc.key_volumeup=Громкость +
+rc.key_volumedown=Громкость -
+rc.key_pageup=Страница +
+rc.key_pagedown=Страница -
+rc.key_radio=TV/Radio
+rc.key_mode=ТВ/Радио
+rc.key_next=Шаг -
+rc.key_previous=Шаг +
+rc.key_sleep=Сон
+rc.key_audio=Аудио
+rc.key_help=Справка
+rc.key_red=Красная
+rc.key_green=Зелёная
+rc.key_yellow=Жёлтая
+rc.key_blue=Синяя
+rc.key_epg=EPG
+rc.key_info=Информация
+rc.key_ok=OK
+rc.key_up=Вверх
+rc.key_down=Вниз
+rc.key_left=Влево
+rc.key_right=Вправо
+rc.key_setup=Меню
+rc.key_home=Выход
+rc.key_sat=Сайт
+rc.key_www=
+rc.key_rewind=Назад
+rc.key_play=Играть
+rc.key_forward=Вперед
+rc.key_stop=Остановка
+rc.key_record=Запись
+rc.key_pause=Пауза
+rc.key_games=
+rc.key_time=
+rc.key_picsize=Размер
+rc.key_picmode=Режим
