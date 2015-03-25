@@ -38,9 +38,7 @@
 #include <sys/vfs.h>
 #include <dirent.h>
 #include <dlfcn.h>
-#include <mntent.h>
 #include <sys/mount.h>
-#include <blkid/blkid.h>
 
 #include <global.h>
 #include <neutrino.h>
@@ -171,26 +169,12 @@ int CHDDMenuHandler::exec(CMenuTarget* parent, const std::string &actionkey)
 	if (parent)
 		parent->hide();
 	for (std::vector<hdd_s>::iterator it = hdd_list.begin(); it != hdd_list.end(); ++it)
-		if (it->name == actionkey)
-		{
-			if (!it->mounted)
-			{
-				CFileBrowser b;
-				b.Dir_Mode=true;
-				if (it->mountpoint == "no mountpoint")
-					b.exec("/mnt");
-				it->mountpoint = b.getSelectedFile()->Name.c_str();
-				if (mount(it->devname.c_str(), it->mountpoint.c_str(), it->type, MS_MGC_VAL | MS_NOATIME | MS_NODIRATIME,"") == -1)
-					ShowMsg ( LOCALE_NFS_MOUNTERROR , g_Locale->getText(LOCALE_NFS_MOUNTERROR_NOTSUP) , CMessageBox::mbrOk, CMessageBox::mbrOk);
-			}
-			else
-				umount2(it->mountpoint.c_str(), MNT_FORCE);
+		if (it->devname == actionkey) {
+			std::string cmd = "ACTION=" + std::string((it->mounted ? "remove" : "add"))
+			+ " MOUNTBASE=/tmp MDEV=" + it->devname + " /etc/mdev/mdev-mount.sh";
+			system(cmd.c_str());
 			it->mounted = is_mounted(it->devname.c_str());
-			if (!it->mounted) it->mountpoint = "no mountpoint";
-			it->cmf->setOption(g_Locale->getText(it->mounted ? LOCALE_HDD_UMOUNT : LOCALE_HDD_MOUNT));
-			char sstr[256];
-			snprintf(sstr, sizeof(sstr), "%s (%s - %s) @ %s", it->devname.c_str(), it->label, it->type, it->mountpoint.c_str());
-			it->cmf->setName(sstr);
+                	it->cmf->setOption(g_Locale->getText(it->mounted ? LOCALE_HDD_UMOUNT : LOCALE_HDD_MOUNT));
 			return menu_return::RETURN_REPAINT;
 		}
 
@@ -206,8 +190,8 @@ int CHDDMenuHandler::doMenu ()
 	struct stat s;
 	int root_dev = -1;
 
-	bool blkidBinaryExist      = (!access(blkidBinary, X_OK));
 	bool ext4MkfsBinaryExist = !find_executable("mkfs.ext4").empty();
+	bool blkidBinaryExist    = !find_executable("blkid").empty();
 
 	bool hdd_found = 0;
 	int n = scandir("/sys/block", &namelist, my_filter, alphasort);
@@ -303,15 +287,15 @@ int CHDDMenuHandler::doMenu ()
 			oldkernel = true;
 			strcpy(vendor, "");
 		} else {
-		fscanf(f, "%s", vendor);
-		fclose(f);
+			fscanf(f, "%s", vendor);
+			fclose(f);
 			strcat(vendor, "-");
 		}
 
 		if (oldkernel)
 			snprintf(str, sizeof(str), "/proc/ide/%s/model", namelist[i]->d_name);
 		else
-		snprintf(str, sizeof(str), "/sys/block/%s/device/model", namelist[i]->d_name);
+			snprintf(str, sizeof(str), "/sys/block/%s/device/model", namelist[i]->d_name);
 		f = fopen(str, "r");
 		if(!f) {
 			printf("Cant open %s\n", str);
@@ -365,7 +349,7 @@ int CHDDMenuHandler::doMenu ()
 		tempMenu[i]->addItem(mf);
 
 		snprintf(sstr, sizeof(sstr), "%s (%s)", g_Locale->getText(LOCALE_HDD_REMOVABLE_DEVICE),  namelist[i]->d_name);
-		mf = new CMenuForwarder((removable ? sstr : namelist[i]->d_name), enabled, tmp_str[i].c_str(), tempMenu[i]);
+		mf = new CMenuForwarder((removable ? sstr : namelist[i]->d_name), enabled, tmp_str[i], tempMenu[i]);
 		mf->setHint("", LOCALE_MENU_HINT_HDD_TOOLS);
 		hddmenu->addItem(mf);
 
@@ -422,6 +406,9 @@ int CHDDMenuHandler::doMenu ()
 
 int CHDDDestExec::exec(CMenuTarget* /*parent*/, const std::string&)
 {
+	char str[256];
+	FILE * f;
+	int removable = 0;
 	struct dirent **namelist;
 	int n = scandir("/sys/block", &namelist, my_filter, alphasort);
 
@@ -460,9 +447,23 @@ int CHDDDestExec::exec(CMenuTarget* /*parent*/, const std::string&)
 	bool have_nonbb_hdparm = !::lstat(hdparm, &stat_buf) && !S_ISLNK(stat_buf.st_mode);
 
 	for (int i = 0; i < n; i++) {
+		removable = 0;
+		printf("CHDDDestExec: checking /sys/block/%s\n", namelist[i]->d_name);
+
+		sprintf(str, "/sys/block/%s/removable", namelist[i]->d_name);
+		f = fopen(str, "r");
+		if (!f) {
+			printf("Can't open %s\n", str);
+			continue;
+		}
+		fscanf(f, "%d", &removable);
+		fclose(f);
+
+		if (removable) {
+			printf("CHDDDestExec: /dev/%s is not a hdd, no sleep needed\n", namelist[i]->d_name);
+		} else {
 		printf("CHDDDestExec: noise %d sleep %d /dev/%s\n",
 			 g_settings.hdd_noise, g_settings.hdd_sleep, namelist[i]->d_name);
-
 		char M_opt[50],S_opt[50], opt[100];
 		snprintf(S_opt, sizeof(S_opt), "-S%d", g_settings.hdd_sleep);
 		snprintf(M_opt, sizeof(M_opt), "-M%d", g_settings.hdd_noise);
@@ -474,6 +475,7 @@ int CHDDDestExec::exec(CMenuTarget* /*parent*/, const std::string&)
 			my_system(4, hdparm, M_opt, S_opt, opt);
 		else // busybox hdparm doesn't support "-M"
 			my_system(3, hdparm, S_opt, opt);
+		}
 		free(namelist[i]);
 	}
 	free(namelist);
@@ -634,7 +636,6 @@ int CHDDFmtExec::exec(CMenuTarget* /*parent*/, const std::string& key)
 	FILE * f;
 	char src[128], dst[128];
 	CProgressWindow * progress;
-	std::string fdisk, sfdisk, mke3fs, mke4fs, tune2fs;
 
 	snprintf(src, sizeof(src), "/dev/%s1", key.c_str());
 	snprintf(dst, sizeof(dst), "/media/%s1", key.c_str());
@@ -675,11 +676,6 @@ int CHDDFmtExec::exec(CMenuTarget* /*parent*/, const std::string& key)
 	progress->showStatusMessageUTF("Executing fdisk");
 	progress->showGlobalStatus(0);
 
-	fdisk   = find_executable("fdisk");
-	sfdisk  = find_executable("sfdisk");
-	mke3fs  = find_executable("mkfs.ext3");
-	mke4fs  = find_executable("mkfs.ext4");
-	tune2fs = find_executable("tune2fs");
 	if (access("/sbin/sfdisk", X_OK) == 0) {
 		snprintf(cmd, sizeof(cmd), "/sbin/sfdisk -f -uM /dev/%s", key.c_str());
 		strcpy(cmd2, "0,\n;\n;\n;\ny\n");
@@ -707,17 +703,13 @@ int CHDDFmtExec::exec(CMenuTarget* /*parent*/, const std::string& key)
 
 	switch(g_settings.hdd_fs) {
 		case fs_ext3:
-			if (mke3fs.empty()) {
-				fprintf(stderr, "CHDDFmtExec: ext3 requested, but mkfs.ext3 not found!\n");
-				mke3fs = "/bin/false"; /* returns failure */
-			}
-			snprintf(cmd, sizeof(cmd), "%s -T largefile -m0 %s", mke3fs.c_str(), src);
+			snprintf(cmd, sizeof(cmd), "%s -L RECORD -T largefile -m0 %s", ext3MkfsBinary, src);
 			break;
 		case fs_ext4:
-			snprintf(cmd, sizeof(cmd), "%s -T largefile -m0 %s", ext4MkfsBinary, src);
+			snprintf(cmd, sizeof(cmd), "%s -L RECORD -T largefile -m0 %s", ext4MkfsBinary, src);
 			break;
 		case fs_ext2:
-			snprintf(cmd, sizeof(cmd), "%s -T largefile -m0 %s", ext2MkfsBinary, src);
+			snprintf(cmd, sizeof(cmd), "%s -L RECORD -T largefile -m0 %s", ext2MkfsBinary, src);
 			break;
 		case fs_jfs:
 			snprintf(cmd, sizeof(cmd), "%s -L RECORD -q %s", jfsMkfsBinary, src);
@@ -766,6 +758,8 @@ int CHDDFmtExec::exec(CMenuTarget* /*parent*/, const std::string& key)
 				break;
 			case 1:
 				if (in == '\b' && sscanf(buf, "%d/%d\b", &n, &t) == 2) {
+					if (t == 0)
+						t = 1;
 					int percent = 100 * n / t;
 					progress->showLocalStatus(percent);
 					progress->showGlobalStatus(20 + percent / 5);
@@ -866,6 +860,8 @@ _remount:
 #endif
 
 	if(!res) {
+		snprintf(cmd, sizeof(cmd), "%s/timeshift", dst);
+		safe_mkdir((char *) cmd);
 		snprintf(cmd, sizeof(cmd), "%s/movies", dst);
 		safe_mkdir(cmd);
 		snprintf(cmd, sizeof(cmd), "%s/pictures", dst);
@@ -929,10 +925,6 @@ int CHDDChkExec::exec(CMenuTarget* /*parent*/, const std::string& key)
 	int oldpass = 0, pass, step, total;
 	int percent = 0, opercent = 0;
 
-	std::string e2fsck = find_executable("e2fsck");
-	std::string fscke3 = find_executable("fsck.ext3");
-	std::string fscke4 = find_executable("fsck.ext4");
-	/* this is quite bogus since the same binary can check ext2,3,4... */
 	bool ext4FsckBinaryExist = (!access(ext4FsckBinary, X_OK));
 	bool ext2FsckBinaryExist = (!access(ext2FsckBinary, X_OK));
 	bool jfsFsckBinaryExist = (!access(jfsFsckBinary, X_OK));
@@ -978,7 +970,7 @@ printf("CHDDChkExec: key %s\n", key.c_str());
 	if (e2fsckBinaryExist) {
 		snprintf(cmd, sizeof(cmd), "%s -C 1 -f -y %s", e2fsckBinary, src);
 	} else {
-		snprintf(cmd, sizeof(cmd), "%s -C 1 -f -y %s", fscke3.c_str(), src);
+		snprintf(cmd, sizeof(cmd), "%s -C 1 -f -y %s", ext3FsckBinary, src);
 		if ((ext4FsckBinaryExist) && (g_settings.hdd_fs == fs_ext4))
 			snprintf(cmd, sizeof(cmd), "%s -C 1 -f -y %s", ext4FsckBinary, src);
 		else if ((ext2FsckBinaryExist) && (g_settings.hdd_fs == fs_ext2))
@@ -998,7 +990,7 @@ printf("CHDDChkExec: key %s\n", key.c_str());
 				snprintf(cmd, sizeof(cmd), "%s -C 1 -f -y %s", ext2FsckBinary, src);
 			break;
 			case fs_jfs:
-				snprintf(cmd, sizeof(cmd), "%s -q %s", jfsFsckBinary, src);
+				snprintf(cmd, sizeof(cmd), "%s -a -f -p %s", jfsFsckBinary, src);
 			break;
 		default:
 			return 0;
