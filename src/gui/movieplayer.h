@@ -107,6 +107,10 @@ class CMoviePlayerGui : public CMenuTarget
 #endif
 	int currentapid, currentac3;
 
+	bool probePids;
+	AUDIO_FORMAT StreamType;
+	
+	repeat_mode_enum repeat_mode;
 	// subtitle data
 	unsigned int numpids;
 #ifndef REC_MAX_SPIDS
@@ -125,12 +129,6 @@ class CMoviePlayerGui : public CMenuTarget
 	int tmag[REC_MAX_TPIDS];
 	int tpage[REC_MAX_TPIDS];
 	std::string currentttxsub;
-
-	bool probePids;
-	AUDIO_FORMAT StreamType;
-	
-	repeat_mode_enum repeat_mode;
-
 	unsigned long long last_read;
 
 
@@ -142,8 +140,6 @@ class CMoviePlayerGui : public CMenuTarget
 	bool isYT;
 	bool isNK;
 	bool showStartingHint;
-	bool stopped;
-	bool iso_file;
 	CMovieBrowser* moviebrowser;
 	MI_MOVIE_INFO * p_movie_info;
 	MI_MOVIE_INFO mi;
@@ -154,6 +150,8 @@ class CMoviePlayerGui : public CMenuTarget
 
 	/* playback from file */
 	bool is_file_player;
+	bool iso_file;
+	bool stopped;
 	CFileBrowser * filebrowser;
 	CFileFilter tsfilefilter;
 	CFileList filelist;
@@ -185,7 +183,6 @@ class CMoviePlayerGui : public CMenuTarget
 	void callInfoViewer();
 	void fillPids();
 	bool getAudioName(int pid, std::string &apidtitle);
-	void selectAudioPid(void);
 	void getCurrentAudioName(std::string &audioname);
 	void addAudioFormat(int count, std::string &apidtitle, bool& enabled );
 
@@ -225,6 +222,7 @@ class CMoviePlayerGui : public CMenuTarget
 	void UpdatePosition();
 	int timeshift;
 	int file_prozent;
+	cPlayback *getPlayback() { return playback; }
 	void SetFile(std::string &name, std::string &file, std::string info1="", std::string info2="") { pretty_name = name; file_name = file; info_1 = info1; info_2 = info2; }
 	unsigned int getAPID(void);
 	unsigned int getAPID(unsigned int i);
@@ -233,7 +231,6 @@ class CMoviePlayerGui : public CMenuTarget
 	bool setAPID(unsigned int i);
 	AUDIO_FORMAT GetStreamType(void) { return StreamType; }
 	void SetStreamType(void);
-	cPlayback *getPlayback() { return playback; }
 	unsigned int getAPIDCount(void);
 	std::string getAPIDDesc(unsigned int i);
 	unsigned int getSubtitleCount(void);
@@ -247,6 +244,7 @@ class CMoviePlayerGui : public CMenuTarget
 	void StartSubtitles(bool show = true);
 	void setLastMode(int m) { m_LastMode = m; }
 	void Pause(bool b = true);
+	void selectAudioPid(void);
 	void RequestAbort(void);
 	bool SetPosition(int pos, bool absolute = false);
 	std::string GetFile() { return file_name; }

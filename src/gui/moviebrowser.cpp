@@ -516,7 +516,7 @@ void CMovieBrowser::initGlobalSettings(void)
 	m_settings.browser_serie_mode = 0;
 	m_settings.serie_auto_create = 0;
 
-	m_settings.sorting.item 	= MB_INFO_TITLE;
+	m_settings.sorting.item = MB_INFO_TITLE;
 	m_settings.sorting.direction = MB_DIRECTION_DOWN;
 
 	m_settings.filter.item = MB_INFO_MAX_NUMBER;
@@ -1392,7 +1392,7 @@ void CMovieBrowser::refreshFilterList(void)
 
 		if (m_settings.filter.item == MB_INFO_FILEPATH)
 		{
-			for (unsigned int i = 0 ; i < m_dirNames.size(); i++)
+			for (unsigned int i = 0; i < m_dirNames.size(); i++)
 				m_FilterLines.lineArray[0].push_back(m_dirNames[i]);
 		}
 		else if (m_settings.filter.item == MB_INFO_INFO1)
@@ -1974,7 +1974,7 @@ bool CMovieBrowser::onButtonPressLastPlayList(neutrino_msg_t msg)
 	//TRACE("[mb]->onButtonPressLastPlayList %d\r\n",msg);
 	bool result = true;
 
-	if (msg==CRCInput::RC_up)
+	if (msg == CRCInput::RC_up)
 		m_pcLastPlay->scrollLineUp(1);
 	else if (msg == CRCInput::RC_down)
 		m_pcLastPlay->scrollLineDown(1);
@@ -2281,7 +2281,7 @@ void CMovieBrowser::onSetFocus(MB_FOCUS new_focus)
 		m_pcLastRecord->showSelection(false);
 		m_pcLastPlay->showSelection(false);
 		m_pcFilter->showSelection(false);
-			//m_pcInfo->showSelection(false);
+		//m_pcInfo->showSelection(false);
 	}
 	else if (m_windowFocus == MB_FOCUS_LAST_PLAY)
 	{
@@ -2289,7 +2289,7 @@ void CMovieBrowser::onSetFocus(MB_FOCUS new_focus)
 		m_pcLastRecord->showSelection(false);
 		m_pcLastPlay->showSelection(true);
 		m_pcFilter->showSelection(false);
-			//m_pcInfo->showSelection(false);
+		//m_pcInfo->showSelection(false);
 	}
 	else if (m_windowFocus == MB_FOCUS_LAST_RECORD)
 	{
@@ -2297,7 +2297,7 @@ void CMovieBrowser::onSetFocus(MB_FOCUS new_focus)
 		m_pcLastRecord->showSelection(true);
 		m_pcLastPlay->showSelection(false);
 		m_pcFilter->showSelection(false);
-			//m_pcInfo->showSelection(false);
+		//m_pcInfo->showSelection(false);
 	}
 	else if(m_windowFocus == MB_FOCUS_MOVIE_INFO)
 	{
@@ -2305,7 +2305,7 @@ void CMovieBrowser::onSetFocus(MB_FOCUS new_focus)
 		m_pcLastRecord->showSelection(false);
 		m_pcLastPlay->showSelection(false);
 		m_pcFilter->showSelection(false);
-			//m_pcInfo->showSelection(true);
+		//m_pcInfo->showSelection(true);
 	}
 	else if (m_windowFocus == MB_FOCUS_FILTER)
 	{
@@ -2313,7 +2313,7 @@ void CMovieBrowser::onSetFocus(MB_FOCUS new_focus)
 		m_pcLastRecord->showSelection(false);
 		m_pcLastPlay->showSelection(false);
 		m_pcFilter->showSelection(true);
-
+		//m_pcInfo->showSelection(false);
 	}
 	updateMovieSelection();
 	refreshFoot();
@@ -2883,7 +2883,7 @@ int CMovieBrowser::showMovieInfoMenu(MI_MOVIE_INFO* movie_info)
 	for (int li =0 ; li < MI_MOVIE_BOOK_USER_MAX && li < MAX_NUMBER_OF_BOOKMARK_ITEMS; li++)
 	{
 		pBookNameInput[li] = new CKeyboardInput (LOCALE_MOVIEBROWSER_EDIT_BOOK, &movie_info->bookmarks.user[li].name, 0, NULL, NULL, LOCALE_MOVIEBROWSER_EDIT_BOOK_POS_INFO1, LOCALE_MOVIEBROWSER_EDIT_BOOK_POS_INFO2);
-		pBookPosIntInput[li] =  new CIntInput(LOCALE_MOVIEBROWSER_EDIT_BOOK, (int *)&movie_info->bookmarks.user[li].pos, 20, LOCALE_MOVIEBROWSER_EDIT_BOOK_POS_INFO1, LOCALE_MOVIEBROWSER_EDIT_BOOK_POS_INFO2);
+		pBookPosIntInput[li] = new CIntInput(LOCALE_MOVIEBROWSER_EDIT_BOOK, (int *)&movie_info->bookmarks.user[li].pos, 20, LOCALE_MOVIEBROWSER_EDIT_BOOK_POS_INFO1, LOCALE_MOVIEBROWSER_EDIT_BOOK_POS_INFO2);
 		pBookTypeIntInput[li] = new CIntInput(LOCALE_MOVIEBROWSER_EDIT_BOOK, (int *)&movie_info->bookmarks.user[li].length, 20, LOCALE_MOVIEBROWSER_EDIT_BOOK_TYPE_INFO1, LOCALE_MOVIEBROWSER_EDIT_BOOK_TYPE_INFO2);
 
 		pBookItemMenu[li] = new CMenuWidget(LOCALE_MOVIEBROWSER_BOOK_HEAD, NEUTRINO_ICON_MOVIEPLAYER);
@@ -3192,7 +3192,7 @@ int CMovieBrowser::showStartPosSelectionMenu(void) // P2
 		position[menu_nr++] = m_movieSelectionHandler->bookmarks.lastPlayStop;
 	}
 
-	startPosSelectionMenu.addItem(new CMenuForwarder(LOCALE_MOVIEBROWSER_START_RECORD_START, true,NULL), got_start_pos ? false : true);
+	startPosSelectionMenu.addItem(new CMenuForwarder(LOCALE_MOVIEBROWSER_START_RECORD_START, true, NULL), got_start_pos ? false : true);
 	position[menu_nr++] = 0;
 
 	for (int i = 0; i < MI_MOVIE_BOOK_USER_MAX && menu_nr < MAX_NUMBER_OF_BOOKMARK_ITEMS; i++)
