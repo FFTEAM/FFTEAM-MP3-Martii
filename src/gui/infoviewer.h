@@ -36,16 +36,15 @@
 #include <sectionsdclient/sectionsdclient.h>
 
 #include <driver/rcinput.h>
-#include <driver/framebuffer.h>
 #include <driver/fontrenderer.h>
-#include <driver/fade.h>
 #include <system/settings.h>
-#include "widget/menue.h"
-#include <gui/infoviewer_bb.h>
 #include <string>
 #include <zapit/channel.h>
 #include <gui/components/cc.h>
 
+class CFrameBuffer;
+class COSDFader;
+class CInfoViewerBB;
 class CInfoViewer
 {
  private:
@@ -87,8 +86,6 @@ class CInfoViewer
 	//uint32_t           fadeTimer;
 	COSDFader	fader;
 
-	int time_left_width;
-	int time_dot_width;
 	int time_width;
 	int time_height;
 	int info_time_width;
@@ -115,8 +112,8 @@ class CInfoViewer
 			  const char *runningStart = NULL, const char *runningRest = NULL,
 			  const char *nextStart = NULL, const char *nextDuration = NULL,
 			  bool update_current = true, bool update_next = true);
+	void initClock();
 	void paintTime( bool show_dot );
-	
 	void showRecordIcon(const bool show);
 	void showIcon_Tuner() const;
 
