@@ -2135,7 +2135,7 @@ static void *houseKeepingThread(void *)
 					if (*it == '/')
 						d.erase(it);
 				}
-				writeEventsToFile((char *)d.c_str());
+				writeEventsToFile(d.c_str());
 			}
 			ecount = 0;
 		}
