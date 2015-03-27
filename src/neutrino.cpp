@@ -530,9 +530,9 @@ int CNeutrinoApp::loadSetup(const char * fname)
 	g_settings.progressbar_timescale_yellow = configfile.getInt32("progressbar_timescale_yellow", 5);
 	g_settings.progressbar_timescale_invert = configfile.getBool("progressbar_timescale_invert", true);
 	g_settings.infobar_show = configfile.getInt32("infobar_show", configfile.getInt32("infobar_cn", 1));
-	g_settings.infobar_show_channellogo   = configfile.getInt32("infobar_show_channellogo"  , 3 );
-	g_settings.infobar_progressbar   = configfile.getInt32("infobar_progressbar"  , 1 ); // below channel name
-	g_settings.casystem_display = configfile.getInt32("casystem_display", 1 );//discreet ca mode default
+	g_settings.infobar_show_channellogo   = configfile.getInt32("infobar_show_channellogo"  , 6 );
+	g_settings.infobar_progressbar   = configfile.getInt32("infobar_progressbar"  , 3 ); // below channel name
+	g_settings.casystem_display = configfile.getInt32("casystem_display", 0 );//ein ca mode default
 	g_settings.dotmatrix = configfile.getInt32("infobar_dotmatrix", 0 );//default off
 	g_settings.infoviewer_ecm_info =  configfile.getInt32("infoviewer_ecm_info",2);
 	g_settings.scrambled_message = configfile.getBool("scrambled_message", true );
@@ -605,6 +605,7 @@ int CNeutrinoApp::loadSetup(const char * fname)
 
 	//colors (neutrino defaultcolors)
 	getTheme(configfile);
+	g_settings.gradiant = (configfile.getBool( "gradiant", true ))? 1 : 0;
 
 #ifdef ENABLE_GRAPHLCD
 	g_settings.glcd_enable = configfile.getInt32("glcd_enable", 0);
@@ -1209,6 +1210,7 @@ void CNeutrinoApp::saveSetup(const char * fname)
 
 	//colors
 	setTheme(configfile);
+	configfile.setBool( "gradiant", (g_settings.gradiant!=0)?true:false );
 
 #ifdef ENABLE_GRAPHLCD
 	configfile.setInt32("glcd_enable", g_settings.glcd_enable);
@@ -2279,6 +2281,7 @@ TIMER_START();
 	my_system(3, "mount", "/dev/sdb1", "/media/sdb1");
 #endif
 
+	CFSMounter::automount();
 	g_PluginList = new CPlugins;
 	g_PluginList->setPluginDir(PLUGINDIR);
 	//load Pluginlist before main menu (only show script menu if at least one script is available
@@ -2493,12 +2496,9 @@ void CNeutrinoApp::RealRun(CMenuWidget &_mainMenu)
 					}
 				}
 			}
-#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
-			else if( ( msg == (neutrino_msg_t) g_settings.key_quickzap_up ) || ( msg == (neutrino_msg_t) g_settings.key_quickzap_down ) || ( msg == CRCInput::RC_page_up ) || ( msg == CRCInput::RC_page_down ) )
-#else
-			else if( ( msg == (neutrino_msg_t) g_settings.key_quickzap_up ) || ( msg == (neutrino_msg_t) g_settings.key_quickzap_down ) )
-#endif
+			else if (( msg == (neutrino_msg_t) g_settings.key_quickzap_up ) || ( msg == (neutrino_msg_t) g_settings.key_quickzap_down ))
 			{
+				//quickzap
 				quickZap(msg);
 			}
 			else if( msg == (neutrino_msg_t) g_settings.key_tvradio_mode ) {
