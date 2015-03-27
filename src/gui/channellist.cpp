@@ -2078,19 +2078,33 @@ void CChannelList::paint()
 
 void CChannelList::paintHead()
 {
+	static int gradient = g_settings.gradiant;
+
 	CComponentsHeader header(x, y, full_width, theight, name /*no header icon*/);
+	if (bouquet && bouquet->zapitBouquet && bouquet->zapitBouquet->bLocked != g_settings.parentallock_defaultlocked)
+		header.setIcon(NEUTRINO_ICON_LOCK);
+	if (edit_state)
+		header.setCaption(std::string(g_Locale->getText(LOCALE_CHANNELLIST_EDIT)) + ": " + name);
+
 	header.paint(CC_SAVE_SCREEN_NO);
 
-	if (g_Sectionsd->getIsTimeSet()) {
+	if (gradient != g_settings.gradiant && headerClock != NULL) {
+		gradient = g_settings.gradiant;
+		headerClock->clearSavedScreen();
+		delete headerClock;
+		headerClock = NULL;
+	}
+
+	if (timeset) {
 		if (headerClock == NULL) {
 			headerClock = new CComponentsFrmClock(0, 0, 0, 0, "%H:%M", true);
 			headerClock->setClockBlink("%H %M");
 			headerClock->setClockIntervall(1);
-			headerClock->doPaintBg(false);
+			headerClock->doPaintBg(!gradient);
+			headerClock->enableTboxSaveScreen(gradient);
+			headerClock->setCorner(RADIUS_LARGE, CORNER_TOP_RIGHT);
 		}
-		headerClock->setClockFormat("%H:%M");
 		headerClock->setClockFont(SNeutrinoSettings::FONT_TYPE_MENU_TITLE);
-		headerClock->setCorner(RADIUS_LARGE, CORNER_TOP_RIGHT);
 		headerClock->setYPos(y);
 		headerClock->setHeight(theight);
 		headerClock->setTextColor(header.getTextObject()->getTextColor());
@@ -2104,7 +2118,9 @@ void CChannelList::paintHead()
 	}
 	else
 		headerClockWidth = 0;
+
 	logo_off = headerClockWidth + 10;
+	headerNew = true;
 }
 
 void CChannelList::paintBody()
@@ -2172,6 +2188,9 @@ bool CChannelList::SameTP(t_channel_id channel_id)
 	bool iscurrent = true;
 
 	if(CNeutrinoApp::getInstance()->recordingstatus) {
+		if (IS_WEBTV(channel_id))
+			return true;
+
 		CZapitChannel * channel = CServiceManager::getInstance()->FindChannel(channel_id);
 		if(channel)
 			iscurrent = SameTP(channel);
@@ -2188,6 +2207,10 @@ bool CChannelList::SameTP(CZapitChannel * channel)
 	if(CNeutrinoApp::getInstance()->recordingstatus) {
 		if(channel == NULL)
 			channel = (*chanlist)[selected];
+
+		if (IS_WEBTV(channel->getChannelID()))
+			return true;
+
 		iscurrent = CFEManager::getInstance()->canTune(channel);
 	}
 	return iscurrent;
