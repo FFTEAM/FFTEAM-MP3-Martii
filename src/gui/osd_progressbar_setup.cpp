@@ -84,10 +84,10 @@ int CProgressbarSetup::exec(CMenuTarget* parent, const std::string &actionKey)
 	printf("[neutrino] init progressbar menu setup...\n");
 
 	if (actionKey == "reset") {
-		g_settings.progressbar_timescale_red = 0;
-		g_settings.progressbar_timescale_green = 100;
-		g_settings.progressbar_timescale_yellow = 70;
-		g_settings.progressbar_timescale_invert = false;
+		g_settings.progressbar_timescale_red = 10;
+		g_settings.progressbar_timescale_green = 80;
+		g_settings.progressbar_timescale_yellow = 5;
+		g_settings.progressbar_timescale_invert = true;
 		return menu_return::RETURN_REPAINT;
 	}
 
