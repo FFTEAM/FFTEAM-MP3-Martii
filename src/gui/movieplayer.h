@@ -106,11 +106,10 @@ class CMoviePlayerGui : public CMenuTarget
 	unsigned int ac3flags[REC_MAX_APIDS];
 #endif
 	int currentapid, currentac3;
-
 	bool probePids;
 	AUDIO_FORMAT StreamType;
-	
 	repeat_mode_enum repeat_mode;
+
 	// subtitle data
 	unsigned int numpids;
 #ifndef REC_MAX_SPIDS
@@ -131,6 +130,17 @@ class CMoviePlayerGui : public CMenuTarget
 	std::string currentttxsub;
 	unsigned long long last_read;
 
+#if 0
+	/* subtitles vars */
+	unsigned short numsubs;
+	std::string    slanguage[REC_MAX_APIDS];
+	unsigned short spids[REC_MAX_APIDS];
+	unsigned short sub_supported[REC_MAX_APIDS];
+	int currentspid;
+	int min_x, min_y, max_x, max_y;
+	time_t end_time;
+	bool ext_subs;
+#endif
 
 	/* playback from MB */
 	bool isMovieBrowser;
@@ -198,6 +208,9 @@ class CMoviePlayerGui : public CMenuTarget
 	void parsePlaylist(CFile *file);
 	bool mountIso(CFile *file);
 	void makeFilename();
+	bool prepareFile(CFile *file);
+	void makeScreenShot(bool autoshot = false, bool forcover = false);
+	void showFileInfos();
 
 	void Cleanup();
 	static void *ShowStartHint(void *arg);

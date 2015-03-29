@@ -173,6 +173,8 @@ void CMoviePlayerGui::Init(void)
 
 	filebrowser->Filter = &tsfilefilter;
 	filebrowser->Hide_records = true;
+	filebrowser->Multi_Select = true;
+	filebrowser->Dirs_Selectable = true;
 
 	speed = 1;
 	timeshift = TSHIFT_MODE_OFF;
@@ -528,6 +530,8 @@ bool CMoviePlayerGui::SelectFile()
 	Cleanup();
 	pretty_name = "";
 	file_name = "";
+	info_1 = "";
+	info_2 = "";
 
 	printf("CMoviePlayerGui::SelectFile: isBookmark %d timeshift %d isMovieBrowser %d\n", isBookmark, timeshift, isMovieBrowser);
 
@@ -687,7 +691,7 @@ bool CMoviePlayerGui::PlayBackgroundStart(const std::string &file, const std::st
 		int agen[] = { 18, 16, 12, 6, 0 };
 		for (int i = 0; ages[i] && age < 0; i++) {
 			const char *n = name.c_str();
-			char *h = (char *) n;
+			const char *h = n;
 			while ((age < 0) && (h = strstr(h, ages[i])))
 				if ((h == n) || !isdigit(*(h - 1)))
 					age = agen[i];
@@ -850,7 +854,7 @@ bool CMoviePlayerGui::PlayFileStart(void)
 	}
 
 	file_prozent = 0;
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	old3dmode = frameBuffer->get3DMode();
 #endif
 #ifdef ENABLE_GRAPHLCD
@@ -1235,7 +1239,7 @@ void CMoviePlayerGui::PlayFileLoop(void)
 		} else if (msg == CRCInput::RC_help || msg == CRCInput::RC_info) {
 			callInfoViewer();
 			update_lcd = true;
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 		} else if ((msg == CRCInput::RC_text || msg == (neutrino_msg_t) g_settings.mpkey_vtxt)) {
 			int pid = playback->GetFirstTeletextPid();
 			if (pid > -1) {
@@ -1285,48 +1289,7 @@ void CMoviePlayerGui::PlayFileLoop(void)
 		} else if (msg == NeutrinoMessages::SHOW_EPG) {
 			handleMovieBrowser(NeutrinoMessages::SHOW_EPG, position);
 		} else if (msg == (neutrino_msg_t) g_settings.key_screenshot) {
-
-			char ending[(sizeof(int)*2) + 6] = ".png";
-			if(!g_settings.screenshot_cover)
-				snprintf(ending, sizeof(ending) - 1, "_%x.png", position);
-
-			std::string fname = file_name;
-			std::string::size_type pos = fname.find_last_of('.');
-			if(pos != std::string::npos) {
-				fname.replace(pos, fname.length(), ending);
-			} else
-				fname += ending;
-
-			if(!g_settings.screenshot_cover){
-				pos = fname.find_last_of('/');
-				if(pos != std::string::npos) {
-					fname.replace(0, pos, g_settings.screenshot_dir);
-				}
-			}
-
-			if (g_settings.screenshot_cover) {
-				unlink(fname.c_str());
-				CVFD::getInstance()->ShowText("SCREENSHOT");
-				CHintBox hintbox(LOCALE_SCREENSHOT_MENU, g_Locale->getText(LOCALE_SCREENSHOT_PLEASE_WAIT_COVER), 450, NEUTRINO_ICON_MOVIEPLAYER);
-				hintbox.paint();
-				CScreenShot sc(fname, CScreenShot::FORMAT_PNG);
-				sc.EnableVideo(true);
-				sc.EnableOSD(false);
-				sc.Start();
-				hintbox.hide();
-			} else {
-				CVFD::getInstance()->ShowText("SCREENSHOT");
-				CHintBox *hintbox = NULL;
-				if (g_settings.screenshot_mode == 1) {
-					hintbox = new CHintBox(LOCALE_SCREENSHOT_MENU, g_Locale->getText(LOCALE_SCREENSHOT_PLEASE_WAIT), 450, NEUTRINO_ICON_MOVIEPLAYER);
-					hintbox->paint();
-				}
-				CScreenShot sc(fname, CScreenShot::FORMAT_PNG);
-				sc.Start();
-				if (hintbox)
-					hintbox->hide();
-			}
-
+			makeScreenShot();
 		} else if (msg == NeutrinoMessages::EVT_SUBT_MESSAGE) {
 		} else if (msg == NeutrinoMessages::ANNOUNCE_RECORD ||
 				msg == NeutrinoMessages::RECORD_START) {
@@ -1342,7 +1305,12 @@ void CMoviePlayerGui::PlayFileLoop(void)
 			playstate = CMoviePlayerGui::STOPPED;
 			g_RCInput->postMsg(msg, data);
 		} else if (msg == CRCInput::RC_timeout || msg == NeutrinoMessages::EVT_TIMER) {
-		} else if (CNeutrinoApp::getInstance()->usermenu.showUserMenu(msg)) {
+			if (playstate == CMoviePlayerGui::PLAY && (position >= 300000 || (duration < 300000 && (position > (duration /2)))))
+				makeScreenShot(true);
+		} else if (msg == CRCInput::RC_favorites) {
+			makeScreenShot(false, true);
+		} else if (msg == CRCInput::RC_yellow) {
+			showFileInfos();
 		} else if (msg == CRCInput::RC_sat || msg == CRCInput::RC_favorites) {
 			//FIXME do nothing ?
 		} else {
@@ -1361,6 +1329,9 @@ void CMoviePlayerGui::PlayFileLoop(void)
 			printf("CMoviePlayerGui::PlayFile: exit, isMovieBrowser %d p_movie_info %p\n", isMovieBrowser, p_movie_info);
 			playstate = CMoviePlayerGui::STOPPED;
 			handleMovieBrowser((neutrino_msg_t) g_settings.mpkey_stop, position);
+	if (position >= 300000 || (duration < 300000 && (position > (duration /2))))
+		makeScreenShot(true);
+
 		}
 	}
 }
@@ -1374,7 +1345,7 @@ void CMoviePlayerGui::PlayFileEnd(bool restore)
 		playback->Close();
 	}
 
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	frameBuffer->set3DMode(old3dmode);
 #endif
 #ifdef ENABLE_GRAPHLCD
@@ -2082,6 +2053,7 @@ void CMoviePlayerGui::selectAutoLang()
 			currentapid = apids[pref_idx];
 			currentac3 = ac3flags[pref_idx];
 			playback->SetAPid(currentapid, currentac3);
+			getCurrentAudioName(is_file_player, currentaudioname);
 		}
 	}
 }
@@ -2102,14 +2074,14 @@ void CMoviePlayerGui::parsePlaylist(CFile *file)
 		sscanf(cLine, "#EXTINF:%d,%[^\n]\n", &dur, name);
 		if (strlen(cLine) > 0 && cLine[0]!='#')
 		{
-			char *url = strstr(cLine, "://");
-			if (url) {
-				while (url > cLine && isalpha(*(url - 1)))
-					url--;
-				printf("name %s [%d] url: %s\n", name, dur, url);
-				file_name = url;
-				if(strlen(name))
-					pretty_name = name;
+			char *url = NULL;
+			if ((url = strstr(cLine, "http://")) || (url = strstr(cLine, "rtmp://")) || (url = strstr(cLine, "rtsp://")) || (url = strstr(cLine, "mmsh://"))) {
+				if (url != NULL) {
+					printf("name %s [%d] url: %s\n", name, dur, url);
+					file_name = url;
+					if (strlen(name))
+						pretty_name = name;
+				}
 			}
 		}
 	}
@@ -2121,9 +2093,86 @@ bool CMoviePlayerGui::mountIso(CFile *file)
 	safe_mkdir(ISO_MOUNT_POINT);
 	if (my_system(5, "mount", "-o", "loop", file->Name.c_str(), ISO_MOUNT_POINT) == 0) {
 		makeFilename();
-		file_name = "bluray:" ISO_MOUNT_POINT;
+		file_name = "/media/iso";
 		iso_file = true;
 		return true;
 	}
 	return false;
+}
+
+void CMoviePlayerGui::makeScreenShot(bool autoshot, bool forcover)
+{
+	if (autoshot && (autoshot_done || !g_settings.auto_cover))
+		return;
+
+	bool cover = autoshot || g_settings.screenshot_cover || forcover;
+	char ending[(sizeof(int)*2) + 6] = ".jpg";
+	if (!cover)
+		snprintf(ending, sizeof(ending) - 1, "_%x.jpg", position);
+
+	std::string fname = file_name;
+	if (p_movie_info)
+		fname = p_movie_info->file.Name;
+
+	/* quick check we have file and not url as file name */
+	if (fname.c_str()[0] != '/') {
+		if (autoshot)
+			autoshot_done = true;
+		return;
+	}
+
+	std::string::size_type pos = fname.find_last_of('.');
+	if (pos != std::string::npos) {
+		fname.replace(pos, fname.length(), ending);
+	} else
+		fname += ending;
+
+	if (autoshot && !access(fname.c_str(), F_OK)) {
+		printf("CMoviePlayerGui::makeScreenShot: cover [%s] already exist..\n", fname.c_str());
+		autoshot_done = true;
+		return;
+	}
+
+	if (!cover) {
+		pos = fname.find_last_of('/');
+		if (pos != std::string::npos)
+			fname.replace(0, pos, g_settings.screenshot_dir);
+	}
+
+
+	CScreenShot * sc = new CScreenShot(fname);
+	if (cover) {
+		sc->EnableOSD(false);
+		sc->EnableVideo(true);
+	}
+	if (autoshot || forcover) {
+		int xres = 0, yres = 0, framerate;
+		videoDecoder->getPictureInfo(xres, yres, framerate);
+		if (xres && yres) {
+			int w = std::min(300, xres);
+			int h = (float) yres / ((float) xres / (float) w);
+			sc->SetSize(w, h);
+		}
+	}
+	sc->Start();
+}
+
+void CMoviePlayerGui::showFileInfos()
+{
+	std::vector<std::string> keys, values;
+	playback->GetMetadata(keys, values);
+	size_t count = keys.size();
+	if (count > 0) {
+		CMenuWidget* sfimenu = new CMenuWidget("Fileinfos", NEUTRINO_ICON_SETTINGS);
+		for (size_t i = 0; i < count; i++) {
+			std::string key = trim(keys[i]);
+			printf("key: %s - values: %s \n", key.c_str(), isUTF8(values[i]) ? values[i].c_str() : convertLatin1UTF8(values[i]).c_str());
+			CMenuForwarder * mf = new CMenuForwarder(key.c_str(), false, isUTF8(values[i]) ? values[i].c_str() : convertLatin1UTF8(values[i]).c_str(), NULL);
+			sfimenu->addItem(mf);
+		}
+		int ret = sfimenu->exec(NULL, "");
+		sfimenu=NULL;
+		delete sfimenu;
+	}
+	return;
 }
