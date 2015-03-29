@@ -2,14 +2,15 @@
 	Neutrino-GUI  -   DBoxII-Project
 
 	Copyright (C) 2001 Steffen Hehn 'McClean'
-	Copyright (C) 2010-2014 Stefan Seyfried
+	Copyright (C) 2010-2015 Stefan Seyfried
+	Copyright (C) 2013-2014 martii
+	Copyright (C) 2009-2014 CoolStream International Ltd
 
-	License: GPL
+	License: GPLv2
 
 	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation; either version 2 of the License, or
-	(at your option) any later version.
+	the Free Software Foundation; version 2 of the License.
 
 	This program is distributed in the hope that it will be useful,
 	but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -39,6 +40,7 @@
 #include <dirent.h>
 #include <dlfcn.h>
 #include <sys/mount.h>
+#include <sys/wait.h>
 
 #include <global.h>
 #include <neutrino.h>
@@ -52,6 +54,7 @@
 #include <gui/widget/messagebox.h>
 #include <gui/widget/hintbox.h>
 #include <gui/widget/progresswindow.h>
+#include <gui/widget/keyboard_input.h>
 
 #include <system/helpers.h>
 #include <system/settings.h>
@@ -70,6 +73,7 @@
 #define ext2MkfsBinary "/sbin/mkfs.ext2"
 #define jfsMkfsBinary  "/sbin/mkfs.jfs"
 #define blkidBinary    "/sbin/blkid"
+
 
 #define HDD_NOISE_OPTION_COUNT 4
 const CMenuOptionChooser::keyval HDD_NOISE_OPTIONS[HDD_NOISE_OPTION_COUNT] =

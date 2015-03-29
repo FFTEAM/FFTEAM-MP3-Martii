@@ -2,12 +2,14 @@
 	Neutrino-GUI  -   DBoxII-Project
 
 
-	License: GPL
+	Copyright (C) 2009-2014 CoolStream International Ltd
+	Copyright (C) 2013-2014 martii
+
+	License: GPLv2
 
 	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation; either version 2 of the License, or
-	(at your option) any later version.
+	the Free Software Foundation; version 2 of the License.
 
 	This program is distributed in the hope that it will be useful,
 	but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -76,9 +78,8 @@ class CHDDMenuHandler : public CMenuTarget
 	public:
 		CHDDMenuHandler();
 		~CHDDMenuHandler();
-		int  exec( CMenuTarget* parent,  const std::string &actionkey);
-		int  doMenu();
+		int exec( CMenuTarget* parent,  const std::string &actionkey);
+		int doMenu();
 };
 
 #endif
-
