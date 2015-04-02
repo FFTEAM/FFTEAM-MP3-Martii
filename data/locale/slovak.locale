@@ -260,7 +260,7 @@ bouquetname.hdtv HD programy
 bouquetname.new Nové programy
 bouquetname.other Neznámy poskytovateľ
 bouquetname.removed Odstránené programy
-buildinfo.compiled_on Build Host
+buildinfo.compiled_on Kompilované na:
 bouquetname.webtv WebTV kanály
 buildinfo.compiled_on Kompilované na:
 buildinfo.compiled_with Verzia kompiléru
@@ -278,8 +278,8 @@ channellist.edit Upraviť
 channellist.epgtext_align_left doľava
 channellist.epgtext_align_right doprava
 channellist.extended Grafické EPG v zozname
-channellist.extended_colored s farebným ukazovateľom
-channellist.extended_simple s jednoduchým ukazovateľom
+channellist.extended_colored s farebným ukazateľom
+channellist.extended_simple s jednoduchým ukazateľom
 channellist.favs Obľúbené
 channellist.foot Informácie programu
 channellist.foot_freq Informácie frekvencie
@@ -301,7 +301,7 @@ channellist.new_zap_mode Rýchle prepnutie v zozname
 channellist.new_zap_mode_active aktívne
 channellist.new_zap_mode_allow povolené
 channellist.new_zap_mode_off vyp
-channellist.new_zap_mode Okamžité prepínanie v zozname
+channellist.new_zap_mode Rýchle prepnutie v zozname
 channellist.new_zap_mode_active aktívne
 channellist.new_zap_mode_allow povolené
 channellist.new_zap_mode_off vypnuté
@@ -541,8 +541,8 @@ extra.tp_mod_64 QAM/64
 extra.tp_mod_8 8PSK
 extra.tp_mod_auto QAM/AUTO
 extra.tp_pilot Pilot
-extra.tp_pilot_auto Automaticky (HW)
-extra.tp_pilot_auto_sw Automaticky (SW)
+extra.tp_pilot_auto Auto (HW)
+extra.tp_pilot_auto_sw Auto (SW)
 extra.tp_pol Polarizácia
 extra.tp_pol_h H
 extra.tp_pol_l L
@@ -607,7 +607,7 @@ flashupdate.cantopenfile Otvorenie súboru nemožné
 flashupdate.cantopenmtd Otvorenie MTD-zariadenia nemožné
 flashupdate.checkupdate_internet Kontrola aktualizácie cez sieť
 flashupdate.checkupdate_local Lokálna aktualizácia
-flashupdate.copy_image Kopítrovať Image do hlavnej pamäte
+flashupdate.copy_image Kopíruje sa Image do hlavnej pamäte
 flashupdate.createimage Uložiť Image
 flashupdate.createimage_add_env Pridať "env"
 flashupdate.createimage_add_kernel Pridať "kernel"
@@ -786,7 +786,7 @@ hdd_mount_umount Pripojenie/Odpojenie
 hdd_noise Hlučnosť (AAM)
 hdd_not_found Disk nenájdený
 hdd_removable_device Odstrániteľné zariadenie
-hdd_set_recdir Použiť zariadenie k nahrávaniu ?
+hdd_set_recdir Použiť zariadenie k nahrávaniu?
 hdd_settings Nastavenie HDD / USB
 hdd_sleep Čas uspania / vypnutia
 hdd_slow Pomaly
@@ -953,7 +953,7 @@ mainmenu.channels Zoznam kanálov
 mainmenu.clearsectionsd Vyčistenie uloženého EPG
 mainmenu.games Hry
 mainmenu.head Hlavné menu
-mainmenu.lua Doplnky
+mainmenu.lua Lua doplnky
 mainmenu.media Média
 mainmenu.movieplayer Prehrávač filmov
 mainmenu.pausesectionsd Načítavanie EPG
@@ -1054,7 +1054,7 @@ menu.hint_ci Nastavovacie menu podmieneného pristupu\npre váš CI CAM alebo vl
 menu.hint_clock_background Zobrazenie hodín s farbami témy vzhľadu
 menu.hint_clock_format Zvolte formát zobrazenia času
 menu.hint_clock_mode Zapnutie alebo vypnutie zobrazenia hodín
-menu.hint_clock_seconds Zobraenie formátu času so sekundami
+menu.hint_clock_seconds Zobrazenie formátu času so sekundami
 menu.hint_clock_size Nastavenie veľkosti informačných hodín.
 menu.hint_clock_textcolor Nastavenie ferieb číslic
 menu.hint_color_gradient Prepne farebné prechody pre rôzne položky ponuky Zap/Vyp
@@ -1074,7 +1074,7 @@ menu.hint_epg_old_events Hodiny po skončení udalosti, kedy sa označí\nako st
 menu.hint_epg_read Načíta uložené EPG údaje po zavedení z externého zariadenia
 menu.hint_epg_save Uloženie EPG na disk alebo usb\pre načítanie po spustení
 menu.hint_epg_save_frequently Ukladanie EPG v pravidelných intervaloch na externé zariadenie
-menu.hint_epg_save_standby Uloženie EPG v režime pripravenosti
+menu.hint_epg_save_standby Uložiť EPG pred prechodom do pohotovostného režimu
 menu.hint_epg_scan Povolenie prehľadávania EPG na pozadí ak je voľný tuner
 menu.hint_epg_scan_mode Výber výsledku prijímača pre spustenie prehľadania EPG
 menu.hint_event_textcolor Zmena farby udalosti pre nastavenia farebnosti udalosti\nv zozname kanálov a stavovom riadku
@@ -1314,7 +1314,7 @@ menu.hint_record_apid_std Nahrá prvý zvukový pid
 menu.hint_record_apids Konfigurácia volieb zvukových pidov pre nahrávanie
 menu.hint_record_apply Použije voľby nahrávania
 menu.hint_record_auto_cover Automatické vytvorenie náhľadu pre filmový prehliadač na nahranom prehrávaní
-menu.hint_record_chandir Vytvoriťí adresár s názvom kanála\npre uloženie nahrávky
+menu.hint_record_chandir Vytvoriť zložku s názvom kanálu\npre uloženie nahrávky
 menu.hint_record_data Konfigurácia datových služieb (TeleText, Titulky) pre nahrávanie
 menu.hint_record_data_dvbsub Nahrá pid/stream s titulkami
 menu.hint_record_data_pmt PAT/PMT datový tok (MPEG-TS)
@@ -1354,7 +1354,7 @@ menu.hint_scan_autoall Prehľadanie niektorých vybraných satelitov
 menu.hint_scan_autoall_select Pridá vybrané satelity do prehľadávania
 menu.hint_scan_bouquet aktualizácia: pridá aktuálne bukety\nzmazať všetky:odstráni staré bukety, bez zmien: nepridá alebo nezmení
 menu.hint_scan_bouquet_writenames Zapísanie názvov služieb do buketov \n nikdy -> len obľúbené -> len poskytovateľ -> oba
-menu.hint_scan_bw Výber šírky pásma kanála
+menu.hint_scan_bw Výber šírky pásma kanálu
 menu.hint_scan_cable Výber káblovej siete na prehľadanie
 menu.hint_scan_cable_simple Káblové prehľadávanie s možnosťou\nčíslovania kanálov poskytovateľom
 menu.hint_scan_commited Výber potvrdeného vstupu pre\ntento satelit
@@ -1397,7 +1397,7 @@ menu.hint_scan_motorpos Výber čísla uloženej pozície pre\ntento satelit
 menu.hint_scan_nid Vloženie network ID (dekadicky)
 menu.hint_scan_nit Pridanie transpondérov zo sieťovej informácie
 menu.hint_scan_pids Hľadať a uložiť audio/video/PMT PIDy
-menu.hint_scan_pilot Výber parametra pilotu
+menu.hint_scan_pilot Výber parametru pilotného signálu (áno - ON, nie - OFF)
 menu.hint_scan_pol Výber polarizácie transpondéra
 menu.hint_scan_rate Zadanie symbolovej rýchlosti transpondéra
 menu.hint_scan_reset_numbers Resetovanie existujúcich čísel kanálov\na prečíslovanie kanálov po vyhľadaní
@@ -1424,7 +1424,7 @@ menu.hint_scan_useusals Použije USALS pre\ntento satelit
 menu.hint_scrambled_message Zobrazenie správy kódovania, pokiaľ kanál nebol dekódovaný
 menu.hint_screen_setup Konfigurácia okrajov obrazu
 menu.hint_screensaver_delay Nastaví čas (v minútach) po ktorom sa spustí šetrič obrazovky
-menu.hint_screensaver_dir Výber adresára v ktorom sa spustí šetrič obrazovky
+menu.hint_screensaver_dir Výber zložky v ktorej sa spustí šetrič obrazovky
 menu.hint_screensaver_timeout Výber času pre zmenu obrázkov v šetriči obrazovky
 menu.hint_screensaver_setup Konfigurácia vlastností šetriča obrazovky pre prehrávač zvuku a režim rádia
 menu.hint_screenshot_count Pokiaľ žiadny GUI na obrazovke, môže byť uložených 1-5\nsériových zosnímaní
@@ -1552,7 +1552,7 @@ miscsettings.epg_max_events_hint2 Normálne 6000, 0 pre zrušenie limitu
 miscsettings.epg_old_events Odstrániť neaktuálne EPG (hod.)
 miscsettings.epg_old_events_hint1 Ako dlho zapisovať EPG údaje po skončení?
 miscsettings.epg_old_events_hint2 Nastavenie v hodinách.
-miscsettings.epg_read Obnoviť EPG pri zavádzaní
+miscsettings.epg_read Obnoviť EPG po reštarte
 miscsettings.epg_save Uložiť EPG pred vypnutím
 miscsettings.epg_save_frequently Periodické ukladanie EPG
 miscsettings.epg_save_standby Uložiť EPG v pohotovostnom režime
@@ -2019,7 +2019,7 @@ personalize.pinstatus vyžaduje PIN
 personalize.plugins Doplnky
 personalize.usermenu_plugin_types Výber Doplnku pre zobrazenie
 personalize.usermenu_preferred_buttons Priradenie preferovaných kláves
-personalize.usermenu_show_cancel Zobraziť "Zrušiť" kláves
+personalize.usermenu_show_cancel Zobraziť klávesu "Zrušiť"
 personalize.visible Viditeľné
 pictureviewer.defdir Predvolená zložka
 pictureviewer.head Prehliadač obrázkov
@@ -2116,7 +2116,7 @@ recordingmenu.off vypnuté
 recordingmenu.pmt_pid nahrať PMT
 recordingmenu.record_is_not_running Žiadne nahrávanie nebeží!
 recordingmenu.record_is_running Nahrávanie beží!
-recordingmenu.save_in_channeldir Zapísanie do adresára kanálu
+recordingmenu.save_in_channeldir Nahrávanie do zložky s názvom kanálu
 recordingmenu.server server
 recordingmenu.server_mac Adresa MAC servera
 recordingmenu.setupnow Použi nastavenia
@@ -2166,7 +2166,7 @@ satsetup.fastscan_prov_telesat_l TeleSAT Luxemburg
 satsetup.fastscan_prov_tvv_hd TV Vlaanderen (HD)
 satsetup.fastscan_prov_tvv_sd TV Vlaanderen (SD)
 satsetup.fastscan_sd len SD
-satsetup.fe_mode Režim tuneru
+satsetup.fe_mode Mód tuneru
 satsetup.fastscan_type Typ prehľadávania
 satsetup.fastscan_update Automatická aktualizácia
 satsetup.fe_delsys_mode Režim odbavovacieho systému
@@ -2246,7 +2246,7 @@ scants.test Test signálu
 scants.transponders Transpondéry:
 scrambled_channel Kódovaný kanál
 screensaver.delay Oneskorenie
-screensaver.dir Adresár
+screensaver.dir Zložka
 screensaver.menu Šetrič obrazovky
 screensaver.timeout Zmena obrázkov
 screensetup.lowerright zelený = dolný, pravý okraj
