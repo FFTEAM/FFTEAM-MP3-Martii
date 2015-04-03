@@ -38,6 +38,7 @@
 #include <global.h>
 #include <neutrino.h>
 #include <gui/infoviewer.h>
+#include <gui/movieplayer.h>
 
 #include <driver/record.h>
 #include <driver/abstime.h>
@@ -120,6 +121,9 @@ int CRemoteControl::handleMsg(const neutrino_msg_t msg, neutrino_msg_data_t data
 //printf("[neutrino] timeout EVT_ZAP current %llx data %llx\n", current_channel_id, *(t_channel_id *)data);
 			if ((*(t_channel_id *)data) != current_channel_id) {
 				g_InfoViewer->chanready = 0;
+				if (!IS_WEBTV(current_channel_id))
+					g_Sectionsd->setServiceStopped();
+				CMoviePlayerGui::getInstance().stopPlayBack();
 				g_Zapit->zapTo_serviceID_NOWAIT(current_channel_id );
 				//g_Sectionsd->setServiceChanged(current_channel_id, false);
 
@@ -349,7 +353,7 @@ int CRemoteControl::handleMsg(const neutrino_msg_t msg, neutrino_msg_data_t data
 	else if (msg == NeutrinoMessages::EVT_TUNE_COMPLETE) {
 		t_channel_id chid = *(t_channel_id *)data;
 printf("CRemoteControl::handleMsg: EVT_TUNE_COMPLETE (%016" PRIx64 ")\n", chid);
-		if(chid)
+		if(chid && !IS_WEBTV(chid))
 			g_Sectionsd->setServiceChanged( chid, true );
 		else
 			g_Sectionsd->setServiceChanged( current_channel_id, true );
@@ -626,6 +630,7 @@ const std::string & CRemoteControl::setSubChannel(const int numSub, const bool f
 	g_InfoViewer->chanready = 0;
 	g_RCInput->killTimer(scrambled_timer);
 
+	CMoviePlayerGui::getInstance().stopPlayBack();
 	g_Zapit->zapTo_subServiceID_NOWAIT( current_sub_channel_id );
 	// Houdini: to restart reading the private EPG when switching to a new option
 	//g_Sectionsd->setServiceChanged( current_sub_channel_id , true );
@@ -699,11 +704,16 @@ void CRemoteControl::zapTo_ChannelID(const t_channel_id channel_id, const std::s
 	{
 		g_InfoViewer->chanready = 0;
 
-		CRecordManager::getInstance()->StopAutoRecord();
+		CRecordManager::getInstance()->StopAutoTimer();
+		if (channel_id != current_channel_id)
+			CRecordManager::getInstance()->StopAutoRecord();
 
 		g_RCInput->killTimer(scrambled_timer);
 		//dvbsub_pause(true);
 		CZapit::getInstance()->Abort();
+		if (!IS_WEBTV(channel_id))
+			g_Sectionsd->setServiceStopped();
+		CMoviePlayerGui::getInstance().stopPlayBack();
 		g_Zapit->zapTo_serviceID_NOWAIT(channel_id);
 
 		zap_completion_timeout = now + ZAP_GUARD_TIME;
@@ -721,7 +731,7 @@ void CRemoteControl::startvideo()
 	{
 		is_video_started= true;
 		//g_Zapit->startPlayBack();
-		CZapit::getInstance()->unlockPlayBack(true); /* TODO: check if sendpmt=false is correct in stopvideo() */
+		g_Zapit->unlockPlayBack(true); /* TODO: check if sendpmt=false is correct in stopvideo() */
 	}
 }
 
@@ -735,7 +745,7 @@ void CRemoteControl::stopvideo()
 		   lockPlayback prevents it from being inadvertently starting */
 		g_Zapit->stopPlayBack(false);
 #endif
-		CZapit::getInstance()->lockPlayBack(false); //g_Zapit->lockPlayBack(false);
+		g_Zapit->lockPlayBack(false);
 	}
 }
 
@@ -746,5 +756,6 @@ void CRemoteControl::radioMode()
 
 void CRemoteControl::tvMode()
 {
+printf("CRemoteControl::tvMode\n");
 	g_Zapit->setMode( CZapitClient::MODE_TV );
 }
