@@ -1333,6 +1333,7 @@ void CMovieBrowser::info_hdd_level(bool paint_hdd)
 	if (show_mode == MB_SHOW_YT || show_mode == MB_SHOW_NK)
 		return;
 
+/*
 	struct statfs s;
 	long	blocks_percent_used =0;
 	static long tmp_blocks_percent_used = 0;
@@ -1345,11 +1346,13 @@ void CMovieBrowser::info_hdd_level(bool paint_hdd)
 
 	if (tmp_blocks_percent_used != blocks_percent_used || paint_hdd) {
 		tmp_blocks_percent_used = blocks_percent_used;
+*/
+	if (g_settings.infobar_show_sysfs_hdd) {
 		const short pbw = 100;
 		const short border = m_cBoxFrameTitleRel.iHeight/4;
 		CProgressBar pb(m_cBoxFrame.iX+ m_cBoxFrameFootRel.iWidth - pbw - border, m_cBoxFrame.iY+m_cBoxFrameTitleRel.iY + border, pbw, m_cBoxFrameTitleRel.iHeight/2);
 		pb.setType(CProgressBar::PB_REDRIGHT);
-		pb.setValues(blocks_percent_used, 100);
+		pb.setValues(cHddStat::getInstance()->getPercent(), 100);
 		pb.paint(false);
 	}
 
@@ -3445,7 +3448,7 @@ void CMovieBrowser::refreshYTMenu()
 		yt_menue->addItem(new CMenuForwarder(LOCALE_MOVIEBROWSER_YT_CANCEL, true, NULL, ytcache_selector, "cancel_all"));
 		yt_menue->addItem(GenericMenuSeparator);
 		std::string progress;
-		if (dlstart && dltotal && dlnow) {
+		if (dlstart && (int64_t)dltotal && (int64_t)dlnow) {
 			time_t done = time(NULL) - dlstart;
 			time_t left = ((dltotal - dlnow) * done)/dlnow;
 			progress = "(" + to_string(done) + "s/" + to_string(left) + "s)";
@@ -3977,10 +3980,10 @@ CDirMenu::CDirMenu(std::vector<MB_DIR>* dir_list)
 	if (dirList->empty())
 		return;
 
-	for (i = 0; i < MAX_DIR; i++)
+	for (i = 0; i < MB_MAX_DIRS; i++)
 		dirNfsMountNr[i] = -1;
 
-	for (i = 0; i < dirList->size() && i < MAX_DIR; i++)
+	for (i = 0; i < dirList->size() && i < MB_MAX_DIRS; i++)
 	{
 		for (int nfs = 0; nfs < NETWORK_NFS_NR_OF_ENTRIES; nfs++)
 		{
@@ -4014,7 +4017,7 @@ int CDirMenu::exec(CMenuTarget* parent, const std::string & actionKey)
 	{
 		printf("[CDirMenu].exec %s\n",actionKey.c_str());
 		int number = atoi(actionKey.c_str());
-		if (number < MAX_DIR)
+		if (number < MB_MAX_DIRS)
 		{
 			if (dirState[number] == DIR_STATE_SERVER_DOWN)
 			{
@@ -4064,7 +4067,7 @@ void CDirMenu::updateDirState(void)
 	unsigned int drivefree = 0;
 	struct statfs s;
 
-	for (unsigned int i = 0; i < dirList->size() && i < MAX_DIR; i++)
+	for (unsigned int i = 0; i < dirList->size() && i < MB_MAX_DIRS; i++)
 	{
 		dirOptionText[i] = "UNBEKANNT";
 		dirState[i] = DIR_STATE_UNKNOWN;
@@ -4131,7 +4134,7 @@ int CDirMenu::show(void)
 	dirMenu.addIntroItems(LOCALE_MOVIEBROWSER_MENU_DIRECTORIES_HEAD);
 
 	updateDirState();
-	for (unsigned int i = 0; i < dirList->size() && i < MAX_DIR; i++)
+	for (unsigned int i = 0; i < dirList->size() && i < MB_MAX_DIRS; i++)
 	{
 		snprintf(tmp, sizeof(tmp),"%d",i);
 		dirMenu.addItem(new CMenuForwarder ((*dirList)[i].name.c_str(), (dirState[i] != DIR_STATE_UNKNOWN), dirOptionText[i], this, tmp));
