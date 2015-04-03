@@ -4,7 +4,7 @@
 	Copyright (C) 2001 Steffen Hehn 'McClean'
 	Homepage: http://dbox.cyberphoria.org/
 
-	Bugfixes/cleanups (C) 2007-2013 Stefan Seyfried
+	Bugfixes/cleanups (C) 2007-2013,2015 Stefan Seyfried
 	(C) 2008 Novell, Inc. Author: Stefan Seyfried
 
 	Kommentar:
@@ -249,9 +249,21 @@ void CInfoViewer::changePB()
 
 void CInfoViewer::initClock()
 {
+	static int gradient = g_settings.gradiant;
+
+	if (gradient != g_settings.gradiant && clock != NULL) {
+		gradient = g_settings.gradiant;
+		clock->clearSavedScreen();
+		delete clock;
+		clock = NULL;
+	}
+
 	if (clock == NULL){
 		clock = new CComponentsFrmClock();
-		clock->doPaintBg(true);
+		clock->doPaintBg(!gradient);
+		clock->enableTboxSaveScreen(gradient);
+		if (time_width)
+			clock->setWidth(time_width);
 	}
 
 	clock->setColorBody(COL_INFOBAR_PLUS_0);
@@ -403,6 +415,9 @@ void CInfoViewer::paintBackground(int col_NumBox)
 			      COL_INFOBAR_PLUS_0, c_rad_large,
 			      CORNER_TOP_RIGHT | (showButtonBar ? 0 : CORNER_BOTTOM));
 
+	if (g_settings.gradiant)
+		paintHead();
+
 	// number box
 	frameBuffer->paintBoxRel(BoxStartX + SHADOW_OFFSET, BoxStartY + SHADOW_OFFSET,
 				 ChanWidth, ChanHeight,
@@ -410,6 +425,18 @@ void CInfoViewer::paintBackground(int col_NumBox)
 	frameBuffer->paintBoxRel(BoxStartX, BoxStartY,
 				 ChanWidth, ChanHeight,
 				 col_NumBox, c_rad_mid);
+}
+
+void CInfoViewer::paintHead()
+{
+	CComponentsHeader header(ChanInfoX, ChanNameY, BoxEndX-ChanInfoX, time_height, "");
+
+	header.setCaption("");
+
+	clock->setTextColor(header.getTextObject()->getTextColor());
+	clock->setColorBody(header.getColorBody());
+
+	header.paint(CC_SAVE_SCREEN_NO);
 }
 
 void CInfoViewer::show_current_next(bool new_chan, int  epgpos)
@@ -719,7 +746,7 @@ void CInfoViewer::showTitle (const int ChanNum, const std::string & Channel, con
 	last_curr_id = last_next_id = 0;
 	showButtonBar = !calledFromNumZap;
 
-	fileplay = (ChanNum == 0);
+	fileplay = (ChanNum == 0) && !CMoviePlayerGui::getInstance().Playing();
 	newfreq = true;
 
 	reset_allScala();
@@ -940,6 +967,9 @@ void CInfoViewer::loop(bool show_dot)
 	if (isVolscale)
 		CVolume::getInstance()->showVolscale();
 
+	if (clock)
+		clock->setBlit();
+
 	while (!(res & (messages_return::cancel_info | messages_return::cancel_all))) {
 		frameBuffer->blit();
 		g_RCInput->getMsgAbsoluteTimeout (&msg, &data, &timeoutEnd);
@@ -994,11 +1024,7 @@ void CInfoViewer::loop(bool show_dot)
 			res = CNeutrinoApp::getInstance()->handleMsg(msg, data);
 		} else if (!fileplay && !CMoviePlayerGui::getInstance().timeshift) {
 			CNeutrinoApp *neutrino = CNeutrinoApp::getInstance ();
-#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
-			if ((msg == (neutrino_msg_t) g_settings.key_quickzap_up) || (msg == (neutrino_msg_t) g_settings.key_quickzap_down) || (msg == CRCInput::RC_left)  || (msg == CRCInput::RC_right) || (msg == CRCInput::RC_page_up) || (msg == CRCInput::RC_page_down) || (msg == CRCInput::RC_0) || (msg == NeutrinoMessages::SHOW_INFOBAR)) {
-#else
 			if ((msg == (neutrino_msg_t) g_settings.key_quickzap_up) || (msg == (neutrino_msg_t) g_settings.key_quickzap_down) || (msg == CRCInput::RC_0) || (msg == NeutrinoMessages::SHOW_INFOBAR)) {
-#endif
 				hideIt = false; // default
 				if ((g_settings.radiotext_enable) && (neutrino->getMode() == NeutrinoMessages::mode_radio))
 					hideIt =  true;
@@ -1061,6 +1087,9 @@ void CInfoViewer::loop(bool show_dot)
                 }
 #endif
 	}
+
+	if (clock)
+		clock->setBlit(false);
 
 	if (hideIt) {
 		CVolume::getInstance()->hideVolscale();
@@ -1350,7 +1379,7 @@ int CInfoViewer::handleMsg (const neutrino_msg_t msg, neutrino_msg_data_t data)
 {
 	if ((msg == NeutrinoMessages::EVT_CURRENTNEXT_EPG) || (msg == NeutrinoMessages::EVT_NEXTPROGRAM)) {
 //printf("CInfoViewer::handleMsg: NeutrinoMessages::EVT_CURRENTNEXT_EPG data %llx current %llx\n", *(t_channel_id *) data, channel_id & 0xFFFFFFFFFFFFULL);
-		if ((*(t_channel_id *) data) == (channel_id & 0xFFFFFFFFFFFFULL)) {
+		if (!CMoviePlayerGui::getInstance().Playing() && (*(t_channel_id *) data) == (channel_id & 0xFFFFFFFFFFFFULL)) {
 			getEPG (*(t_channel_id *) data, info_CurrentNext);
 			if (is_visible)
 				show_Data (true);
@@ -2211,7 +2240,7 @@ void CInfoViewer::showEpgInfo()   //message on event change
 {
 	int mode = CNeutrinoApp::getInstance()->getMode();
 	/* show epg info only if we in TV- or Radio mode and current event is not the same like before */
-	if ((eventname != info_CurrentNext.current_name) && (mode == 2 /*mode_radio*/ || mode == 1 /*mode_tv*/))
+	if ((eventname != info_CurrentNext.current_name) && (mode == NeutrinoMessages::mode_radio || mode == NeutrinoMessages::mode_tv))
 	{
 		eventname = info_CurrentNext.current_name;
 		if (g_settings.infobar_show)
