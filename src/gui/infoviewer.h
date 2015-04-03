@@ -62,7 +62,6 @@ class CInfoViewer
 	int            InfoHeightY;
 	bool	       fileplay;
 
-	int            BoxStartX;
 	int            ButtonWidth;
 
         // dimensions of radiotext window
@@ -75,9 +74,6 @@ class CInfoViewer
 	
 	std::string ChannelName;
 
-	int            ChanNameX;
-	int            ChanNameY;
-	int            ChanWidth;
 
 	CSectionsdClient::CurrentNextInfo info_CurrentNext;
 	CSectionsdClient::CurrentNextInfo oldinfo;
@@ -86,7 +82,6 @@ class CInfoViewer
 	//uint32_t           fadeTimer;
 	COSDFader	fader;
 
-	int time_width;
 	int time_height;
 	int info_time_width;
 
@@ -106,6 +101,7 @@ class CInfoViewer
 	uint32_t lcdUpdateTimer;
 
 	void paintBackground(int col_Numbox);
+	void paintHead();
 	void show_Data( bool calledFromEvent = false );
 	void display_Info(const char *current, const char *next, bool UTF8 = true,
 			  bool starttimes = true, const int pb_pos = -1,
@@ -143,9 +139,13 @@ class CInfoViewer
 	bool	 virtual_zap_mode;
 	char     aspectRatio;
 	uint32_t sec_timer_id;
+	int      BoxStartX;
 	int      BoxStartY;
+	int      time_width;
 	int      ChanHeight;
-
+	int            ChanNameX;
+	int            ChanNameY;
+	int            ChanWidth;
 	int      BoxEndX;
 	int      BoxEndY;
 	int      ChanInfoX;
