@@ -459,10 +459,14 @@ void CFEManager::linkFrontends(bool init)
 		}
 		if (init && femode != CFrontend::FE_MODE_UNUSED)
 			fe->Init();
-		if (femode != CFrontend::FE_MODE_UNUSED) {
+		if (femode != CFrontend::FE_MODE_UNUSED)
+		{
 			enabled_count++;
 			if ((fe->fenumber + 1) < (int) MAX_DMX_UNITS)
 				demuxes[fe->fenumber + 1] = 1;
+		}
+		else {	/* unused -> no need to keep open */
+			fe->Close();
 		}
 	}
 	for(unsigned i = 0; i < MAX_DMX_UNITS; i++) {
@@ -478,7 +482,7 @@ void CFEManager::Open()
 {
 	for(fe_map_iterator_t it = femap.begin(); it != femap.end(); it++) {
 		CFrontend * fe = it->second;
-		if(!fe->Locked())
+		if (!fe->Locked() && fe->getMode() != CFrontend::FE_MODE_UNUSED)
 			fe->Open(true);
 	}
 }

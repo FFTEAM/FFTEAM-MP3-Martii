@@ -6,6 +6,7 @@ AM_CPPFLAGS += \
 	-I$(top_srcdir)/src \
 	-I$(top_srcdir)/src/zapit/include \
 	-I$(top_srcdir)/lib \
+	-I$(STB_HAL_INC) \
 	-I$(top_srcdir)/lib/libconfigfile \
 	-I$(top_srcdir)/lib/connection \
 	-I$(top_srcdir)/lib/libeventserver \
@@ -38,6 +39,9 @@ endif
 bin_PROGRAMS = pzapit
 sbin_PROGRAMS = udpstreampes
 
+pzapit_LDFLAGS = \
+	$(STB_HAL_LIB)
+
 pzapit_SOURCES = \
 	pzapit.cpp
 
@@ -46,6 +50,9 @@ pzapit_LDADD = \
 	$(top_builddir)/lib/connection/libtuxbox-connection.a \
 	-lOpenThreads \
 	-lpthread
+
+udpstreampes_LDFLAGS = \
+	$(STB_HAL_LIB)
 
 udpstreampes_SOURCES = \
 	udpstreampes.cpp

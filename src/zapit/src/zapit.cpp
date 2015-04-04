@@ -644,7 +644,7 @@ bool CZapit::ZapIt(const t_channel_id channel_id, bool forupdate, bool startplay
 	if (startplayback /* && !we_playing*/)
 		StartPlayBack(current_channel);
 
-	printf("[zapit] sending capmt....\n");
+	//printf("[zapit] sending capmt....\n");
 
 	SendPMT(forupdate);
 	//play:
@@ -1300,6 +1300,7 @@ bool CZapit::ParseCommand(CBasicMessage::Header &rmsg, int connfd)
 
 	case CZapitMessages::CMD_GET_DELIVERY_SYSTEM: {
 		CZapitMessages::responseDeliverySystem response;
+		VALGRIND_PARANOIA(response);
 		response.system = live_fe->getCurrentDeliverySystem();
 		CBasicServer::send_data(connfd, &response, sizeof(response));
 		break;
@@ -1940,6 +1941,16 @@ bool CZapit::ParseCommand(CBasicMessage::Header &rmsg, int connfd)
 			audioDecoder->unmute();
 		break;
 	}
+	case CZapitMessages::CMD_LOCKRC: {
+		CZapitMessages::commandBoolean msgBoolean;
+		CBasicServer::receive_data(connfd, &msgBoolean, sizeof(msgBoolean));
+		extern CRCInput *g_RCInput;
+		if (msgBoolean.truefalse)
+			g_RCInput->stopInput();
+		else
+			g_RCInput->restartInput();
+		break;
+	}
 
 	case CZapitMessages::CMD_SET_VOLUME: {
 		CZapitMessages::commandVolume msgVolume;
@@ -2194,13 +2205,7 @@ bool CZapit::StartPlayBack(CZapitChannel *thisChannel)
 		CFEManager::getInstance()->Open();
 		return true;
 	}
-#if 0
-	if (IS_WEBTV(thisChannel->getChannelID())) {
-		INFO("WEBTV channel\n");
-		SendEvent(CZapitClient::EVT_WEBTV_ZAP_COMPLETE, &live_channel_id, sizeof(t_channel_id));
-		return true;
-	}
-#endif
+
 	unsigned short pcr_pid = thisChannel->getPcrPid();
 	unsigned short audio_pid = thisChannel->getAudioPid();
 	unsigned short video_pid = (currentMode & TV_MODE) ? thisChannel->getVideoPid() : 0;
@@ -2276,12 +2281,6 @@ bool CZapit::StopPlayBack(bool send_pmt, bool blank)
 	if(send_pmt)
 		CCamManager::getInstance()->Stop(live_channel_id, CCamManager::PLAY);
 
-#if 0
-	if (current_channel && IS_WEBTV(current_channel->getChannelID())) {
-		playing = false;
-		return true;
-	}
-#endif
 
 	if (!playing)
 		return true;
