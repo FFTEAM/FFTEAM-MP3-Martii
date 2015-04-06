@@ -1,0 +1,599 @@
+#	yWeb language file (French/Francais) by shanthi FFTEAM
+#	$Date$
+#	$Revision$
+=========== GENERAL / GLOBAL
+global.no_iframes=Votre Browser ne supporte pas les iframes.
+clear=effacer
+submit=Ex&eacute;cuter
+action=Action
+user=Utilisateur
+password=Mot de passe
+language=Langue
+general=g&eacute;n&eacute;ral
+logos=Logos
+url=URL
+server=Serveur
+refreshing=mettre a&aacute; jour ...
+refresh=Mettre a&aacute; jour
+record=enregistrer
+zap=zap
+lookup=chercher
+save_values_desc=Envoi et m&eacute;moriser les valeurs
+save_values=Les valeurs sont prises ...
+administration=Administration
+normal=Normal
+management=Management
+uninstaller=D&eacute;sinstaller
+send=Envoi
+save=Enregistrer
+save_all=Enregistrer toutes les modifications
+cancel=Annuler
+apply=Appliquer les modifications
+apply_desc=Re-lit le fichier de configuration du neutrino
+answer=R&eacute;ponse
+reboot=Red&eacute;marrer
+shutdown=&Eacute;teindr
+status=Statut
+restart=red&eacute;marrage
+on=Marche
+off=Arr&egrave;t
+download=t&eacute;l&eacute;charger
+back=arri&egrave;re
+date=Date
+from=&aacute; partir de
+to=&aacute;
+program=Chaine t&eacute;l&eacute;
+others=Autres
+description=Description
+color=Couleur
+tag=D&eacute;signation
+empty=vide
+check=V&eacute;rifier
+help=Aide
+attention=Attention!
+directory=Directory
+filename=Nom du fichier
+restriced_by_management_ip=Restriced par la direction ip
+automatic=automatique
+show=afficher
+hide=cacher
+
+# ==========Main Menue
+main.boxcontrol=Contr&ocirc;le de la box
+main.boxcontrol_desc=Contr&ocirc;le de la box & Bouquets
+main.live=Live
+main.live_desc=LiveView, Liste des enregistrements, EPG
+main.tools=Outils
+main.tools_desc=Mounts, WOL, Outils Experts, Flashen
+main.settings=R&eacute;glages
+main.settings_desc=Param&egrave;tres de la Box, serveur web, ...
+main.extensions=Extensions
+main.extensions_desc=Les extensions install&eacute;es et administration
+main.info=Infos
+main.info_desc=Informations sur le yWebet la version
+main.live_tv_desc=LiveTV
+main.live_tv_popup_desc=LiveTV Popup
+main.remote_full_desc=T&eacute;l&eacute;commande  & OSD plein Écran
+main.stream_to_vlc_client_desc=Live TV directement dans le client VLC
+main.version=Version
+
+#========= Boxcontrol Menue
+bc.menue.bouquets_desc=Choisir Chaine t&eacute;l&eacute;
+bc.menue.bouquets=Chaine t&eacute;l&eacute;
+bc.menue.control_desc=Fonctions de box (red&eacute;marrage, mode d'enregistrement,...)
+bc.menue.control=Contr&ocirc;le
+bc.menue.messages_desc=Envoyer un message aux Box
+bc.menue.messages=Messages
+bc.menue.remote_desc=T&eacute;l&eacute;commande
+bc.menue.remote=T&eacute;l&eacute;commande
+bc.menue.lcd_screenshot_desc=Cr&eacute;er une capture d&acute;&eacute;cran de LCD
+bc.menue.lcd_screenshot=capture d&acute;&eacute;cran de LCD
+bc.menue.lcd_screenshot_desc_ni=lcshot ne est pas install&eacute; dans /bin ou /var/bin
+bc.menue.screenshot=Capture d&acute;&eacute;cran
+bc.menue.screenshot_desc=Faites une capture d&acute;&eacute;cran de l&acute;OSD et / ou l&acute;image du t&eacute;l&eacute;viseur
+
+bc.menue.decrease_volume=Diminuer le volume
+bc.menue.increase_volume=Augmenter le volume
+bc.menue.mute_volume=Volume on / off
+bc.menue.switch_to_tv=Passer &aacute; la t&eacute;l&eacute;vision
+bc.menue.switch_to_radio=Passer &aacute; la radio
+bc.menue.webinf_slavebox=Webinterface des SlaveBox
+bc.menue.volumen_display=Affiche le volume
+
+bc.menue.signal=la force du signal
+
+========= Boxcontrol
+bc.control.freemem=FreeMem
+bc.control.lock=bloquer
+bc.control.unlock=ouvrir
+bc.control.standby_mode=Mode veille
+bc.control.recording_mode=Mode d&acute;enregistrement
+bc.control.box=Box
+bc.control.remote=T&eacute;l&eacute;commande
+bc.control.playback=Lancer
+bc.control.epg_sectiond=Section EPG
+bc.control.live_lock=bloquer Live
+bc.control.reboot.ask=Vraiment red&eacute;marrer la box?
+bc.control.reboot=Red&eacute;marrer
+bc.control.shutdown.ask=Vraiment &eacute;teint la box?
+bc.control.shutdown=&Eacute;teint
+bc.control.status=Statut
+bc.control.restart=D&eacute;marrer
+
+========= Boxcontrol - Message
+bc.msg.message_to_screen_desc=Entrez votre message
+bc.msg.message_to_screen=Message &acute; l&acute;&eacute;cran
+bc.msg.popup_to_screen=Popup &acute; l&acute;&eacute;cran
+bc.msg.send_message=Envoyer un message
+
+======== Boxcontrol - Screenshot
+bc.screenshot.create=Instantan&eacute;
+bc.screenshot.delete=supprimer l&acute;instantan&eacute;
+bc.screenshot.zoom=Zoom Instantan&eacute;
+bc.screenshot.wait_text=Instantan&eacute; est cr&eacute;&eacute;
+bc.screenshot.checkenable=OSD et / ou la t&eacute;l&eacute;vision doit &ecirc;tre activ&eacute;!
+
+========= Boxcontrol - Others
+bc.channels=Chaine t&eacute;l&eacute;
+
+====== EXtension
+ext.installer_updater=Installation
+ext.uninstaller=D&eacsinstaller extensions
+ext.search_for_ext=Recherche d&acute;extensions ...
+ext.installed_extensions=Extensions install&eacute;es
+ext.type=Type
+ext.extension=Extensions
+ext.tag=Jour
+ext.version=Version
+ext.size=Taille/k
+ext.uninstall=D&eacute;sinstaller
+ext.info=Info
+ext.free=Libre
+ext.action=Action
+ext.status=Statut
+ext.preview=Nouveaux param&eacute;tres extension (preview)
+ext.update_preview=Mettre &aacute; jour preview
+ext.your=Votre
+ext.update=Courant
+ext.update_install = mise &aacute; jour / l&acute;installation
+ext.site=Site
+ext.refresh_now=Param&egrave;ètres enregistr&eacute;s. Mettre &aacute; jour les menus.
+ext.ext_saved=Param&egrave;tres d&acute;extension enregistr&eacute;s
+
+====== Bouquet
+bou.bouquets_must_be_saved=Tous les changements doivent &ecirc;tre sauvegard&eacute;s!
+bou.bouquet_editor=Bouquet-Editeur
+bou.bouquet_add=Ajouter bouquet
+bou.name_of_bouquet=Nom des nouveaux bouquets
+bou.rename_bouquet=Renommer bouquet
+bou.move_up=en haut
+bou.move_down=vers le bas
+bou.remove=Enlever
+bou.delete=Supprimer
+bou.add=Ajouter
+bou.rename=Renommer
+bou.bouqets_saved=Liste bouquet enregistr&eacute;s
+bou.delete1=Bouquet
+bou.delete2=vraiment supprimer?
+bou.no_bouquet_name=Il n&acute;a pas &eacute;t&eacute; pr&eacute;cis&eacute;e le nom bouquet.
+
+========EPG
+epg.get_epg=Obtenir EPG ...
+epg.epg_plus=EPG plus
+epg.select_bouquet=S&eacute;lectionner bouquet - cha&icirc;nes de t&eacute;l&eacute;vision sont actualis&eacute;es
+epg.hover_for_details=Passez la souris sur le programme correspondant: pour plus de d&eacute;tails.
+epg.refresh=Mettre &aacute; jour des donn&eacute;es EPG
+epg.past_hours=Heures arri&egrave;re
+epg.next_hours=Heures avant
+epg.set_timer=Enregistrement par minuterie est r&eacute;gl&eacute;e.
+epg.zap_to=Zap-minuterie a &eacute;t&eacute; cr&eacute;&eacute;.
+
+========EPG Streaminfo
+epg.si.streaminfo=Infos flux
+epg.si.resolution=R&eacute;solution
+epg.si.ratio=proportion
+epg.si.fps=fr&eacute;quence d&acute;images
+epg.si.audiotype=Type audio
+epg.si.frequence=Fr&eacute;quence
+epg.si.onid=ID r&eacute;seau d&acute;origine
+epg.si.sid=ID du service
+epg.si.tsid=Transpondeur Stream ID
+epg.si.vpid=Video PID
+epg.si.pmtpid=Program Map Table PID
+epg.si.pcrpid=Program Clock Reference PID
+epg.si.apid=Audio PID
+epg.si.vtxtpid=T&eacute;l&eacute;texte PID
+epg.si.crypt=Crypt Systeme
+
+========Neutrino Settings
+set.reload_neutrino=Actualiser Neutrino
+set.reboot_required=Red&eacute;marrage n&eacute;cessaire
+set.sync_with_neutrino_desc=After changing settings via yWeb: <br/>Choose on TV "Main Menu->Service->Soft restart", to accept the changes within neutrino.<br/><br/>After changing settings within Neutrino: <br/>Choose on TV "Main Menu->Settings->Save settings now", to accept these changes and reload this page.
+set.sync_with_neutrino=Pour synchroniser avec Neutrino
+
+========Settings General & Menue
+set.menue.webserver=Webserver
+set.menue.epg=EPG
+set.menue.timer_settings=R&eacute;glages minuteur
+set.menue.zapit=Zapit
+set.menue.backup_restore=Sauvegarde et restauration
+set.menue.bouquet_editor=Bouquet-Editeur
+set.menue.video_audio=Vid&eacute;o/Audio
+set.menue.parental=Protection des jeunes
+set.menue.direct_recording=Enregistrer directement
+set.menue.recording=Enregistrement
+set.menue.audio_player=Lecteur Audio
+set.menue.movieplayer=Lecteur vid&eacute;o
+set.menue.pictureviewer=visualiseur d&acute;images
+set.menue.lcd_display=LC-Display
+set.menue.key_settings=Assignations de touches
+set.menue.boot_options=options de d&eacute;marrage
+set.menue.peronalization=Personnalisation
+set.menue.plugins=Plugins
+set.menue.others=Miscellaneous
+========Neutrino Settings - Recording
+set.rec.rec_dest=Chemin de l&acute;enregistrement
+set.rec.device=Appareil d&acute;enregistrement
+set.rec.recmode=mode d&acute;enregistrement
+set.rec.server=Serveur
+set.rec.recorder=Magn&eacute;toscope
+set.rec.file=Fichier
+set.rec.recserver_ip=IP du serveur d&acute;enregistrement
+set.rec.recserver_port=Port du serveur d&acute;enregistrement
+set.rec.recserver_wol=Serveur WOL d&acute;enregistrement
+set.rec.mac_adress=MAC Adresse
+set.rec.rec_behavior=Mani&egrave;re d&acute;enregistrement
+set.rec.stop_playback=Arr&eacute;t de la lecture
+set.rec.epg_sectionsd_desc=sectionsd: Marcher/Arr&ecirc;t/Redémarrage
+set.rec.epg_sectionsd=EPG (Sectionsd)
+set.rec.dont_stop=ne pas arr&ecirc;ter
+set.rec.stop=arr&ecirc;ter
+set.rec.restart=redémarrage
+set.rec.zap=Zap si announcement
+set.rec.scart=R&eacute;primer interrupteur p&eacute;ritel
+set.rec.spts=Enregistrer en mode SPTS
+set.rec.timer_settings=R&eacute;glages minuteur
+set.rec.start_delay=Correction enregistrement  (d&eacute;but) (en sec.)
+set.rec.stop_delay=Correction enregistrement (fin)  (en sec.)
+set.rec.zap_delay=(d&eacute;but) zap-correction (en sec.)
+set.rec.audio_channels=Pistes audio
+set.rec.audio_standard=Enregistrement audio (standard)
+set.rec.audio_alternate=Enregistrement audio (alternative)
+set.rec.audio_ac3=Enregistrement audio (AC3)
+set.rec.channeldir=Enregistrer dans liste des chaines
+set.rec.epg_end=Enregistrement jusqu&acute;&agrave;; fin EPG
+set.rec.recordtime=Dur&eacute;e d&acute;enregistrement en heures
+set.rec.timeshift_desc=Timeshift
+set.rec.timeshift.pause=Commencer avec bouton de pause
+set.rec.timeshift.auto_record=Enregistrement autom. (en sec, 0=d&eacute;sactiv&eacute;e)
+set.rec.timeshift.auto_delete=Supprimer automatique Löschen
+set.rec.timeshift.tmp_timeshift=Timeshift temporaire
+
+========Neutrino Settings - Movieplayer
+set.mp.sources=Sources
+set.mp.streamingserver_ip=Streamingseurver IP
+set.mp.streamingserver_port=Streamingseurver Port
+set.mp.streamingserver=Streamingseurver
+set.mp.dvd_device=Lecteur de DVD
+set.mp.vlc_dir=R&eacute;pertoire (VLC)
+set.mp.transcoding=Transcodage
+set.mp.video_datarate=D&eacute;bit de donn&eacute;es vid&eacute;o
+set.mp.transcode=Transcodage
+set.mp.video_codec=MPEG Vid&eacute;o codec
+set.mp.resolution=R&eacute;solution
+set.mp.audio_datarate=D&eacute;bit de donn&eacute;es Audio
+set.mp.transcode_audio=Transcodage Audio (dvd/vcd/mpg)
+set.mp.force_ac3=Force AC3 (avi)
+set.mp.player=Player
+set.mp.start_directory=R&eacute;pertoire accueil
+set.mp.only_movieplayer=Seulement Movieplayer1
+set.mp.used_buffer=Utiliser un tampon (WabberQueue)
+set.mp.number_buffersegments=Nombre de segments tampons
+set.mp.picture_in_browser=Image TV dans le navigateur
+
+========Neutrino Settings - Parental
+set.parental.activate=Activer
+set.parental.type.never=Jamais
+set.parental.type.bouquet=Bouquet
+set.parental.type.preset=Pr&eacute;d&eacute;fini
+set.parental.minimum_age=&Acirc;ge minimum
+set.parental.pin=PIN
+
+========Settings NHTTP
+set.nhttpd.webserver=Webseurver
+set.nhttpd.authentication=Authentification
+set.nhttpd.client_without_authentication_desc=Ordinateur sans authentification. Saisissez l&acute;adresse IP de l&acute;ordinateur.
+set.nhttpd.client_without_authentication=Ordinateur sans authentification
+set.nhttpd.active_after_boot=Active apr&egrave;s le red&eacute;marrage
+set.nhttpd.port=Port
+set.nhttpd.threading=Threading
+set.nhttpd.alternate_web_folder=Dossier web alternatif
+set.nhttpd.hosted_folder=R&eacute;pertoire pr&eacute;mont&eacute;
+set.nhttpd.allowed_file_extensions=Extensions de fichiers autoris&eacute;s / MIME
+set.nhttpd.allow_all_file_extensions=Autoriser toutes les extensions de fichiers
+set.nhttpd.url_of_logos_desc=Entrez votre adresse internet (URL) ou le r&eacute;pertoire de logos
+set.nhttpd.url_of_logos=adresse internet (URL) ou le r&eacute;pertoire de logos
+set.nhttpd.server=Serveur
+set.nhttpd.ips_without_keep_alive_desc=(par ex JtG Serveur, s&eacute;parez par des virgules)
+set.nhttpd.ips_without_keep_alive=IPs avec No keep-alive
+set.nhttpd.cache=Cache
+set.nhttpd.cache_info=Informationen Cache
+set.nhttpd.clear_cache=Effacer Cache
+set.nhttpd.server_configuration=Configuration du serveur
+set.nhttpd.check_password=Mot de passe doit avoir 4 caract&egrave;res min.
+set.nhttpd.check_port=Port doit &ecirc;tre sp&eacute;cifi&eacute;
+
+=========Settings yWeb
+set.yweb.enter_ip_desc=Saisir l&acute;adresse IP (xxx.xxx.xxx.xxx)
+set.yweb.enter_mac_desc=Saisir l&acute;adresse MAC (xx:xx:xx:xx:xx:xx)
+set.yweb.description=D&eacute;signation
+set.yweb.enter_description_desc=Saisir description
+set.yweb.management_IPs=Management IPs
+set.yweb.wake_on_lan=Wake on Lan
+set.yweb.box_tag_desc=Nom de la Box Name dans haut-Menu.
+set.yweb.box_tag=D&eacute;signation du Box
+set.yweb.box_color_desc=Couleur du nom de la box dans le haut menu. par ex Saisir 2188e0 sans #
+set.yweb.box_color=Couleur
+set.yweb.start_page=Page d&acute;accueil
+set.yweb.remote=T&eacute;l&eacute;commande
+
+========Settings Picture viewer
+set.pv.pictureviewer=Visualiseur d&acute;images
+set.pv.scale=&Eacute;caillage
+set.pv.scale.none=aucune
+set.pv.scale.simple=simple
+set.pv.scale.complex=complexe
+set.pv.slideshow_duration=Dur&eacute;e diaporama
+set.pv.start_dir=Start-R&eacute;pertoire
+set.pv.decoding_server_ip=D&eacute;codage IP du serveur
+set.pv.decoding_server_port=D&eacute;codage serveur Port</td>
+
+========Settings Audioplayer
+set.ap.audioplayer=Audioplayer
+set.ap.display_order.actor_title=Artiste, Titre
+set.ap.display_order.title_actor=Titre, Artiste
+set.ap.display_order=Affichage
+set.ap.select_actual_track=S&eacute;lectionner la piste actuelle
+set.ap.search_by_name=Recherche par nom titres
+set.ap.repeat_mode=Activer mode r&eacute;p&eacute;tition
+set.ap.show_playlist=Afficher liste de lecture
+set.ap.screensaver=&Eacute;conomiseur d&acute;&eacute;cran (min, 0=arr&egrave;t)
+set.ap.decode_priority=Haute priorit&eacute; de d&eacute;codage
+set.ap.start_dir=R&eacute;pertoire accueil
+set.ap.parse_shoutcast=Shoutcast m&eacute;tadonn&eacute;es
+
+========Settings Timer
+set.timer.header=R&eacute;glages minuteur
+set.timer.username=Identifiant
+set.timer.password=Mot de passe
+set.timer.klack.url_desc=("&" va se converti lors de l'enregistrement à ";")
+set.timer.klack.url=Personal RSS TV planificateur URL
+set.timer.klack.security_code_desc=Klack code de s&eacute;curit&eacute;
+set.timer.klack.security_code=Code de s&eacute;curit&eacute;
+set.timer.channel_name_replacelist=Nom de chaine de la liste de substitution
+
+========Settings Backup/Restore
+set.settings.backup=Sauvegarde
+set.settings.backup_desc=Sauvegarder des r&eacute;glages
+set.settings.restore=Restaurer
+set.settings.restore_desc=T&eacute;l&eacute;charge (upload) et restaurer une sauvegarde vous avez cr&eacute;&eacute; pr&eacute;c&eacute;demment. Votre box red&eacute;marre &agrave; nouveau.
+set.settings.warning=Sauvegarder et restaurer est fortement d&eacute;conseill&eacute;e dans un seul m&ecirc;me image avec le m&ecirc;me niveau de d&eacute;veloppement.
+
+============ Tools Info
+tools.info.show_messages=Messages du noyau
+tools.info.processes=Processus
+tools.info.memory=M&eacute;moire
+tools.info.cpu_info=Info CPU
+tools.info.mem_info=Info M&eacute;moire
+tools.info.partitions=Partition
+tools.info.mtd=mtd
+tools.info.stat=Statistique
+tools.info.version=Version
+
+============ Tools yInstaller
+tools.yinstaller.no_file_given=Aucun fichier sp&eacute;cifi&eacute;!
+tools.yinstaller.space.mtd=Espace total
+tools.yinstaller.space.used=Utilis&eacute;
+tools.yinstaller.space.free=Libre
+tools.yinstaller.space.percentage=Part utilis&eacute;
+tools.yinstaller.not_determine=Impossible de d&eacute;terminer l&acute;espace libre.
+tools.yinstaller.head=yInstaller
+tools.yinstaller.tar_file=tar-Fichier
+tools.yinstaller.upload_install=T&eacute;l&eacute;charge (ajouter) et installer
+
+============ Tools
+tools.automount_desc=Organiser automounts
+tools.automount=Automounts
+tools.mounts_desc=Organiser fichier d&acute;automounts
+tools.mounts=Mounts
+tools.wake_on_lan=Wake on LAN
+tools.check_install=V&eacute;rifier l&acute;installation
+tools.expert=Expert
+tools.image_desc=Sauvegarder ou flash l&acute;image
+tools.image=Image
+tools.command_shell=Shell
+tools.not_installed=Non install&eacute;
+tools.cmd_shell.output_desc=Sortie continue (IE uniquement - pour d&eacute;filer vers le haut et bas)
+tools.path=R&eacute;pertoire
+tools.command=Commande
+tools.cmd.enter_command=Entrer la commande &agrave; ex&eacute;cuter
+tools.cmd.execute_command=Ex&eacute;cution de commandes
+tools.boot_logo=Boot Logo
+tools.filemgr_desc=Organiser les fichiers et r&eacute;pertoires
+tools.filemgr=Gestionnaire de fichiers
+
+=========== LIVE Menue
+live.heading=Live/Minuteur
+live.live=Live
+live.tv_popup_desc=LiveTV (popup)
+live.tv=TV
+live.radio_popup_desc=LiveRadio (popup)
+live.radio=Radio
+live.double_view=Double Vue
+live.timer=Minuteur
+live.epg=EPG
+live.epg_plus_popup_desc=EPG+ (popup)
+live.epg_plus=EPG plus
+live.timer_sync=Sync minuteur
+
+=========== LIVE
+live.get_stream_info=Obtenue d&acute;information du Streaming.
+live.getting_bouquets=Obtenir bouquets ...
+live.getting_channels=Obtenir les chaine ...
+live.select_resolution=S&eacute;lectionner la r&eacute;solution
+live.change_channel=Changer chaine
+live.view_epg=Afficher EPG pour la chaine en cours
+live.reload=Recharger les bouquets et chaine
+live.getting_subchannels=Obtenir les sous-chaine ...
+live.play_or_pause=Lecture ou pause
+live.stop=Arr&eacute;ter
+live.mute=Mute marche / arr&eacute;te
+live.lower_volume=baisser
+live.higher_volume=monter
+live.fullscreen=Plein &eacute;cran (aussi avec un double-clic) retour avec ESC
+live.lock_unlock=Box verrouillage / d&eacute;verrouillage
+live.toggle_udp=UDP Streaming marche / arr&eacute;te
+live.settings=Param&egrave;tres LiveView
+live.snapshot=Cr&eacute;er un instantan&eacute;
+live.record=Mode d&acirc;enregistrement
+live.transcode=Mode de transcodage
+live.build_vlc=... cr&eacute;er Live ...
+live.select_bouquet=S&eacute;lectionner Bouquet - Les chaine est actualis&eacute;
+live.select_channel=Changer chaine - utiliser zap
+live.live_popup_msg=Pendant les LiveTVs changer aucune chaine!
+live.unlock=Activer la télécommande
+
+=========== LIVE Record
+live.rec.record_mode=Mode &Eacute;nregistrement 
+live.rec.filename=Nom de fichier
+live.rec.display_on=&Eacute;cran activ&eacute;
+live.rec.transcoding_on=transcod&eacute; activ&eacute;
+live.rec.record=&Eacute;nregistrement
+live.rec.stop_record=Arr&eacute;ter l&acute;enregistrement
+live.rec.tanscode=Enregistrement transcod&eacute;
+live.rec.profile=Profils
+live.rec.video=Vid&eacute;o
+live.rec.width=Largeur
+live.rec.height=Hauteur
+live.rec.codec=Codec
+live.rec.bitrate=Bitrate
+live.rec.scale=&Eacute;caillage
+live.rec.audio=Audio
+live.rec.channels=Chaine
+live.rec.trans_broadcast=Transcodage Broadcast
+live.rec.access=Acc&egrave;s
+live.rec.type=Typ
+live.rec.ip_port=IP:Port
+
+=========== LIVE Settings
+live.set.vlc_settings=Param&egrave;tres VLC (IE &amp; Mozilla >= 0.8.6.1)
+live.set.deinterlace=Deinterlace
+live.set.http_caching=http caching
+live.set.udp_defaul=UDP en standard
+live.set.slavebox_ip=Slave Box IP (2. Box)
+live.set.enter_ip=Entrez le Slavebox IP (xxx.xxx.xxx.xxx) 
+live.set.vlc_rec_dir=Chemin d&acute;enregistrement VLC
+live.set.refresh_liveview=Actualis&egrave; LiveView
+
+=========== LIVE Timer Edit
+live.timer_edit.timer=Minuterie
+live.timer_edit.times=Fois
+live.timer_edit.alarm_date=Alarm-Date
+live.timer_edit.time=Temps
+live.timer_edit.stop_date=Stop-Date
+live.timer_edit.repeat=R&eacute;p&eacute;tition
+live.timer_edit.repeat1=Wiederholungen (0 = illimit&eacute;)
+live.timer_edit.weekdays.format=(Lu-Di, X=Timer)
+live.timer_edit.weekdays=Jour du semaine
+live.timer_edit.values=Valeurs
+live.timer_edit.channel=Chaine
+live.timer_edit.apids=APIDs
+live.timer_edit.apids.default=Default
+live.timer_edit.apids.standard=Standard
+live.timer_edit.apids.alt=Alternatif
+live.timer_edit.apids.ac3=AC3
+live.timer_edit.apids=APids
+live.timer_edit.standby=Standby
+live.timer_edit.plugin=Plugin
+live.timer_edit.rec_dir=R&eacutepertoire enregistrement
+live.timer_edit.description=Description
+
+=========== LIVE Timer Sync
+live.timer-sync.get_timer=Optenir minuterie.
+live.timer-sync.header=Timer Synchonisieren
+live.timer-sync.timer_source=Timer Quelle
+live.timer-sync.rec_dir=R&eacutepertoire enregistrement
+live.timer-sync.settings=Param&egrave;tres
+live.timer-sync.debugging=Debugging
+live.timer-sync.get_selected=Optenir s&eacute;lectionn&eacute;
+live.timer-sync.clear_all=Effacer tout
+live.timer-sync.timer_preview=Aper&ccedil;u liste minuterie
+live.timer-sync.start_time=Heure d&eacute;but
+live.timer-sync.end_time=Heure fin
+live.timer-sync.channel=Chaine
+live.timer-sync.programm=&Eacute;mission
+live.timer-sync.source=Source
+live.timer-sync.set_timer=R&eacute;gler minuterie
+live.timer-sync.clear_log=Effacer Log
+live.timer-sync.log=Log
+live.timer-sync.action=Action
+live.timer-sync.status=Statut
+
+=========INFO
+info.help=Aide
+info.About=About
+info.check_for_updates=V&eacute;rifier mise à jour
+info.your_version=Votre version
+info.actual_version=Version actuelle
+
+=========Remote control
+rc.key_power=Standby
+rc.key_mute=Muet
+rc.key_1=1
+rc.key_2=2
+rc.key_3=3
+rc.key_4=4
+rc.key_5=5
+rc.key_6=6
+rc.key_7=7
+rc.key_8=8
+rc.key_9=9
+rc.key_0=0
+rc.key_text=Texte
+rc.key_favorites=Favoris
+rc.key_volumeup=Vol+
+rc.key_volumedown=Vol-
+rc.key_pageup=Page+
+rc.key_pagedown=Page-
+rc.key_radio=TV/Radio
+rc.key_mode=Format vid&eacute;o
+rc.key_next=Skip-
+rc.key_previous=Skip+
+rc.key_sleep=Sommail
+rc.key_audio=Audio
+rc.key_help=Aide
+rc.key_red=Rouge
+rc.key_green=Vert
+rc.key_yellow=Jaune
+rc.key_blue=Bleu
+rc.key_epg=EPG
+rc.key_info=Infos
+rc.key_ok=OK
+rc.key_up=Haut
+rc.key_down=Bas
+rc.key_left=Gauche
+rc.key_right=Droite
+rc.key_setup=Menu
+rc.key_home=Exit
+rc.key_sat=Sat
+rc.key_www=
+rc.key_rewind=Retour rapide
+rc.key_play=Play
+rc.key_forward=Avant rapide
+rc.key_stop=arr&ecirc;t
+rc.key_record=Enregistrement
+rc.key_pause=Pause
+rc.key_games=
+rc.key_time=
+rc.key_picsize=Pic Size
+rc.key_picmode=Pic Mode
