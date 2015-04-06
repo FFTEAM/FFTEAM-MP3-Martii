@@ -37,7 +37,6 @@
 #include <zapit/client/zapitclient.h>
 #include <zapit/client/msgtypes.h>
 #include <zapit/client/zapittools.h>
-#include <system/helpers.h>
 
 #ifdef PEDANTIC_VALGRIND_SETUP
 #define VALGRIND_PARANOIA memset(&msg, 0, sizeof(msg))
@@ -1101,8 +1100,10 @@ void CZapitClient::setStandby(const bool enable)
 	msg.truefalse = enable;
 	OpenThreads::ScopedLock<OpenThreads::Mutex> lock(mutex);
 	send(CZapitMessages::CMD_SET_STANDBY, (char*)&msg, sizeof(msg));
-	CZapitMessages::responseCmd response;
-	CBasicClient::receive_data((char* )&response, sizeof(response));
+	if(enable) {
+		CZapitMessages::responseCmd response;
+		CBasicClient::receive_data((char* )&response, sizeof(response));
+	}
 	close_connection();
 }
 

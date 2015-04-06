@@ -102,6 +102,7 @@ namespace ZapitTools {
 			case 0x0d:
 				r +="&#x0d;";
 				break;
+
 			default:
 				r += *s;
 			}
@@ -148,11 +149,4 @@ namespace ZapitTools {
 		} while (*p_act);
 	}
 
-	void replace_char (std::string &s)
-	{
-		char p[s.length() + 1];
-		strcpy(p, s.c_str());
-		replace_char(p);
-		s = std::string(p);
-	}
 }

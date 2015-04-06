@@ -3,7 +3,7 @@
  *
  * (C) 2002, 2003 by Andreas Oberritter <obi@tuxbox.org>
  *
- * (C) 2007-2009, 2013 Stefan Seyfried
+ * (C) 2007-2013 Stefan Seyfried
  * (C) 2014 CoolStream International Ltd. <bas@coolstreamtech.com>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1017,7 +1017,7 @@ void CServiceManager::CopyFile(char * from, char * to)
         strcat(cmd, " ");
         strcat(cmd, to);
         system(cmd);
-	sync();
+	// sync();
 }
 
 void CServiceManager::WriteSatHeader(FILE * fd, sat_config_t &config)

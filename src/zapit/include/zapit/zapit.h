@@ -275,8 +275,7 @@ class CZapit : public OpenThreads::Thread
 		void EnablePlayback(bool enable) { playbackStopForced = !enable; }
 		void lockPlayBack(const bool sendpmt = true);
 		void unlockPlayBack(const bool sendpmt = true);
-		void setStandby(const bool enable);
-		void Rezap(void);
+		void Rezap();
 		std::list<std::string> *GetWebTVXML(void) { return webtv_xml; }
 };
 #endif /* __zapit_h__ */

@@ -482,7 +482,7 @@ void CFEManager::Open()
 {
 	for(fe_map_iterator_t it = femap.begin(); it != femap.end(); it++) {
 		CFrontend * fe = it->second;
-		if (!fe->Locked() && fe->getMode() != CFrontend::FE_MODE_UNUSED)
+		if(!fe->Locked())
 			fe->Open(true);
 	}
 }
@@ -659,7 +659,6 @@ CFrontend * CFEManager::allocateFE(CZapitChannel * channel, bool forrecord)
 {
 	OpenThreads::ScopedLock<OpenThreads::Mutex> m_lock(mutex);
 
-	fedebug = 1;
 	if (forrecord)
 		fedebug = 1;
 	CFrontend * frontend = getFrontend(channel);
