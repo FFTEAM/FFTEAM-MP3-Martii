@@ -1,4 +1,5 @@
 #	yWeb language file (French/Francais) by shanthi FFTEAM
+#	language version: 1.1
 #	$Date$
 #	$Revision$
 =========== GENERAL / GLOBAL
@@ -134,7 +135,7 @@ bc.screenshot.wait_text=Instantan&eacute; est cr&eacute;&eacute;
 bc.screenshot.checkenable=OSD et / ou la t&eacute;l&eacute;vision doit &ecirc;tre activ&eacute;!
 
 ========= Boxcontrol - Others
-bc.channels=Chaine t&eacute;l&eacute;
+bc.channels=transmetteur
 
 ====== EXtension
 ext.installer_updater=Installation
@@ -161,6 +162,7 @@ ext.refresh_now=Param&egrave;ètres enregistr&eacute;s. Mettre &aacute; jour les
 ext.ext_saved=Param&egrave;tres d&acute;extension enregistr&eacute;s
 
 ====== Bouquet
+bou.bouquet=bouquet
 bou.bouquets_must_be_saved=Tous les changements doivent &ecirc;tre sauvegard&eacute;s!
 bou.bouquet_editor=Bouquet-Editeur
 bou.bouquet_add=Ajouter bouquet
@@ -223,7 +225,8 @@ set.menue.parental=Protection des jeunes
 set.menue.direct_recording=Enregistrer directement
 set.menue.recording=Enregistrement
 set.menue.audio_player=Lecteur Audio
-set.menue.movieplayer=Lecteur vid&eacute;o
+set.menue.esound_server=Esound Server
+set.menue.movieplayer=movieplayer
 set.menue.pictureviewer=visualiseur d&acute;images
 set.menue.lcd_display=LC-Display
 set.menue.key_settings=Assignations de touches
@@ -313,6 +316,8 @@ set.nhttpd.allowed_file_extensions=Extensions de fichiers autoris&eacute;s / MIM
 set.nhttpd.allow_all_file_extensions=Autoriser toutes les extensions de fichiers
 set.nhttpd.url_of_logos_desc=Entrez votre adresse internet (URL) ou le r&eacute;pertoire de logos
 set.nhttpd.url_of_logos=adresse internet (URL) ou le r&eacute;pertoire de logos
+set.nhttpd.display_logos=Logos spectacle
+set.nhttpd.pid_separator=séparateur pour l PIDs dans l'URL
 set.nhttpd.server=Serveur
 set.nhttpd.ips_without_keep_alive_desc=(par ex JtG Serveur, s&eacute;parez par des virgules)
 set.nhttpd.ips_without_keep_alive=IPs avec No keep-alive
