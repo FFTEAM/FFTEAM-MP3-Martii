@@ -2349,10 +2349,19 @@ unit.short.hour h
 unit.short.millisecond ms
 unit.short.minute min
 unit.short.second s
+upnpbrowser.current Currently Playing
+upnpbrowser.dir Directory
+upnpbrowser.duration Duration
 upnpbrowser.head UPnP prehliadač
+upnpbrowser.nores No resource for Item
 upnpbrowser.noservers Nenájdený UPnP server
+upnpbrowser.proto Protocol
+upnpbrowser.res Resource
 upnpbrowser.rescan Znova hľadať
 upnpbrowser.scanning Hľadanie UPnP serverov
+upnpbrowser.selected Selected
+upnpbrowser.type MIME-Type
+upnpbrowser.url URL
 usermenu.button_blue Uživateľské menu MODRÉ
 usermenu.button_green Uživateľské menu ZELENÉ
 usermenu.button_red Uživateľské menu ČERVENÉ

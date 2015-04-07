@@ -2478,10 +2478,19 @@ unit.short.hour h
 unit.short.millisecond ms
 unit.short.minute min
 unit.short.second s
+upnpbrowser.current derzeit
+upnpbrowser.dir Verzeichnis
+upnpbrowser.duration Länge
 upnpbrowser.head UPnP Browser
+upnpbrowser.nores keine Ressource
 upnpbrowser.noservers Kein UPnP-Server gefunden
+upnpbrowser.proto Protokoll
+upnpbrowser.res Ressource
 upnpbrowser.rescan Neue Suche
 upnpbrowser.scanning Suche nach UPnP-Servern
+upnpbrowser.selected Ausgewählte
+upnpbrowser.type MIME-Typ
+upnpbrowser.url URL
 usermenu.button_blue Benutzermenü 'blau'
 usermenu.button_green Benutzermenü 'grün'
 usermenu.button_red Benutzermenü 'rot'
