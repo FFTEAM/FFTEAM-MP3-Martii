@@ -1077,22 +1077,22 @@ void CMovieBrowser::hide(void)
 	framebuffer->paintBackground();
 	if (m_pcFilter != NULL)
 		m_currentFilterSelection = m_pcFilter->getSelectedLine();
-		delete m_pcFilter;
-		m_pcFilter = NULL;
+	delete m_pcFilter;
+	m_pcFilter = NULL;
 	if (m_pcBrowser != NULL)
 		m_currentBrowserSelection = m_pcBrowser->getSelectedLine();
-		delete m_pcBrowser;
-		m_pcBrowser = NULL;
+	delete m_pcBrowser;
+	m_pcBrowser = NULL;
 	if (m_pcLastPlay != NULL)
 		m_currentPlaySelection = m_pcLastPlay->getSelectedLine();
-		delete m_pcLastPlay;
-		m_pcLastPlay = NULL;
+	delete m_pcLastPlay;
+	m_pcLastPlay = NULL;
 	if (m_pcLastRecord != NULL)
 		m_currentRecordSelection = m_pcLastRecord->getSelectedLine();
-		delete m_pcLastRecord;
-		m_pcLastRecord = NULL;
-		delete m_pcInfo;
-		m_pcInfo = NULL;
+	delete m_pcLastRecord;
+	m_pcLastRecord = NULL;
+	delete m_pcInfo;
+	m_pcInfo = NULL;
 }
 
 int CMovieBrowser::paint(void)
