@@ -73,7 +73,7 @@ extern cCpuFreqManager * cpuFreq;
 #define ENABLE_MULTI_CHANNEL
 
 #define TS_SIZE 188
-#define DMX_BUFFER_SIZE (2048*TS_SIZE)
+#define DMX_BUFFER_SIZE (5*2048*TS_SIZE)
 #define IN_SIZE (250*TS_SIZE)
 
 CStreamInstance::CStreamInstance(int clientfd, t_channel_id chid, stream_pids_t &_pids)
