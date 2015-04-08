@@ -2526,9 +2526,18 @@ unit.short.millisecond ms
 unit.short.minute min
 unit.short.second s
 upnpbrowser.head UPnP Browser
-upnpbrowser.noservers Kein UPnP-Server gefunden
-upnpbrowser.rescan Neue Suche
-upnpbrowser.scanning Suche nach UPnP-Servern
+upnpbrowser.noservers No UPnP servers found
+upnpbrowser.rescan Scan again
+upnpbrowser.scanning Scanning for UPnP servers
+upnpbrowser.current Currently Playing
+upnpbrowser.dir Directory
+upnpbrowser.duration Duration
+upnpbrowser.nores No resource for Item
+upnpbrowser.proto Protocol
+upnpbrowser.res Resource
+upnpbrowser.selected Selected
+upnpbrowser.type MIME-Type
+upnpbrowser.url URL
 usermenu.button_blue Benutzermenü 'blau'
 usermenu.button_green Benutzermenü 'grün'
 usermenu.button_red Benutzermenü 'rot'
