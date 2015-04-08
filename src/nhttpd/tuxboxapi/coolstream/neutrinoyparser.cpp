@@ -308,11 +308,11 @@ std::string  CNeutrinoYParser::func_get_channels_as_dropdown(CyhookHandler *, st
 			CEPGData epg;
 			CZapitChannel * channel = channels[j];
 			char buf[100],id[20];
-			sprintf(id,PRINTF_CHANNEL_ID_TYPE_NO_LEADING_ZEROS,channel->getChannelID());
+			snprintf(id,sizeof(id),PRINTF_CHANNEL_ID_TYPE_NO_LEADING_ZEROS,channel->getChannelID());
 			std::string _sid = std::string(id);
 			sel = (_sid == achannel_id) ? "selected=\"selected\"" : "";
 			CEitManager::getInstance()->getActualEPGServiceKey(channel->getChannelID(), &epg);
-			sprintf(buf,"<option value=" PRINTF_CHANNEL_ID_TYPE_NO_LEADING_ZEROS " %s>%.20s - %.30s</option>\n", channel->getChannelID(), sel.c_str(), channel->getName().c_str(),epg.title.c_str());
+			snprintf(buf,sizeof(buf),"<option value=" PRINTF_CHANNEL_ID_TYPE_NO_LEADING_ZEROS " %s>%.20s - %.30s</option>\n", channel->getChannelID(), sel.c_str(), channel->getName().c_str(),epg.title.c_str());
 			yresult += buf;
 		}
 	}
@@ -487,7 +487,7 @@ std::string CNeutrinoYParser::func_get_bouquets_with_epg(CyhookHandler *hh, std:
 
 			yresult += string_printf("<tr><td class=\"%cepg\">",classname);
 			yresult += string_printf("%s&nbsp;%s&nbsp;"
-					"<span style=\"font-size: 8pt; white-space: nowrap\">(%ld {=L:von=} %d {=L:min=}, %d%%)</span>"
+					"<span style=\"font-size: 8pt; white-space: nowrap\">(%ld {=L:from=} %d {=L:unit.short.minute=}, %d%%)</span>"
 					, timestr.c_str()
 					, event->description.c_str()
 					, (time(NULL) - event->startTime)/60
@@ -513,6 +513,20 @@ std::string  CNeutrinoYParser::func_get_actual_channel_id(CyhookHandler *, std::
 {
 	return string_printf(PRINTF_CHANNEL_ID_TYPE_NO_LEADING_ZEROS, CZapit::getInstance()->GetCurrentChannelID());
 }
+
+//-------------------------------------------------------------------------
+// func: Get Logo Name
+//-------------------------------------------------------------------------
+std::string  CNeutrinoYParser::func_get_logo_name(CyhookHandler *hh, std::string channelId)
+{
+	if (hh->WebserverConfigList["Tuxbox.DisplayLogos"] == "true") {
+		t_channel_id cid;
+		if (1 == sscanf(channelId.c_str(), "%llx", &cid))
+			return NeutrinoAPI->getLogoFile(hh->WebserverConfigList["Tuxbox.LogosURL"], cid);
+	}
+	return "";
+}
+
 //-------------------------------------------------------------------------
 // y-func : get_mode (returns tv|radio|unknown)
 //-------------------------------------------------------------------------
@@ -1230,17 +1244,4 @@ std::string  CNeutrinoYParser::func_set_bouquet_edit_form(CyhookHandler *hh, std
 	}
 	else
 		return "No Bouquet selected";
-}
-
-//-------------------------------------------------------------------------
-// func: Get Logo Name
-//-------------------------------------------------------------------------
-std::string  CNeutrinoYParser::func_get_logo_name(CyhookHandler *hh, std::string channelId)
-{
-	if (hh->WebserverConfigList["Tuxbox.DisplayLogos"] == "true") {
-		t_channel_id cid;
-		if (1 == sscanf(channelId.c_str(), "%llx", &cid))
-			return NeutrinoAPI->getLogoFile(hh->WebserverConfigList["Tuxbox.LogosURL"] /* unused */, cid);
-	}
-	return "";
 }

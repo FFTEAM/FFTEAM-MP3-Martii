@@ -57,8 +57,10 @@ extern cVideo * videoDecoder;
 
 extern CPlugins *g_PluginList;//for relodplugins
 extern CBouquetManager *g_bouquetManager;
-#if HAVE_SPARK_HARDWARE
-#define EVENTDEV "/dev/input/nevis_ir"
+#if HAVE_DUCKBOX_HARDWARE
+#define EVENTDEV "/dev/input/event0"
+#elif HAVE_SPARK_HARDWARE
+#define EVENTDEV "/dev/input/event1"
 #else
 #define EVENTDEV "/dev/input/input0"
 #endif
@@ -338,17 +340,27 @@ void CControlAPI::SetModeCGI(CyhookHandler *hh)
 
 		if (hh->ParamList["1"] == "radio")	// switch to radio mode
 		{
-			int mode = NeutrinoMessages::mode_radio;
-			NeutrinoAPI->EventServer->sendEvent(NeutrinoMessages::CHANGEMODE, CEventServer::INITID_HTTPD, (void *)&mode,sizeof(int));
-			sleep(1);
-			NeutrinoAPI->UpdateBouquets();
+			if(CNeutrinoApp::getInstance()->getMode() != NeutrinoMessages::mode_standby){
+				int mode = NeutrinoMessages::mode_radio;
+				NeutrinoAPI->EventServer->sendEvent(NeutrinoMessages::CHANGEMODE, CEventServer::INITID_HTTPD, (void *)&mode,sizeof(int));
+				sleep(1);
+				NeutrinoAPI->UpdateBouquets();
+			}else{
+				extern CRemoteControl * g_RemoteControl;
+				g_RemoteControl->radioMode();
+			}
 		}
 		else if (hh->ParamList["1"] == "tv")	// switch to tv mode
 		{
-			int mode = NeutrinoMessages::mode_tv;
-			NeutrinoAPI->EventServer->sendEvent(NeutrinoMessages::CHANGEMODE, CEventServer::INITID_HTTPD, (void *)&mode,sizeof(int));
-			sleep(1);
-			NeutrinoAPI->UpdateBouquets();
+			if(CNeutrinoApp::getInstance()->getMode() != NeutrinoMessages::mode_standby){
+				int mode = NeutrinoMessages::mode_tv;
+				NeutrinoAPI->EventServer->sendEvent(NeutrinoMessages::CHANGEMODE, CEventServer::INITID_HTTPD, (void *)&mode,sizeof(int));
+				sleep(1);
+				NeutrinoAPI->UpdateBouquets();
+			}else{
+				extern CRemoteControl * g_RemoteControl;
+				g_RemoteControl->tvMode();
+			}
 		}
 		else if (hh->ParamList["record"] == "start")	// start record mode
 		{
@@ -650,44 +662,6 @@ void CControlAPI::HWInfoCGI(CyhookHandler *hh)
 #if HAVE_SPARK_HARDWARE
 	hh->printf("%s\nMAC:%s\n", boxname.c_str(),eth_id.c_str());
 #else
-#if HAVE_TRIPLEDRAGON
-	boxname = "Armas ";
-#endif
-
-	switch(system_rev)
-	{
-		case 1:
-			if( boxname == "Armas ")
-				boxname += "TripleDragon";
-			break;
-		case 6:
-			boxname += "HD1";
-			break;
-		case 7:
-			boxname += "BSE";
-			break;
-		case 8:
-			boxname += "Neo";
-			if (CFEManager::getInstance()->getFrontendCount() > 1)
-				boxname += " Twin";
-			break;
-		case 9:
-			boxname += "Tank";
-			break;
-		case 10:
-			boxname += "Zee";
-			break;
-		case 11:
-			boxname += "Trinity";
-			break;
-
-		default:
-			char buffer[10];
-			snprintf(buffer, sizeof(buffer), "%u\n", system_rev);
-			boxname += "Unknown nr. ";
-			boxname += buffer;
-			break;
-	}
 
 	boxname += (g_info.delivery_system == DVB_S || (system_rev == 1)) ? " SAT":" CABLE";
 	hh->printf("%s (%s)\nMAC:%s\n", boxname.c_str(), boxmodel.c_str(), eth_id.c_str());
@@ -2026,7 +2000,7 @@ void CControlAPI::SendTimers(CyhookHandler *hh)
 							"Unknown TV-Channel" : "Unknown Radio-Channel");
 			}
 			else
-				sprintf(zAddData, PRINTF_CHANNEL_ID_TYPE_NO_LEADING_ZEROS, timer->channel_id);
+				snprintf(zAddData,sizeof(zAddData), PRINTF_CHANNEL_ID_TYPE_NO_LEADING_ZEROS, timer->channel_id);
 
 			zAddData[22]=0;
 
@@ -2034,7 +2008,7 @@ void CControlAPI::SendTimers(CyhookHandler *hh)
 
 		case CTimerd::TIMER_STANDBY:
 			if (!send_id)
-				sprintf(zAddData,"Standby: %s",(timer->standby_on ? "ON" : "OFF"));
+				snprintf(zAddData,sizeof(zAddData),"Standby: %s",(timer->standby_on ? "ON" : "OFF"));
 			break;
 
 		case CTimerd::TIMER_REMIND :
