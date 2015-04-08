@@ -32,13 +32,13 @@
 
 #include <driver/display.h>
 
-CProgressWindow::CProgressWindow(CComponentsForm *parent) 
+CProgressWindow::CProgressWindow(CComponentsForm *parent, bool global_only) 
 : CComponentsWindow(0, 0, 700, 200, string(), NEUTRINO_ICON_INFO, NULL, parent)
 {
-	Init();
+	Init(global_only);
 }
 
-void CProgressWindow::Init()
+void CProgressWindow::Init(bool global_only)
 {
 	global_progress = local_progress = 100;
 
@@ -63,6 +63,7 @@ void CProgressWindow::Init()
 
 	//create local_bar object
 	local_bar = new CProgressBar();
+	if (!global_only) {
 	local_bar->setDimensionsAll(x_item, y_item, w_item, h_pbar);
 	local_bar->setColorBody(col_body);
 	local_bar->setActiveColor(COL_MENUCONTENT_PLUS_7);
@@ -70,6 +71,7 @@ void CProgressWindow::Init()
 	local_bar->setColorFrame(COL_MENUCONTENT_PLUS_7);
 	addWindowItem(local_bar);
 	y_item += 2*h_pbar;
+	}
 
 	//create global_bar object
 	global_bar = new CProgressBar();
