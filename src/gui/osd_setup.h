@@ -53,6 +53,8 @@ class COsdSetup : public CMenuTarget, public CChangeObserver
 		char window_size_value[10];
 		std::string osdFontFile, osdTtxFontFile, osdSubFontFile;
 		CComponentsShapeSquare *win_demo;
+		COnOffNotifier* colorInfoclockNotifier;
+		COnOffNotifier* screensaverNotifier;
 
 		int width;
 		bool is_wizard;
@@ -68,10 +70,12 @@ class COsdSetup : public CMenuTarget, public CChangeObserver
 		void showOsdTimeoutSetup(CMenuWidget *menu_timeout);
 		void showOsdMenusSetup(CMenuWidget *menu_menus);
 		void showOsdInfobarSetup(CMenuWidget *menu_infobar);
+		void showOsdChanlistSetup(CMenuWidget *menu_chanlist);
 		void showOsdEventlistSetup(CMenuWidget *menu_eventlist);
 		void showOsdVolumeSetup(CMenuWidget *menu_volume);
 		void showOsdInfoclockSetup(CMenuWidget *menu_infoclock);
 		void showOsdScreenShotSetup(CMenuWidget *menu_screenshot);
+		void showOsdScreensaverSetup(CMenuWidget *menu_screensaver);
 		void paintWindowSize(int w, int h);
 
  		void AddFontSettingItem(CMenuWidget &font_Settings, const SNeutrinoSettings::FONT_TYPES number_of_fontsize_entry);

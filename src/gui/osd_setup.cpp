@@ -40,13 +40,13 @@
 #include <neutrino.h>
 #include <mymenu.h>
 #include <neutrino_menue.h>
-#include <cs_api.h>
 
 #include "osd_setup.h"
 #include "themes.h"
 #include "screensetup.h"
 #include "osdlang_setup.h"
 #include "filebrowser.h"
+#include "osd_progressbar_setup.h"
 
 #include <gui/audiomute.h>
 #include <gui/infoclock.h>
@@ -64,8 +64,8 @@
 
 #include <zapit/femanager.h>
 #include <system/debug.h>
+#include <cs_api.h>
 #include <system/helpers.h>
-#include "cs_api.h"
 
 extern CRemoteControl * g_RemoteControl;
 
@@ -79,6 +79,8 @@ COsdSetup::COsdSetup(bool wizard_mode)
 	frameBuffer = CFrameBuffer::getInstance();
 	colorSetupNotifier = new CColorSetupNotifier();
 	fontsizenotifier = new CFontSizeNotifier;
+	colorInfoclockNotifier = NULL;
+	screensaverNotifier = NULL;
 	osd_menu = NULL;
 	submenu_menus = NULL;
 	mfFontFile = NULL;
@@ -188,6 +190,15 @@ font_sizes_struct neutrino_font[SNeutrinoSettings::FONT_TYPE_COUNT] =
 	{LOCALE_FONTSIZE_MENU_HINT          ,  16, CNeutrinoFonts::FONT_STYLE_REGULAR, 0},
 	{LOCALE_FONTSIZE_SUBTITLES          ,  25, CNeutrinoFonts::FONT_STYLE_BOLD   , 0}
 };
+
+#if HAVE_GENERIC_HARDWARE
+#define SCREENSHOT_OPTION_COUNT 2
+const CMenuOptionChooser::keyval SCREENSHOT_OPTIONS[SCREENSHOT_OPTION_COUNT] =
+{
+	{ 0, LOCALE_SCREENSHOT_TV },
+	{ 1, LOCALE_SCREENSHOT_OSD }
+};
+#endif
 
 int COsdSetup::exec(CMenuTarget* parent, const std::string &actionKey)
 {
@@ -348,6 +359,11 @@ int COsdSetup::exec(CMenuTarget* parent, const std::string &actionKey)
 		chooserDir(g_settings.screenshot_dir, true, action_str);
 		return res;
 	}
+	else if(actionKey=="screensaver_dir") {
+		const char *action_str = "screensaver";
+		chooserDir(g_settings.screensaver_dir, false, action_str);
+		return res;
+	}
 	else if(strncmp(actionKey.c_str(), "fontsize.d", 10) == 0) {
 		for (int i = 0; i < FONT_GROUP_COUNT; i++) {
 			if (actionKey == font_sizes_groups[i].actionkey) {
@@ -471,6 +487,14 @@ const CMenuOptionChooser::keyval  CHANNELLIST_EPGTEXT_ALIGN_RIGHT_OPTIONS[CHANNE
 	{ 1 , LOCALE_CHANNELLIST_EPGTEXT_ALIGN_RIGHT }
 };
 
+#define CHANNELLIST_EXTENDED_OPTIONS_COUNT 3
+const CMenuOptionChooser::keyval CHANNELLIST_EXTENDED_OPTIONS[CHANNELLIST_EXTENDED_OPTIONS_COUNT]=
+{
+	{ 0, LOCALE_OPTIONS_OFF },			//none
+	{ 1, LOCALE_CHANNELLIST_EXTENDED_SIMPLE },	//unicolor
+	{ 2, LOCALE_CHANNELLIST_EXTENDED_COLORED }	//colored
+};
+
 #define OPTIONS_COLORED_EVENTS_OPTION_COUNT 3
 const CMenuOptionChooser::keyval OPTIONS_COLORED_EVENTS_OPTIONS[OPTIONS_COLORED_EVENTS_OPTION_COUNT] =
 {
@@ -497,330 +521,7 @@ const CMenuOptionChooser::keyval PROGRESSBAR_COLOR_OPTIONS[PROGRESSBAR_COLOR_OPT
 	{ CProgressBar::PB_COLOR,       _LOCALE_PROGRESSBAR_COLOR_FULL },
 };
 
-#define PROGRESSBAR_TIMESCALE_INVERT_OPTION_COUNT 2
-const CMenuOptionChooser::keyval PROGRESSBAR_TIMESCALE_INVERT_OPTIONS[PROGRESSBAR_TIMESCALE_INVERT_OPTION_COUNT] =
-{
-	{ 0, LOCALE_MISCSETTINGS_PROGRESSBAR_TIMESCALE_RED_GREEN },
-	{ 1, LOCALE_MISCSETTINGS_PROGRESSBAR_TIMESCALE_GREEN_RED }
-};
-
-//info clock
-class CMenuInfoClockSetup : public CMenuTarget, CChangeObserver
-{
-	private:
-		int width;
-		CInfoClock *InfoClock;
-		CMenuDForwarder* textColorForwarder;
-		CColorSetupNotifier *colorSetupNotifier;
-		std::map<std::string,int> formatMap;
-		std::string formatValue;
-	public:
-		CMenuInfoClockSetup(CColorSetupNotifier *_colorSetupNotifier);
-		int exec(CMenuTarget* parent, const std::string & actionKey);
-		int show(void);
-		bool changeNotify(const neutrino_locale_t OptionName, void *data);
-};
-
-static const char *infoClockTimeFormats[8][2] = {
-	{ "%H:%M:%S",		"%H:%M:%S"	},
-	{ "%H:%M:%S",		"%H:%M.%S"	},
-	{ "%H:%M:%S",		"%H:%M %S"	},
-	{ "%H:%M:%S",		"%H %M %S"	},
-	{ "%H:%M",		"%H:%M"		},
-	{ "%H:%M",		"%H.%M"		},
-	{ "%H:%M",		"%H %M"		},
-	{ NULL,			NULL		}
-};
-
-CMenuInfoClockSetup::CMenuInfoClockSetup(CColorSetupNotifier *_colorSetupNotifier)
-{
-	colorSetupNotifier = _colorSetupNotifier;
-	width = w_max (40, 10); //%
-	InfoClock = CInfoClock::getInstance();
-
-	time_t now = time(NULL);
-
-	for (unsigned i = 0; infoClockTimeFormats[i][0]; i++) {
-		std::string res = strftime(infoClockTimeFormats[i][0], localtime(&now));
-		if (strcmp(infoClockTimeFormats[i][0], infoClockTimeFormats[i][1])) {
-			res += " / " + strftime(infoClockTimeFormats[i][1], localtime(&now));
-		}
-		formatMap[res] = i;
-	}
-	formatValue = strftime(g_settings.infoClockFormat0.c_str(), localtime(&now));
-	if (g_settings.infoClockFormat0 != g_settings.infoClockFormat1) {
-		formatValue += " / " + strftime(g_settings.infoClockFormat1.c_str(), localtime(&now));
-	}
-}
-
-bool CMenuInfoClockSetup::changeNotify(const neutrino_locale_t OptionName, void * data)
-{
-	switch (OptionName) {
-		case LOCALE_CLOCK_FORMAT:
-			InfoClock->enableInfoClock(false);
-			InfoClock->stopThread();
-			g_settings.infoClockFormat0 = infoClockTimeFormats[formatMap[formatValue]][0];
-			g_settings.infoClockFormat1 = infoClockTimeFormats[formatMap[formatValue]][1];
-			break;
-		case LOCALE_CLOCK_SIZE_HEIGHT:
-			InfoClock->enableInfoClock(false);
-			InfoClock->setClockFontSize(g_settings.infoClockFontSize);
-			break;
-		case LOCALE_CLOCK_BACKGROUND:
-			InfoClock->enableInfoClock(false);
-			textColorForwarder->setActive(!*((int *) data));
-			break;
-		default:
-			return false; // no repaint
-	}
-	InfoClock->enableInfoClock(true);
-	return true; // repaint
-}
-
-int CMenuInfoClockSetup::exec(CMenuTarget* parent, const std::string & actionKey)
-{
-	if (actionKey == "") {
-		if (parent)
-			parent->hide();
-		return show();
-	}
-
-	return menu_return::RETURN_REPAINT;
-}
-
-int CMenuInfoClockSetup::show(void)
-{
-	CMenuWidget m(LOCALE_MAINMENU_SETTINGS, NEUTRINO_ICON_SETTINGS, width, MN_WIDGET_ID_OSDSETUP_INFOCLOCK);
-	m.addIntroItems(LOCALE_MISCSETTINGS_INFOCLOCK);
-
-	int mode_clock = g_settings.mode_clock;
-
-	CMenuOptionChooser *mc = new CMenuOptionChooser(LOCALE_MISCSETTINGS_INFOCLOCK, &mode_clock, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true, NULL, CRCInput::RC_red);
-	mc->setHint("", LOCALE_MENU_HINT_CLOCK_MODE);
-	m.addItem(mc);
-
-	m.addItem(GenericMenuSeparatorLine);
-
-	// size of info clock
-	CMenuOptionNumberChooser* mn = new CMenuOptionNumberChooser(LOCALE_CLOCK_SIZE_HEIGHT, &g_settings.infoClockFontSize, true, 30, 120, this);
-	mn->setNumericInput(true);
-	mn->setHint("", LOCALE_MENU_HINT_CLOCK_SIZE);
-	m.addItem(mn);
-
-	// format of info clock
-	CMenuOptionStringChooser *sc = new CMenuOptionStringChooser(LOCALE_CLOCK_FORMAT, &formatValue, true, this, CRCInput::RC_nokey, "", true);
-	for(std::map<std::string,int>::iterator it = formatMap.begin(); it != formatMap.end(); ++it)
-		sc->addOption((*it).first);
-	sc->setHint("", LOCALE_MENU_HINT_CLOCK_FORMAT);
-	m.addItem(sc);
-
-	// clock with background
-	mc = new CMenuOptionChooser(LOCALE_CLOCK_BACKGROUND, &g_settings.infoClockBackground, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true, this);
-	mc->setHint("", LOCALE_MENU_HINT_CLOCK_BACKGROUND);
-	m.addItem(mc);
-
-	// digit color
-	CColorChooser* cc = new CColorChooser(LOCALE_COLORMENU_CLOCK_TEXTCOLOR, &g_settings.theme.clock_Digit_red, &g_settings.theme.clock_Digit_green, &g_settings.theme.clock_Digit_blue,
-			NULL, colorSetupNotifier);
-	textColorForwarder = new CMenuDForwarder(LOCALE_COLORMENU_CLOCK_TEXTCOLOR, !g_settings.infoClockBackground, NULL, cc);
-	textColorForwarder->setHint("", LOCALE_MENU_HINT_CLOCK_TEXTCOLOR);
-	m.addItem(textColorForwarder);
-
-	g_settings.mode_clock = 1;
-
-	InfoClock->enableInfoClock(true);
-
-	int res = m.exec(NULL, "");
-
-	InfoClock->enableInfoClock(false);
-	g_settings.mode_clock = mode_clock;
-
-	if (CNeutrinoApp::getInstance()->isMuted()) {
-		CAudioMute::getInstance()->enableMuteIcon(false);
-		CAudioMute::getInstance()->enableMuteIcon(true);
-	}
-
-	return res;
-}
-
-class CProgressbarSetup : public CMenuTarget, public CChangeObserver
-{
-	private:
-		int show();
-	public:
-		int exec(CMenuTarget* parent, const std::string &);
-		bool changeNotify(const neutrino_locale_t /* OptionName */, void * /* data */);
-};
-
-bool CProgressbarSetup::changeNotify(const neutrino_locale_t /* OptionName */, void * /* data */)
-{
-	return true; // repaint
-}
-
-int CProgressbarSetup::exec(CMenuTarget* parent, const std::string &actionKey)
-{
-	if (actionKey == "reset") {
-		g_settings.progressbar_timescale_red = 0;
-		g_settings.progressbar_timescale_green = 100;
-		g_settings.progressbar_timescale_yellow = 70;
-		g_settings.progressbar_timescale_invert = false;
-		return menu_return::RETURN_REPAINT;
-	}
-	if (parent)
-		parent->hide();
-	return show();
-}
-
-int CProgressbarSetup::show()
-{
-	int width = w_max (40, 10); //%
-	CMenuWidget m(LOCALE_MAINMENU_SETTINGS, NEUTRINO_ICON_SETTINGS, width, MN_WIDGET_ID_OSDSETUP_PROGRESSBAR);
-
-	m.addIntroItems(LOCALE_MISCSETTINGS_PROGRESSBAR /*, LOCALE_MISCSETTINGS_GENERAL*/);
-
-	// general progress bar design
-	CMenuOptionChooser *mc = new CMenuOptionChooser(LOCALE_MISCSETTINGS_PROGRESSBAR_DESIGN_LONG,
-		&g_settings.progressbar_design, PROGRESSBAR_COLOR_OPTIONS + 1, PROGRESSBAR_COLOR_OPTION_COUNT - 1, true, this);
-	mc->setHint("", LOCALE_MENU_HINT_PROGRESSBAR_COLOR);
-	m.addItem(mc);
-
-	// progress bar gradient
-	mc = new CMenuOptionChooser(LOCALE_MISCSETTINGS_PROGRESSBAR_GRADIENT, &g_settings.progressbar_gradient, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true, this);
-	mc->setHint("", LOCALE_MENU_HINT_PROGRESSBAR_GRADIENT);
-	m.addItem(mc);
-
-	// preview
-	CMenuProgressbar *mb = new CMenuProgressbar(LOCALE_MISCSETTINGS_PROGRESSBAR_PREVIEW);
-	mb->setHint("", LOCALE_MENU_HINT_PROGRESSBAR_PREVIEW);
-	m.addItem(mb);
-	m.addItem(new CMenuSeparator(CMenuSeparator::LINE | CMenuSeparator::STRING, LOCALE_MISCSETTINGS_PROGRESSBAR_TIMESCALE));
-
-	CMenuOptionNumberChooser *nc;
-
-	nc = new CMenuOptionNumberChooser(LOCALE_MISCSETTINGS_PROGRESSBAR_TIMESCALE_RED, &g_settings.progressbar_timescale_red, true, 0, 100, this);
-	nc->setNumericInput(true);
-	nc->setNumberFormat("%d %%");
-	nc->setHint("", LOCALE_MENU_HINT_PROGRESSBAR_TIMESCALE_RED);
-	m.addItem(nc);
-
-	nc = new CMenuOptionNumberChooser(LOCALE_MISCSETTINGS_PROGRESSBAR_TIMESCALE_YELLOW, &g_settings.progressbar_timescale_yellow, true, 0, 100, this);
-	nc->setNumericInput(true);
-	nc->setNumberFormat("%d %%");
-	nc->setHint("", LOCALE_MENU_HINT_PROGRESSBAR_TIMESCALE_YELLOW);
-	m.addItem(nc);
-
-	nc = new CMenuOptionNumberChooser(LOCALE_MISCSETTINGS_PROGRESSBAR_TIMESCALE_GREEN, &g_settings.progressbar_timescale_green, true, 0, 100, this);
-	nc->setNumericInput(true);
-	nc->setNumberFormat("%d %%");
-	nc->setHint("", LOCALE_MENU_HINT_PROGRESSBAR_TIMESCALE_GREEN);
-	m.addItem(nc);
-
-	mc = new CMenuOptionChooser(LOCALE_MISCSETTINGS_PROGRESSBAR_TIMESCALE_INVERT, &g_settings.progressbar_timescale_invert, PROGRESSBAR_TIMESCALE_INVERT_OPTIONS, PROGRESSBAR_TIMESCALE_INVERT_OPTION_COUNT, true, this);
-	mc->setHint("", LOCALE_MENU_HINT_PROGRESSBAR_TIMESCALE_INVERT);
-	m.addItem(mc);
-
-	mb = new CMenuProgressbar(LOCALE_MISCSETTINGS_PROGRESSBAR_PREVIEW);
-	mb->setHint("", LOCALE_MENU_HINT_PROGRESSBAR_PREVIEW);
-	mb->getScale()->setType(CProgressBar::PB_TIMESCALE);
-	m.addItem(mb);
-
-	CMenuForwarder* mf = new CMenuForwarder(LOCALE_OPTIONS_DEFAULT, true, NULL, this, "reset", CRCInput::RC_red);
-	mf->setHint("", LOCALE_OPTIONS_HINT_DEFAULT);
-	m.addItem(mf);
-
-	// extended channel list (progressbars)
-	m.addItem(new CMenuSeparator(CMenuSeparator::LINE | CMenuSeparator::STRING, LOCALE_MAINMENU_CHANNELS));
-
-	mc = new CMenuOptionChooser(LOCALE_CHANNELLIST_EXTENDED, &g_settings.channellist_progressbar_design, PROGRESSBAR_COLOR_OPTIONS, PROGRESSBAR_COLOR_OPTION_COUNT, true, this);
-	mc->setHint("", LOCALE_MENU_HINT_CHANNELLIST_EXTENDED);
-	m.addItem(mc);
-
-	mb = new CMenuProgressbar(LOCALE_MISCSETTINGS_PROGRESSBAR_PREVIEW);
-	mb->setHint("", LOCALE_MENU_HINT_PROGRESSBAR_PREVIEW);
-	mb->getScale()->setType(CProgressBar::PB_TIMESCALE);
-	mb->getScale()->setDesign(g_settings.channellist_progressbar_design);
-	mb->getScale()->doPaintBg(false);
-	m.addItem(mb);
-
-
-	return m.exec(NULL, "");
-}
-
-class CChannellistSetup : public CMenuTarget, public CChangeObserver
-{
-	private:
-		int show();
-	public:
-		int exec(CMenuTarget* parent, const std::string &);
-		bool changeNotify(const neutrino_locale_t /* OptionName */, void * /* data */);
-};
-
-bool CChannellistSetup::changeNotify(const neutrino_locale_t /* OptionName */, void * /* data */)
-{
-	return true; // repaint
-}
-
-int CChannellistSetup::exec(CMenuTarget* parent, const std::string & /* actionKey */)
-{
-	if (parent)
-		parent->hide();
-	return show();
-}
-
-int CChannellistSetup::show()
-{
-	int width = w_max (40, 10); //%
-	CMenuWidget m(LOCALE_MAINMENU_SETTINGS, NEUTRINO_ICON_SETTINGS, width, MN_WIDGET_ID_OSDSETUP_CHANNELLIST);
-
-	m.addIntroItems(LOCALE_MISCSETTINGS_CHANNELLIST);
-
-	// channellist additional
-	CMenuOptionChooser *mc = new CMenuOptionChooser(LOCALE_CHANNELLIST_ADDITIONAL, &g_settings.channellist_additional, CHANNELLIST_ADDITIONAL_OPTIONS, CHANNELLIST_ADDITIONAL_OPTION_COUNT, true);
-	mc->setHint("", LOCALE_MENU_HINT_CHANNELLIST_ADDITIONAL);
-	m.addItem(mc);
-
-	// epg align
-	mc = new CMenuOptionChooser(LOCALE_MISCSETTINGS_CHANNELLIST_EPGTEXT_ALIGN, &g_settings.channellist_epgtext_align_right, CHANNELLIST_EPGTEXT_ALIGN_RIGHT_OPTIONS, CHANNELLIST_EPGTEXT_ALIGN_RIGHT_OPTIONS_COUNT, true);
-	mc->setHint("", LOCALE_MENU_HINT_CHANNELLIST_EPG_ALIGN);
-	m.addItem(mc);
-
-	// extended channel list (progressbars)
-	mc = new CMenuOptionChooser(LOCALE_CHANNELLIST_EXTENDED, &g_settings.channellist_progressbar_design, PROGRESSBAR_COLOR_OPTIONS, PROGRESSBAR_COLOR_OPTION_COUNT, true, this);
-	mc->setHint("", LOCALE_MENU_HINT_CHANNELLIST_EXTENDED);
-	m.addItem(mc);
-
-	// extended channel list preview
-	CMenuProgressbar *mb = new CMenuProgressbar(LOCALE_MISCSETTINGS_PROGRESSBAR_PREVIEW);
-	mb->setHint("", LOCALE_MENU_HINT_PROGRESSBAR_PREVIEW);
-	mb->getScale()->setType(CProgressBar::PB_TIMESCALE);
-	mb->getScale()->setDesign(g_settings.channellist_progressbar_design);
-	mb->getScale()->doPaintBg(false);
-	m.addItem(mb);
-
-	// foot
-	mc = new CMenuOptionChooser(LOCALE_CHANNELLIST_FOOT, &g_settings.channellist_foot, CHANNELLIST_FOOT_OPTIONS, CHANNELLIST_FOOT_OPTIONS_COUNT, true);
-	mc->setHint("", LOCALE_MENU_HINT_CHANNELLIST_FOOT);
-	m.addItem(mc);
-
-	// colored event
-	mc = new CMenuOptionChooser(LOCALE_MISCSETTINGS_CHANNELLIST_COLORED_EVENTS, &g_settings.colored_events_channellist, OPTIONS_COLORED_EVENTS_OPTIONS, OPTIONS_COLORED_EVENTS_OPTION_COUNT, true);
-	mc->setHint("", LOCALE_MENU_HINT_CHANNELLIST_COLORED);
-	m.addItem(mc);
-
-	//show numbers
-	mc = new CMenuOptionChooser(LOCALE_CHANNELLIST_SHOW_CHANNELNUMBER, &g_settings.channellist_show_numbers, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true);
-	mc->setHint("", LOCALE_MENU_HINT_CHANNELLIST_SHOW_CHANNELNUMBER);
-	m.addItem(mc);
-
-	//show channel logo
-	mc = new CMenuOptionChooser(LOCALE_CHANNELLIST_SHOW_CHANNELLOGO, &g_settings.channellist_show_channellogo, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true);
-	mc->setHint("", LOCALE_MENU_HINT_CHANNELLIST_SHOW_CHANNELLOGO);
-	m.addItem(mc);
-
-	return m.exec(NULL, "");
-}
-
-//show osd s
+//show osd setup
 int COsdSetup::showOsdSetup()
 {
 	int shortcut = 1;
@@ -870,7 +571,7 @@ int COsdSetup::showOsdSetup()
 
 	//progressbar
 	mf = new CMenuDForwarder(LOCALE_MISCSETTINGS_PROGRESSBAR, true, NULL, new CProgressbarSetup(), NULL, CRCInput::convertDigitToKey(shortcut++));
-	mf->setHint("", LOCALE_MENU_HINT_PROGRESSBAR_COLOR);
+	mf->setHint("", LOCALE_MENU_HINT_PROGRESSBAR);
 	osd_menu->addItem(mf);
 
 	//infobar
@@ -881,7 +582,9 @@ int COsdSetup::showOsdSetup()
 	osd_menu->addItem(mf);
 
 	//channellist
-	mf = new CMenuForwarder(LOCALE_MISCSETTINGS_CHANNELLIST, true, NULL, new CChannellistSetup(), NULL, CRCInput::convertDigitToKey(shortcut++));
+	CMenuWidget osd_menu_chanlist(LOCALE_MAINMENU_SETTINGS, NEUTRINO_ICON_SETTINGS, width, MN_WIDGET_ID_OSDSETUP_CHANNELLIST);
+	showOsdChanlistSetup(&osd_menu_chanlist);
+	mf = new CMenuForwarder(LOCALE_MISCSETTINGS_CHANNELLIST, true, NULL, &osd_menu_chanlist, NULL, CRCInput::convertDigitToKey(shortcut++));
 	mf->setHint("", LOCALE_MENU_HINT_CHANNELLIST_SETUP);
 	osd_menu->addItem(mf);
 
@@ -900,7 +603,8 @@ int COsdSetup::showOsdSetup()
 	osd_menu->addItem(mf);
 
 	//info clock
-	CMenuInfoClockSetup osd_menu_infoclock(colorSetupNotifier);
+	CMenuWidget osd_menu_infoclock(LOCALE_MAINMENU_SETTINGS, NEUTRINO_ICON_SETTINGS, width, MN_WIDGET_ID_OSDSETUP_INFOCLOCK);
+	showOsdInfoclockSetup(&osd_menu_infoclock);
 	mf = new CMenuForwarder(LOCALE_MISCSETTINGS_INFOCLOCK, true, NULL, &osd_menu_infoclock, NULL, CRCInput::convertDigitToKey(shortcut++));
 	mf->setHint("", LOCALE_MENU_HINT_INFOCLOCK_SETUP);
 	osd_menu->addItem(mf);
@@ -910,6 +614,13 @@ int COsdSetup::showOsdSetup()
 	showOsdScreenShotSetup(&osd_menu_screenshot);
 	mf = new CMenuForwarder(LOCALE_SCREENSHOT_MENU, true, NULL, &osd_menu_screenshot, NULL, CRCInput::convertDigitToKey(shortcut++));
 	mf->setHint("", LOCALE_MENU_HINT_SCREENSHOT_SETUP);
+	osd_menu->addItem(mf);
+
+	//screensaver
+	CMenuWidget osd_menu_screensaver(LOCALE_MAINMENU_SETTINGS, NEUTRINO_ICON_SETTINGS, width, MN_WIDGET_ID_OSDSETUP_SCREENSAVER);
+	showOsdScreensaverSetup(&osd_menu_screensaver);
+	mf = new CMenuForwarder(LOCALE_SCREENSAVER_MENU, true, NULL, &osd_menu_screensaver, NULL, CRCInput::convertDigitToKey(shortcut++));
+	mf->setHint("", LOCALE_MENU_HINT_SCREENSAVER_SETUP);
 	osd_menu->addItem(mf);
 
 	osd_menu->addItem(GenericMenuSeparatorLine);
@@ -960,17 +671,29 @@ int COsdSetup::showOsdSetup()
  	osd_menu->addItem(new CMenuOptionChooser(LOCALE_OPTIONS_SHOW_BACKGROUND_PICTURE, &g_settings.show_background_picture, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true));
 
 	int oldVolumeSize = g_settings.volume_size;
+	int oldInfoClockSize = g_settings.infoClockFontSize;
 
 	int res = osd_menu->exec(NULL, "");
-
-	if (g_settings.screenshot_mode == 3)
-		g_settings.screenshot_mode = screenshot_res;
 
 	if (oldVolumeSize != g_settings.volume_size)
 		CVolumeHelper::getInstance()->refresh();
 
+	if (g_settings.screenshot_mode == 3)
+		g_settings.screenshot_mode = screenshot_res;
+
+	if (oldInfoClockSize != g_settings.infoClockFontSize) {
+		CInfoClock::getInstance()->setClockFontSize(g_settings.infoClockFontSize);
+		CVolumeHelper::getInstance()->refresh();
+		if (CNeutrinoApp::getInstance()->isMuted()) {
+			CAudioMute::getInstance()->enableMuteIcon(false);
+			CAudioMute::getInstance()->enableMuteIcon(true);
+		}
+	}
+
 	sub_font_size = CNeutrinoApp::getInstance()->getConfigFile()->getInt32("fontsize.subtitles", 24);
 
+	delete colorInfoclockNotifier;
+	delete screensaverNotifier;
 	delete osd_menu;
 	return res;
 }
@@ -1147,7 +870,7 @@ void COsdSetup::showOsdFontSizeSetup(CMenuWidget *menu_fonts)
 	fontSettings->addItem(GenericMenuSeparatorLine);
 
 	// contrast fonts
-	CMenuOptionChooser * mc = new CMenuOptionChooser(LOCALE_COLORMENU_CONTRAST_FONTS, &g_settings.contrast_fonts, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true, this);
+	CMenuOptionChooser * mc = new CMenuOptionChooser(LOCALE_COLORMENU_CONTRAST_FONTS, &g_settings.contrast_fonts, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true, this, CRCInput::RC_yellow);
 	mc->setHint("", LOCALE_MENU_HINT_CONTRAST_FONTS);
 	fontSettings->addItem(mc);
 
@@ -1192,7 +915,6 @@ void COsdSetup::showOsdTimeoutSetup(CMenuWidget* menu_timeout)
 	{
 		CMenuOptionNumberChooser *ch = new CMenuOptionNumberChooser(timing_setting[i].name, &g_settings.timing[i], true, 0, 180);
 		ch->setNumberFormat(nf);
-		ch->setNumericInput(true);
 		ch->setHint("", LOCALE_MENU_HINT_OSD_TIMING);
 		menu_timeout->addItem(ch);
 	}
@@ -1213,8 +935,8 @@ const CMenuOptionChooser::keyval  LOCALE_MISCSETTINGS_INFOBAR_DISP_OPTIONS[LOCAL
 	{ 6 , LOCALE_MISCSETTINGS_INFOBAR_DISP_6 }
 };
 
-#define LOCALE_MISCSETTINGS_INFOBAR_PROGRESSBAR_COUNT 4
-const CMenuOptionChooser::keyval LOCALE_MISCSETTINGS_INFOBAR_PROGRESSBAR_OPTIONS[LOCALE_MISCSETTINGS_INFOBAR_PROGRESSBAR_COUNT]=
+#define PROGRESSBAR_INFOBAR_POSITION_COUNT 4
+const CMenuOptionChooser::keyval PROGRESSBAR_INFOBAR_POSITION_OPTIONS[PROGRESSBAR_INFOBAR_POSITION_COUNT]=
 {
 	{ 0 , LOCALE_MISCSETTINGS_PROGRESSBAR_INFOBAR_POSITION_0 },
 	{ 1 , LOCALE_MISCSETTINGS_PROGRESSBAR_INFOBAR_POSITION_1 },
@@ -1297,10 +1019,11 @@ void COsdSetup::showOsdInfobarSetup(CMenuWidget *menu_infobar)
 	mc->setHint("", LOCALE_MENU_HINT_INFOBAR_SAT);
 	menu_infobar->addItem(mc);
 
-	// infobar progress
-	mc = new CMenuOptionChooser(LOCALE_MISCSETTINGS_PROGRESSBAR, &g_settings.infobar_progressbar, LOCALE_MISCSETTINGS_INFOBAR_PROGRESSBAR_OPTIONS, LOCALE_MISCSETTINGS_INFOBAR_PROGRESSBAR_COUNT, true);
-	mc->setHint("", LOCALE_MENU_HINT_INFOBAR_PROGRESSBAR);
-	menu_infobar->addItem(mc);
+	//infobar position
+	CMenuOptionChooser *infobar_position;
+	infobar_position = new CMenuOptionChooser(LOCALE_MISCSETTINGS_PROGRESSBAR_INFOBAR_POSITION, &g_settings.infobar_progressbar, PROGRESSBAR_INFOBAR_POSITION_OPTIONS, PROGRESSBAR_INFOBAR_POSITION_COUNT, true);
+	infobar_position->setHint("", LOCALE_MENU_HINT_PROGRESSBAR_INFOBAR_POSITION);
+	menu_infobar->addItem(infobar_position);
 
 	// flash/hdd progress
 	mc = new CMenuOptionChooser(LOCALE_MISCSETTINGS_INFOBAR_SHOW_SYSFS_HDD, &g_settings.infobar_show_sysfs_hdd, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true);
@@ -1352,6 +1075,54 @@ void COsdSetup::showOsdInfobarSetup(CMenuWidget *menu_infobar)
 	menu_infobar->addItem(mc);
 }
 
+//channellist
+void COsdSetup::showOsdChanlistSetup(CMenuWidget *menu_chanlist)
+{
+	CMenuOptionChooser * mc;
+
+	menu_chanlist->addIntroItems(LOCALE_MISCSETTINGS_CHANNELLIST);
+
+	// channellist additional
+	mc = new CMenuOptionChooser(LOCALE_CHANNELLIST_ADDITIONAL, &g_settings.channellist_additional, CHANNELLIST_ADDITIONAL_OPTIONS, CHANNELLIST_ADDITIONAL_OPTION_COUNT, true);
+	mc->setHint("", LOCALE_MENU_HINT_CHANNELLIST_ADDITIONAL);
+	menu_chanlist->addItem(mc);
+
+	// epg align
+	mc = new CMenuOptionChooser(LOCALE_MISCSETTINGS_CHANNELLIST_EPGTEXT_ALIGN, &g_settings.channellist_epgtext_align_right, CHANNELLIST_EPGTEXT_ALIGN_RIGHT_OPTIONS, CHANNELLIST_EPGTEXT_ALIGN_RIGHT_OPTIONS_COUNT, true);
+	mc->setHint("", LOCALE_MENU_HINT_CHANNELLIST_EPG_ALIGN);
+	menu_chanlist->addItem(mc);
+
+	// extended channel list
+	mc = new CMenuOptionChooser(LOCALE_CHANNELLIST_EXTENDED, &g_settings.channellist_progressbar_design, PROGRESSBAR_COLOR_OPTIONS, PROGRESSBAR_COLOR_OPTION_COUNT, true, this);
+	mc->setHint("", LOCALE_MENU_HINT_CHANNELLIST_EXTENDED);
+	menu_chanlist->addItem(mc);
+
+	// hd-icon
+	mc = new CMenuOptionChooser(LOCALE_CHANNELLIST_HDICON, &g_settings.channellist_hdicon, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true);
+	mc->setHint("", LOCALE_MENU_HINT_CHANNELLIST_HDICON);
+	menu_chanlist->addItem(mc);
+
+	// foot
+	mc = new CMenuOptionChooser(LOCALE_CHANNELLIST_FOOT, &g_settings.channellist_foot, CHANNELLIST_FOOT_OPTIONS, CHANNELLIST_FOOT_OPTIONS_COUNT, true);
+	mc->setHint("", LOCALE_MENU_HINT_CHANNELLIST_FOOT);
+	menu_chanlist->addItem(mc);
+
+	// colored event
+	mc = new CMenuOptionChooser(LOCALE_MISCSETTINGS_CHANNELLIST_COLORED_EVENTS, &g_settings.colored_events_channellist, OPTIONS_COLORED_EVENTS_OPTIONS, OPTIONS_COLORED_EVENTS_OPTION_COUNT, true);
+	mc->setHint("", LOCALE_MENU_HINT_CHANNELLIST_COLORED);
+	menu_chanlist->addItem(mc);
+
+	//show channel logo
+	mc = new CMenuOptionChooser(LOCALE_CHANNELLIST_SHOW_CHANNELLOGO, &g_settings.channellist_show_channellogo, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true);
+	mc->setHint("", LOCALE_MENU_HINT_CHANNELLIST_SHOW_CHANNELLOGO);
+	menu_chanlist->addItem(mc);
+
+	//show numbers
+	mc = new CMenuOptionChooser(LOCALE_CHANNELLIST_SHOW_CHANNELNUMBER, &g_settings.channellist_show_numbers, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true);
+	mc->setHint("", LOCALE_MENU_HINT_CHANNELLIST_SHOW_CHANNELNUMBER);
+	menu_chanlist->addItem(mc);
+}
+
 //eventlist
 void COsdSetup::showOsdEventlistSetup(CMenuWidget *menu_eventlist)
 {
@@ -1381,7 +1152,6 @@ void COsdSetup::showOsdVolumeSetup(CMenuWidget *menu_volume)
 	int vMin = CVolumeHelper::getInstance()->getVolIconHeight();
 	g_settings.volume_size = max(g_settings.volume_size, vMin);
 	CMenuOptionNumberChooser * nc = new CMenuOptionNumberChooser(LOCALE_EXTRA_VOLUME_SIZE, &g_settings.volume_size, true, vMin, 50);
-	nc->setNumericInput(true);
 	nc->setHint("", LOCALE_MENU_HINT_VOLUME_SIZE);
 	menu_volume->addItem(nc);
 
@@ -1394,6 +1164,43 @@ void COsdSetup::showOsdVolumeSetup(CMenuWidget *menu_volume)
 	mc = new CMenuOptionChooser(LOCALE_EXTRA_SHOW_MUTE_ICON, &g_settings.show_mute_icon, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true);
 	mc->setHint("", LOCALE_MENU_HINT_SHOW_MUTE_ICON);
 	menu_volume->addItem(mc);
+}
+
+//info clock
+void COsdSetup::showOsdInfoclockSetup(CMenuWidget *menu_infoclock)
+{
+	menu_infoclock->addIntroItems(LOCALE_MISCSETTINGS_INFOCLOCK);
+
+	CMenuOptionChooser *mc = new CMenuOptionChooser(LOCALE_MISCSETTINGS_INFOCLOCK, &g_settings.mode_clock, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true, NULL, CRCInput::RC_red);
+	mc->setHint("", LOCALE_MENU_HINT_CLOCK_MODE);
+	menu_infoclock->addItem(mc);
+
+	menu_infoclock->addItem(GenericMenuSeparatorLine);
+
+	// size of info clock
+	CMenuOptionNumberChooser* mn = new CMenuOptionNumberChooser(LOCALE_CLOCK_SIZE_HEIGHT, &g_settings.infoClockFontSize, true, 30, 120);
+	mn->setHint("", LOCALE_MENU_HINT_CLOCK_SIZE);
+	menu_infoclock->addItem(mn);
+
+	// clock with seconds
+	mc = new CMenuOptionChooser(LOCALE_CLOCK_SECONDS, &g_settings.infoClockSeconds, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true);
+	mc->setHint("", LOCALE_MENU_HINT_CLOCK_SECONDS);
+	menu_infoclock->addItem(mc);
+
+	colorInfoclockNotifier = new COnOffNotifier(1);
+
+	// clock with background
+	mc = new CMenuOptionChooser(LOCALE_CLOCK_BACKGROUND, &g_settings.infoClockBackground, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true, colorInfoclockNotifier);
+	mc->setHint("", LOCALE_MENU_HINT_CLOCK_BACKGROUND);
+	menu_infoclock->addItem(mc);
+
+	// digit color
+	CColorChooser* cc = new CColorChooser(LOCALE_COLORMENU_CLOCK_TEXTCOLOR, &g_settings.theme.clock_Digit_red, &g_settings.theme.clock_Digit_green, &g_settings.theme.clock_Digit_blue,
+			NULL, colorSetupNotifier);
+	CMenuDForwarder* mf = new CMenuDForwarder(LOCALE_COLORMENU_CLOCK_TEXTCOLOR, !g_settings.infoClockBackground, NULL, cc);
+	mf->setHint("", LOCALE_MENU_HINT_CLOCK_TEXTCOLOR);
+	menu_infoclock->addItem(mf);
+	colorInfoclockNotifier->addItem(mf);
 }
 
 bool COsdSetup::changeNotify(const neutrino_locale_t OptionName, void * data)
@@ -1457,6 +1264,7 @@ bool COsdSetup::changeNotify(const neutrino_locale_t OptionName, void * data)
 		CVolumeHelper::getInstance()->refresh();
 		return false;
 	}
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	if (ARE_LOCALES_EQUAL(OptionName, LOCALE_SCREENSHOT_PLANES)) {
 		if (g_settings.screenshot_mode == 3) {
 			screenshot_res = g_settings.screenshot_res;
@@ -1467,6 +1275,7 @@ bool COsdSetup::changeNotify(const neutrino_locale_t OptionName, void * data)
 		}
 		return true;
 	}
+#endif
 	return false;
 }
 
@@ -1479,35 +1288,7 @@ int COsdSetup::showContextChanlistMenu()
 	menu_chanlist->enableFade(false);
 	menu_chanlist->setSelected(cselected);
 
-	CMenuOptionChooser * mc;
-
-	menu_chanlist->addIntroItems(LOCALE_MISCSETTINGS_CHANNELLIST);//, NONEXISTANT_LOCALE, CMenuWidget::BTN_TYPE_CANCEL);
-
-	mc = new CMenuOptionChooser(LOCALE_CHANNELLIST_ADDITIONAL, &g_settings.channellist_additional, CHANNELLIST_ADDITIONAL_OPTIONS, CHANNELLIST_ADDITIONAL_OPTION_COUNT, true);
-	mc->setHint("", LOCALE_MENU_HINT_CHANNELLIST_ADDITIONAL);
-	menu_chanlist->addItem(mc);
-
-	mc = new CMenuOptionChooser(LOCALE_MISCSETTINGS_CHANNELLIST_EPGTEXT_ALIGN, &g_settings.channellist_epgtext_align_right, CHANNELLIST_EPGTEXT_ALIGN_RIGHT_OPTIONS, CHANNELLIST_EPGTEXT_ALIGN_RIGHT_OPTIONS_COUNT, true);
-	mc->setHint("", LOCALE_MENU_HINT_CHANNELLIST_EPG_ALIGN);
-	menu_chanlist->addItem(mc);
-
-	mc = new CMenuOptionChooser(LOCALE_CHANNELLIST_EXTENDED, &g_settings.channellist_progressbar_design, PROGRESSBAR_COLOR_OPTIONS, PROGRESSBAR_COLOR_OPTION_COUNT, true);
-	mc->setHint("", LOCALE_MENU_HINT_CHANNELLIST_EXTENDED);
-	menu_chanlist->addItem(mc);
-
-	mc = new CMenuOptionChooser(LOCALE_CHANNELLIST_FOOT, &g_settings.channellist_foot, CHANNELLIST_FOOT_OPTIONS, CHANNELLIST_FOOT_OPTIONS_COUNT, true);
-	mc->setHint("", LOCALE_MENU_HINT_CHANNELLIST_FOOT);
-	menu_chanlist->addItem(mc);
-
-	mc = new CMenuOptionChooser(LOCALE_MISCSETTINGS_CHANNELLIST_COLORED_EVENTS, &g_settings.colored_events_channellist, OPTIONS_COLORED_EVENTS_OPTIONS, OPTIONS_COLORED_EVENTS_OPTION_COUNT, true);
-	mc->setHint("", LOCALE_MENU_HINT_CHANNELLIST_COLORED);
-	menu_chanlist->addItem(mc);
-
-	//show channel logo
-	mc = new CMenuOptionChooser(LOCALE_CHANNELLIST_SHOW_CHANNELLOGO, &g_settings.channellist_show_channellogo, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true);
-	mc->setHint("", LOCALE_MENU_HINT_CHANNELLIST_SHOW_CHANNELLOGO);
-	menu_chanlist->addItem(mc);
-
+	showOsdChanlistSetup(menu_chanlist);
 	menu_chanlist->addItem(new CMenuSeparator(CMenuSeparator::LINE));
 
 	CMenuWidget *fontSettingsSubMenu = new CMenuWidget(LOCALE_FONTMENU_HEAD, NEUTRINO_ICON_KEYBINDING);
@@ -1568,7 +1349,6 @@ void COsdSetup::showOsdScreenShotSetup(CMenuWidget *menu_screenshot)
 	menu_screenshot->addItem(mf);
 
 	CMenuOptionNumberChooser * nc = new CMenuOptionNumberChooser(LOCALE_SCREENSHOT_COUNT, &g_settings.screenshot_count, true, 1, 5, NULL);
-	nc->setNumericInput(true);
 	nc->setHint("", LOCALE_MENU_HINT_SCREENSHOT_COUNT);
 	menu_screenshot->addItem(nc);
 
@@ -1576,26 +1356,66 @@ void COsdSetup::showOsdScreenShotSetup(CMenuWidget *menu_screenshot)
 	mc->setHint("", LOCALE_MENU_HINT_SCREENSHOT_FORMAT);
 	menu_screenshot->addItem(mc);
 
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	mc = new CMenuOptionChooser(LOCALE_SCREENSHOT_PLANES, &g_settings.screenshot_mode, SCREENSHOT_PLANE_OPTIONS, SCREENSHOT_PLANE_OPTION_COUNT, true, this);
 	mc->setHint("", LOCALE_MENU_HINT_SCREENSHOT_PLANES);
+#else
+	mc = new CMenuOptionChooser(LOCALE_SCREENSHOT_RES, &g_settings.screenshot_mode, SCREENSHOT_OPTIONS, SCREENSHOT_OPTION_COUNT, true);
+	mc->setHint("", LOCALE_MENU_HINT_SCREENSHOT_RES);
+#endif
 	menu_screenshot->addItem(mc);
 
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	if (g_settings.screenshot_mode == 3)
 		screenshot_res = g_settings.screenshot_res;
 	else
 		screenshot_res = g_settings.screenshot_mode;
+#else
+	mc = new CMenuOptionChooser(LOCALE_SCREENSHOT_VIDEO, &g_settings.screenshot_video, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true);
+	mc->setHint("", LOCALE_MENU_HINT_SCREENSHOT_VIDEO);
+	menu_screenshot->addItem(mc);
+#endif
 
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	mc = new CMenuOptionChooser(LOCALE_SCREENSHOT_RES, &screenshot_res, SCREENSHOT_RES_OPTIONS, SCREENSHOT_RES_OPTION_COUNT, g_settings.screenshot_mode == 3);
 	mc->setHint("", LOCALE_MENU_HINT_SCREENSHOT_RES);
+#else
+	mc = new CMenuOptionChooser(LOCALE_SCREENSHOT_SCALE, &g_settings.screenshot_scale, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true);
+	mc->setHint("", LOCALE_MENU_HINT_SCREENSHOT_SCALE);
+#endif
 	menu_screenshot->addItem(mc);
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	screenshot_res_chooser = mc;
+#endif
 
 	mc = new CMenuOptionChooser(LOCALE_SCREENSHOT_COVER, &g_settings.screenshot_cover, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true);
 	mc->setHint("", LOCALE_MENU_HINT_SCREENSHOT_COVER);
 	menu_screenshot->addItem(mc);
-	menu_screenshot->addItem(new CMenuSeparator(CMenuSeparator::LINE | CMenuSeparator::STRING, LOCALE_SCREENSHOT_WEB));
-	menu_screenshot->addItem(new CMenuOptionNumberChooser(LOCALE_SCREENSHOT_PNG_COMPRESSION, &g_settings.screenshot_png_compression, true, 1, 9, NULL));
-	menu_screenshot->addItem(new CMenuOptionChooser(LOCALE_SCREENSHOT_BACKBUFFER, &g_settings.screenshot_backbuffer, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true));
+}
+
+void COsdSetup::showOsdScreensaverSetup(CMenuWidget *menu_screensaver)
+{
+	menu_screensaver->addIntroItems(LOCALE_SCREENSAVER_MENU);
+	screensaverNotifier = new COnOffNotifier();
+
+	// screensaver delay
+	CMenuOptionNumberChooser* nc = new CMenuOptionNumberChooser(LOCALE_SCREENSAVER_DELAY, &g_settings.screensaver_delay, true, 0, 999, screensaverNotifier, CRCInput::RC_nokey, NULL, 0, 0, LOCALE_SCREENSAVER_OFF);
+	nc->setNumberFormat(std::string("%d ") + g_Locale->getText(LOCALE_UNIT_SHORT_MINUTE));
+	nc->setHint("", LOCALE_MENU_HINT_SCREENSAVER_DELAY);
+	menu_screensaver->addItem(nc);
+
+	// screensaver timeout
+	nc = new CMenuOptionNumberChooser(LOCALE_SCREENSAVER_TIMEOUT, &g_settings.screensaver_timeout, (g_settings.screensaver_delay != 0), 0, 60, NULL, CRCInput::RC_nokey, NULL, 0, 0, LOCALE_OPTIONS_OFF);
+	nc->setNumberFormat(std::string("%d ") + g_Locale->getText(LOCALE_UNIT_SHORT_SECOND));
+	nc->setHint("", LOCALE_MENU_HINT_SCREENSAVER_TIMEOUT);
+	menu_screensaver->addItem(nc);
+	screensaverNotifier->addItem(nc);
+
+	// screensaver_dir
+	CMenuForwarder *mf = new CMenuForwarder(LOCALE_SCREENSAVER_DIR, (g_settings.screensaver_delay != 0), g_settings.screensaver_dir, this, "screensaver_dir");
+	mf->setHint("", LOCALE_MENU_HINT_SCREENSAVER_DIR);
+	menu_screensaver->addItem(mf);
+	screensaverNotifier->addItem(mf);
 }
 
 void COsdSetup::paintWindowSize(int w, int h)
