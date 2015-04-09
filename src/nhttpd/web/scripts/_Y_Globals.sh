@@ -18,7 +18,7 @@ boxhardware="spark"
 # -----------------------------------------------------------
 # Pathes
 # -----------------------------------------------------------
-#y_path_httpd="/share/tuxbox/neutrino/httpd"
+y_path_httpd="/share/tuxbox/neutrino/httpd"
 y_path_httpd=".."
 y_path_scripts="$y_path_httpd/scripts"
 y_path_usrbin="/var/bin"
