@@ -59,8 +59,9 @@ extern CPlugins *g_PluginList;//for relodplugins
 extern CBouquetManager *g_bouquetManager;
 #if HAVE_DUCKBOX_HARDWARE
 #define EVENTDEV "/dev/input/event0"
-#elif HAVE_SPARK_HARDWARE
-#define EVENTDEV "/dev/input/event1"
+#endif
+#if HAVE_SPARK_HARDWARE
+#define EVENTDEV "/dev/input/nevis_ir"
 #else
 #define EVENTDEV "/dev/input/input0"
 #endif
@@ -340,24 +341,24 @@ void CControlAPI::SetModeCGI(CyhookHandler *hh)
 
 		if (hh->ParamList["1"] == "radio")	// switch to radio mode
 		{
-			if(CNeutrinoApp::getInstance()->getMode() != NeutrinoMessages::mode_standby){
+			if(CNeutrinoApp::getInstance()->getMode() != NeutrinoMessages::mode_standby) {
 				int mode = NeutrinoMessages::mode_radio;
 				NeutrinoAPI->EventServer->sendEvent(NeutrinoMessages::CHANGEMODE, CEventServer::INITID_HTTPD, (void *)&mode,sizeof(int));
 				sleep(1);
 				NeutrinoAPI->UpdateBouquets();
-			}else{
+			} else {
 				extern CRemoteControl * g_RemoteControl;
 				g_RemoteControl->radioMode();
 			}
 		}
 		else if (hh->ParamList["1"] == "tv")	// switch to tv mode
 		{
-			if(CNeutrinoApp::getInstance()->getMode() != NeutrinoMessages::mode_standby){
+			if(CNeutrinoApp::getInstance()->getMode() != NeutrinoMessages::mode_standby) {
 				int mode = NeutrinoMessages::mode_tv;
 				NeutrinoAPI->EventServer->sendEvent(NeutrinoMessages::CHANGEMODE, CEventServer::INITID_HTTPD, (void *)&mode,sizeof(int));
 				sleep(1);
 				NeutrinoAPI->UpdateBouquets();
-			}else{
+			} else {
 				extern CRemoteControl * g_RemoteControl;
 				g_RemoteControl->tvMode();
 			}
@@ -647,25 +648,14 @@ void CControlAPI::InfoCGI(CyhookHandler *hh)
 
 void CControlAPI::HWInfoCGI(CyhookHandler *hh)
 {
-#if HAVE_SPARK_HARDWARE
-	std::string boxname = string(g_info.hw_caps->boxvendor) + " " + string(g_info.hw_caps->boxname);
-#else
-	unsigned int system_rev = cs_get_revision();
 	std::string boxname = NeutrinoAPI->NeutrinoYParser->func_get_boxtype(hh, "");
 	std::string boxmodel = NeutrinoAPI->NeutrinoYParser->func_get_boxmodel(hh, "");
-#endif
 
 	static CNetAdapter netadapter; 
 	std::string eth_id = netadapter.getMacAddr();
 	std::transform(eth_id.begin(), eth_id.end(), eth_id.begin(), ::tolower);
 
-#if HAVE_SPARK_HARDWARE
-	hh->printf("%s\nMAC:%s\n", boxname.c_str(),eth_id.c_str());
-#else
-
-	boxname += (g_info.delivery_system == DVB_S || (system_rev == 1)) ? " SAT":" CABLE";
 	hh->printf("%s (%s)\nMAC:%s\n", boxname.c_str(), boxmodel.c_str(), eth_id.c_str());
-#endif
 }
 //-----------------------------------------------------------------------------
 void CControlAPI::ShutdownCGI(CyhookHandler *hh)
