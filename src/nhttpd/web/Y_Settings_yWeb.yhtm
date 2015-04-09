@@ -29,16 +29,10 @@ function do_init(){
 	val = "{=ini-get:/var/tuxbox/config/Y-Web.conf;fb;0~open=}";
 	var sel=2;
 	switch(val){
-		case "-3":	// ufs910
-		case "-2":	// spark old
-		case "-1":	// spark new
 		case "0":	// auto
-		case "1":	// cst hd1/bse
-		case "2":	// cst neo
-		case "3":	// cst zee/neo2
-		case "4":	// cst neo twin
-		case "5":	// cst tank
-		case "6":	// cst trinity
+		case "1":	// spark new
+		case "2":	// spark old
+		case "3":	// ufs910
 			sel=(sel*1+val*1);
 			break;
 		default:
@@ -115,16 +109,10 @@ select {
 				<td>{=L:set.yweb.remote=}</td>
 				<td colspan="3">
 					<select name="fb" title="{=L:remote=}">
-						<option value="-3">KATHREIN | (910)</option>
-						<option value="-2">SPARK | (alt)</option>
-						<option value="-1">SPARK | (neu)</option>
 						<option value="0" selected="selected">{=L:automatic=}</option>
-						<option value="1">CST HD-1 | BSE</option>
-						<option value="2">CST HD-1plus | Neo</option>
-						<option value="3">CST HD-1plus | Zee/Neo2</option>
-						<option value="4">CST HD-1plus | Neo Twin</option>
-						<option value="5">CST HD-2 | Tank</option>
-						<option value="6">CST HD-2 | Trinity</option>
+						<option value="1">SPARK | (neu)</option>
+						<option value="2">SPARK | (alt)</option>
+						<option value="3">KATHREIN | (910)</option>
 					</select>
 				</td>
 			</tr>
