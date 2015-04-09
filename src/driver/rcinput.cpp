@@ -61,8 +61,8 @@
 #include <sectionsdclient/sectionsdclient.h>
 #include <cs_api.h>
 
-#if HAVE_SPARK_HARDWARE
-#include <gui/cec_setup.h> // FIXME
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
+#include <gui/cec_setup.h>
 #endif
 
 //#define RCDEBUG
@@ -1302,7 +1302,7 @@ void CRCInput::getMsg_us(neutrino_msg_t * msg, neutrino_msg_data_t * data, uint6
 					if (*timer_wakeup) {
 						unlink("/tmp/.timer_wakeup");
 						*timer_wakeup = false;
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 						CCECSetup cecsetup;
 						cecsetup.setCECSettings(true);
 #endif
