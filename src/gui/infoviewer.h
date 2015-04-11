@@ -82,6 +82,7 @@ class CInfoViewer
 	//uint32_t           fadeTimer;
 	COSDFader	fader;
 
+	int time_width;
 	int time_height;
 	int info_time_width;
 
@@ -108,8 +109,8 @@ class CInfoViewer
 			  const char *runningStart = NULL, const char *runningRest = NULL,
 			  const char *nextStart = NULL, const char *nextDuration = NULL,
 			  bool update_current = true, bool update_next = true);
-	void initClock();
 	void paintTime( bool show_dot );
+	void initClock();
 	void showRecordIcon(const bool show);
 	void showIcon_Tuner() const;
 
@@ -141,11 +142,10 @@ class CInfoViewer
 	uint32_t sec_timer_id;
 	int      BoxStartX;
 	int      BoxStartY;
-	int      time_width;
 	int      ChanHeight;
-	int            ChanNameX;
-	int            ChanNameY;
-	int            ChanWidth;
+	int      ChanNameX;
+	int      ChanNameY;
+	int      ChanWidth;
 	int      BoxEndX;
 	int      BoxEndY;
 	int      ChanInfoX;
@@ -172,6 +172,7 @@ class CInfoViewer
 	void lookAheadEPG(const int ChanNum, const std::string & Channel, const t_channel_id new_channel_id = 0, const bool calledFromNumZap = false); //alpha: fix for nvod subchannel update
 	void	killTitle();
 	void	getEPG(const t_channel_id for_channel_id, CSectionsdClient::CurrentNextInfo &info);
+	CSectionsdClient::CurrentNextInfo getCurrentNextInfo() const { return info_CurrentNext; }
 	
 	void	showSubchan();
 	//void	Set_CA_Status(int Status);

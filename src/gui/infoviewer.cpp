@@ -437,6 +437,7 @@ void CInfoViewer::paintHead()
 	clock->setColorBody(header.getColorBody());
 
 	header.paint(CC_SAVE_SCREEN_NO);
+
 }
 
 void CInfoViewer::show_current_next(bool new_chan, int  epgpos)
@@ -609,7 +610,8 @@ void CInfoViewer::showMovieTitle(const int playState, const t_channel_id &Channe
 	paintBackground(COL_INFOBAR_PLUS_0);
 
 	bool show_dot = true;
-	paintTime (show_dot);
+	if (timeset)
+		clock->paint(CC_SAVE_SCREEN_NO);
 	showRecordIcon (show_dot);
 	show_dot = !show_dot;
 
@@ -619,7 +621,7 @@ void CInfoViewer::showMovieTitle(const int playState, const t_channel_id &Channe
 	if (g_settings.infobar_show_channellogo > 1)
 		ChannelLogoMode = showChannelLogo(channel_id, 0);
 	if (ChannelLogoMode == 0 || ChannelLogoMode == 3 || ChannelLogoMode == 4)
-		g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_CHANNAME]->RenderString(ChanNameX + 10 , ChanNameY + time_height,BoxEndX - (ChanNameX + 20) - time_width - LEFT_OFFSET - 5 ,ChannelName, COL_INFOBAR_TEXT);
+		g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_CHANNAME]->RenderString(ChanNameX + 10 , ChanNameY + time_height,BoxEndX - (ChanNameX + 20) - time_width - LEFT_OFFSET - 10 ,ChannelName, COL_INFOBAR_TEXT);
 
 	// show_Data
 	if (CMoviePlayerGui::getInstance().file_prozent > 100)
@@ -746,7 +748,7 @@ void CInfoViewer::showTitle (const int ChanNum, const std::string & Channel, con
 	last_curr_id = last_next_id = 0;
 	showButtonBar = !calledFromNumZap;
 
-	fileplay = (ChanNum == 0) && !CMoviePlayerGui::getInstance().Playing();
+	fileplay = (ChanNum == 0);
 	newfreq = true;
 
 	reset_allScala();
@@ -789,7 +791,8 @@ void CInfoViewer::showTitle (const int ChanNum, const std::string & Channel, con
 	paintBackground(col_NumBox);
 
 	bool show_dot = true;
-	paintTime (show_dot);
+	if (timeset)
+		clock->paint(CC_SAVE_SCREEN_NO);
 	showRecordIcon (show_dot);
 	show_dot = !show_dot;
 
@@ -860,10 +863,10 @@ void CInfoViewer::showTitle (const int ChanNum, const std::string & Channel, con
 		if (ChannelLogoMode != 2) {
 			//FIXME good color to display inactive for zap ?
 			//fb_pixel_t color = CNeutrinoApp::getInstance ()->channelList->SameTP(new_channel_id) ? COL_INFOBAR_TEXT : COL_INFOBAR_SHADOW_TEXT;
-			fb_pixel_t color = COL_INFOBAR_TEXT;
+			fb_pixel_t color = g_settings.gradiant ? COL_MENUHEAD_TEXT : COL_INFOBAR_TEXT;
 			g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_CHANNAME]->RenderString(
 				ChanNameX + 10 + ChanNumWidth, ChanNameY + time_height,
-				BoxEndX - (ChanNameX + 20) - time_width - LEFT_OFFSET - 5 - ChanNumWidth,
+				BoxEndX - (ChanNameX + 20) - time_width - LEFT_OFFSET - 10 - ChanNumWidth,
 				ChannelName, color /*COL_INFOBAR_TEXT*/);
 			//provider name
 			if(g_settings.infobar_show_channeldesc && pname){
@@ -880,7 +883,7 @@ void CInfoViewer::showTitle (const int ChanNum, const std::string & Channel, con
 						+ g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_INFO]->getDigitOffset());
 				g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_INFO]->RenderString(
 					ChanNameX + 10 + ChanNumWidth + chname_width, tmpY,
-					BoxEndX - (ChanNameX + 20) - time_width - LEFT_OFFSET - 5 - ChanNumWidth - chname_width,
+					BoxEndX - (ChanNameX + 20) - time_width - LEFT_OFFSET - 10 - ChanNumWidth - chname_width,
 					prov_name, color /*COL_INFOBAR_TEXT*/);
 			}
 
@@ -1005,7 +1008,8 @@ void CInfoViewer::loop(bool show_dot)
 			if (is_visible && showButtonBar)
 				infoViewerBB->showIcon_CA_Status(0);
 			showSNR ();
-			paintTime (show_dot);
+			if (timeset)
+				clock->paint(CC_SAVE_SCREEN_NO);
 			showRecordIcon (show_dot);
 			show_dot = !show_dot;
 			showInfoFile();
@@ -1379,7 +1383,7 @@ int CInfoViewer::handleMsg (const neutrino_msg_t msg, neutrino_msg_data_t data)
 {
 	if ((msg == NeutrinoMessages::EVT_CURRENTNEXT_EPG) || (msg == NeutrinoMessages::EVT_NEXTPROGRAM)) {
 //printf("CInfoViewer::handleMsg: NeutrinoMessages::EVT_CURRENTNEXT_EPG data %llx current %llx\n", *(t_channel_id *) data, channel_id & 0xFFFFFFFFFFFFULL);
-		if (!CMoviePlayerGui::getInstance().Playing() && (*(t_channel_id *) data) == (channel_id & 0xFFFFFFFFFFFFULL)) {
+		if ((*(t_channel_id *) data) == (channel_id & 0xFFFFFFFFFFFFULL)) {
 			getEPG (*(t_channel_id *) data, info_CurrentNext);
 			if (is_visible)
 				show_Data (true);
@@ -1443,7 +1447,7 @@ int CInfoViewer::handleMsg (const neutrino_msg_t msg, neutrino_msg_data_t data)
 		if ((*(t_channel_id *) data) == channel_id) {
 			if (is_visible && showButtonBar)
 				infoViewerBB->showBBButtons(CInfoViewerBB::BUTTON_AUDIO);
-			if (g_settings.radiotext_enable && g_Radiotext && ((CNeutrinoApp::getInstance()->getMode()) == NeutrinoMessages::mode_radio))
+			if (g_settings.radiotext_enable && g_Radiotext && !g_RemoteControl->current_PIDs.APIDs.empty() && ((CNeutrinoApp::getInstance()->getMode()) == NeutrinoMessages::mode_radio))
 				g_Radiotext->setPid(g_RemoteControl->current_PIDs.APIDs[g_RemoteControl->current_PIDs.PIDs.selected_apid].pid);
 		}
 		return messages_return::handled;
@@ -1462,6 +1466,8 @@ int CInfoViewer::handleMsg (const neutrino_msg_t msg, neutrino_msg_data_t data)
 				show_Data (true);
 		}
 		showLcdPercentOver ();
+		eventname = info_CurrentNext.current_name;
+		CVFD::getInstance()->setEPGTitle(eventname);
 		return messages_return::handled;
 	} else if (msg == NeutrinoMessages::EVT_ZAP_SUB_FAILED) {
 		//chanready = 1;
@@ -2240,7 +2246,7 @@ void CInfoViewer::showEpgInfo()   //message on event change
 {
 	int mode = CNeutrinoApp::getInstance()->getMode();
 	/* show epg info only if we in TV- or Radio mode and current event is not the same like before */
-	if ((eventname != info_CurrentNext.current_name) && (mode == NeutrinoMessages::mode_radio || mode == NeutrinoMessages::mode_tv))
+	if ((eventname != info_CurrentNext.current_name) && (mode == 2 /*mode_radio*/ || mode == 1 /*mode_tv*/))
 	{
 		eventname = info_CurrentNext.current_name;
 		if (g_settings.infobar_show)
