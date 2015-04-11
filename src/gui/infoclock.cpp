@@ -77,8 +77,14 @@ void CInfoClock::Init()
 	else
 		setColorBody(COL_BACKGROUND_PLUS_0);
 
-	setClockFormat(g_settings.infoClockFormat0.c_str());
-	setClockBlink(g_settings.infoClockFormat1.c_str());
+	setShadowOnOff(g_settings.infoClockBackground);
+
+	if (g_settings.infoClockSeconds)
+		setClockFormat("%H:%M:%S");
+	else {
+		setClockFormat("%H:%M");
+		setClockBlink("%H %M");
+	}
 
 	int x_old = x, y_old = y, width_old = width, height_old = height;
 	CVolumeHelper::getInstance()->refresh(cl_font);
