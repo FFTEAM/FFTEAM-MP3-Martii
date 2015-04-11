@@ -43,7 +43,7 @@
 #include <gui/plugins.h>
 #include <gui/sleeptimer.h>
 #include <gui/zapit_setup.h>
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 #include <gui/kerneloptions.h>
 #endif
 
@@ -122,6 +122,28 @@ int CMiscMenue::exec(CMenuTarget* parent, const std::string &actionKey)
 
 		return menu_return::RETURN_REPAINT;
 	}
+	else if(actionKey == "movieplayer_plugin")
+	{
+		CMenuWidget MoviePluginSelector(LOCALE_MOVIEPLAYER_DEFPLUGIN, NEUTRINO_ICON_FEATURES);
+		MoviePluginSelector.addItem(GenericMenuSeparator);
+
+		char id[5];
+		int cnt = 0;
+		int enabled_count = 0;
+		for (unsigned int count = 0; count < (unsigned int) g_PluginList->getNumberOfPlugins();count++)
+		{
+			if (!g_PluginList->isHidden(count))
+			{
+				sprintf(id, "%d", count);
+				enabled_count++;
+				MoviePluginSelector.addItem(new CMenuForwarder(g_PluginList->getName(count), true, NULL, new CMoviePluginChangeExec(), id, CRCInput::convertDigitToKey(count)), (cnt == 0));
+				cnt++;
+			}
+		}
+
+		MoviePluginSelector.exec(NULL, "");
+		return menu_return::RETURN_REPAINT;
+	}
 	else if(actionKey == "info")
 	{
 		unsigned num = CEitManager::getInstance()->getEventsCount();
@@ -167,7 +189,7 @@ const CMenuOptionChooser::keyval CHANNELLIST_NEW_ZAP_MODE_OPTIONS[CHANNELLIST_NE
 };
 
 #ifdef CPU_FREQ
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 #define CPU_FREQ_OPTION_COUNT 6
 const CMenuOptionChooser::keyval_ext CPU_FREQ_OPTIONS[CPU_FREQ_OPTION_COUNT] =
 {
@@ -293,7 +315,7 @@ int CMiscMenue::showMiscSettingsMenu()
 
 	if (!g_info.hw_caps->can_shutdown) {
 		/* we don't have the energy menu, but put the sleeptimer directly here */
-		mf = new CMenuDForwarder(LOCALE_MISCSETTINGS_SLEEPTIMER, true, NULL, new CSleepTimerWidget(true));
+		mf = new CMenuDForwarder(LOCALE_MISCSETTINGS_SLEEPTIMER, true, NULL, new CSleepTimerWidget(true), NULL, CRCInput::RC_1);
 		mf->setHint("", LOCALE_MENU_HINT_INACT_TIMER);
 		misc_menue.addItem(mf);
 	}
@@ -316,7 +338,7 @@ int CMiscMenue::showMiscSettingsMenu()
 	mf->setHint("", LOCALE_MENU_HINT_MISC_CPUFREQ);
 	misc_menue.addItem(mf);
 #endif /*CPU_FREQ*/
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	// kerneloptions
 	CKernelOptions kernelOptions;
 	mf = new CMenuForwarder(LOCALE_KERNELOPTIONS_HEAD, true, NULL, &kernelOptions, NULL, CRCInput::RC_5);
@@ -355,7 +377,11 @@ void CMiscMenue::showMiscSettingsMenuGeneral(CMenuWidget *ms_general)
 	//fan speed
 	if (g_info.has_fan)
 	{
-		CMenuOptionNumberChooser * mn = new CMenuOptionNumberChooser(LOCALE_FAN_SPEED, &g_settings.fan_speed, true, 1, 14, fanNotifier, 0, 0, LOCALE_OPTIONS_OFF);
+#if defined (BOXMODEL_IPBOX9900) || defined (BOXMODEL_IPBOX99)
+		CMenuOptionNumberChooser * mn = new CMenuOptionNumberChooser(LOCALE_FAN_SPEED, &g_settings.fan_speed, true, 0, 1, fanNotifier, CRCInput::RC_nokey, NULL, 0, 0, LOCALE_OPTIONS_OFF);
+#else
+		CMenuOptionNumberChooser * mn = new CMenuOptionNumberChooser(LOCALE_FAN_SPEED, &g_settings.fan_speed, true, 1, 14, fanNotifier, CRCInput::RC_nokey, NULL, 0, 0, LOCALE_OPTIONS_OFF);
+#endif
 		mn->setHint("", LOCALE_MENU_HINT_FAN_SPEED);
 		ms_general->addItem(mn);
 	}
@@ -366,10 +392,14 @@ void CMiscMenue::showMiscSettingsMenuGeneral(CMenuWidget *ms_general)
 	mf->setHint("", LOCALE_MENU_HINT_PLUGINS_HDD_DIR);
 	ms_general->addItem(mf);
 
+	mf = new CMenuForwarder(LOCALE_MPKEY_PLUGIN, true, g_settings.movieplayer_plugin, this, "movieplayer_plugin");
+	mf->setHint("", LOCALE_MENU_HINT_MOVIEPLAYER_PLUGIN);
+	ms_general->addItem(mf);
+
 	//set debug level
 	ms_general->addItem(new CMenuSeparator(CMenuSeparator::LINE | CMenuSeparator::STRING, LOCALE_DEBUG));
 	CMenuOptionChooser * md = new CMenuOptionChooser(LOCALE_DEBUG_LEVEL, &debug, DEBUG_MODE_OPTIONS, DEBUG_MODES, true);
-// 	md->setHint("", LOCALE_MENU_HINT_START_TOSTANDBY);
+// 	mc->setHint("", LOCALE_MENU_HINT_START_TOSTANDBY);
 	ms_general->addItem(md);
 }
 
@@ -393,7 +423,7 @@ int CMiscMenue::showMiscSettingsMenuEnergy()
 	if (shutdown_count.length() < 3)
 		shutdown_count.insert(0, 3 - shutdown_count.length(), ' ');
 	CStringInput * miscSettings_shutdown_count = new CStringInput(LOCALE_MISCSETTINGS_SHUTDOWN_COUNT, &shutdown_count, 3, LOCALE_MISCSETTINGS_SHUTDOWN_COUNT_HINT1, LOCALE_MISCSETTINGS_SHUTDOWN_COUNT_HINT2, "0123456789 ");
-	CMenuForwarder *m2 = new CMenuDForwarder(LOCALE_MISCSETTINGS_SHUTDOWN_COUNT, !g_settings.shutdown_real, shutdown_count, miscSettings_shutdown_count);
+	CMenuForwarder *m2 = new CMenuDForwarder(LOCALE_MISCSETTINGS_SHUTDOWN_COUNT, !g_settings.shutdown_real, NULL, miscSettings_shutdown_count);
 	m2->setHint("", LOCALE_MENU_HINT_SHUTDOWN_COUNT);
 
 	COnOffNotifier * miscNotifier = new COnOffNotifier(1);
@@ -585,7 +615,7 @@ void CMiscMenue::showMiscSettingsMenuCPUFreq(CMenuWidget *ms_cpu)
 
 	CCpuFreqNotifier * cpuNotifier = new CCpuFreqNotifier();
 	ms_cpu->addItem(new CMenuOptionChooser(LOCALE_CPU_FREQ_NORMAL, &g_settings.cpufreq, CPU_FREQ_OPTIONS, CPU_FREQ_OPTION_COUNT, true, cpuNotifier));
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	ms_cpu->addItem(new CMenuOptionChooser(LOCALE_CPU_FREQ_STANDBY, &g_settings.standby_cpufreq, CPU_FREQ_OPTIONS_STANDBY, CPU_FREQ_OPTION_STANDBY_COUNT, true));
 #else
 	ms_cpu->addItem(new CMenuOptionChooser(LOCALE_CPU_FREQ_STANDBY, &g_settings.standby_cpufreq, CPU_FREQ_OPTIONS, CPU_FREQ_OPTION_COUNT, true));
