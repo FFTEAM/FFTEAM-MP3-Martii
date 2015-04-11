@@ -169,7 +169,6 @@ void CBEChannelSelectWidget::onRedKeyPressed()
 {
 	if (selected >= Channels.size())
 		return;
-	setModified();
 
 	channellist_sort_mode++;
 	if(channellist_sort_mode > SORT_END)
@@ -278,7 +277,7 @@ std::string CBEChannelSelectWidget::getInfoText(int index)
 void CBEChannelSelectWidget::paintDetails(int index)
 {
 	//details line
-	dline->paint();
+	dline->paint(CC_SAVE_SCREEN_NO);
 	
 	std::string str = getInfoText(index);
 	
@@ -318,8 +317,7 @@ void CBEChannelSelectWidget::initItem2DetailsLine (int pos, int /*ch_index*/)
 
 void CBEChannelSelectWidget::hide()
 {
-  	if (dline)
-		dline->kill(); //kill details line
+	dline->kill(); //kill details line
 	ibox->kill();
 	CListBox::hide();
 }

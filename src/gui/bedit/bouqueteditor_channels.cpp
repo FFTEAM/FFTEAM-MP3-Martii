@@ -220,14 +220,14 @@ std::string CBEChannelWidget::getInfoText(int index)
 void CBEChannelWidget::paintDetails(int index)
 {
 	//details line
-	dline->paint();
+	dline->paint(CC_SAVE_SCREEN_NO);
 	
 	std::string str = getInfoText(index);
 	
 	//info box
 	ibox->setText(str, CTextBox::AUTO_WIDTH | CTextBox::NO_AUTO_LINEBREAK, g_Font[SNeutrinoSettings::FONT_TYPE_CHANNELLIST]);
 	ibox->setColorBody(COL_MENUCONTENTDARK_PLUS_0);
-	ibox->paint(CC_SAVE_SCREEN_YES);
+	ibox->paint(CC_SAVE_SCREEN_NO);
 }
 
 void CBEChannelWidget::initItem2DetailsLine (int pos, int /*ch_index*/)
