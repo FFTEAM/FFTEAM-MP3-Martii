@@ -2385,6 +2385,11 @@ TIMER_START();
 	CVFD::getInstance()->showVolume(g_settings.current_volume);
 	CVFD::getInstance()->setMuted(current_muted);
 
+	if (show_startwizard) {
+		hintBox->hide();
+		CStartUpWizard startwizard;
+		startwizard.exec(NULL, "");
+	}
 
 	InitZapper();
 
@@ -2603,7 +2608,11 @@ void CNeutrinoApp::RealRun(CMenuWidget &_mainMenu)
 					}
 				}
 			}
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 			else if( ( msg == (neutrino_msg_t) g_settings.key_quickzap_up ) || ( msg == (neutrino_msg_t) g_settings.key_quickzap_down ) || ( msg == CRCInput::RC_page_up ) || ( msg == CRCInput::RC_page_down ) )
+#else
+			else if( ( msg == (neutrino_msg_t) g_settings.key_quickzap_up ) || ( msg == (neutrino_msg_t) g_settings.key_quickzap_down ) )
+#endif
 			{
 				quickZap(msg);
 			}
@@ -3351,6 +3360,8 @@ int CNeutrinoApp::handleMsg(const neutrino_msg_t _msg, neutrino_msg_data_t data)
 		int fd = (int) data;
 		printf("NeutrinoMessages::EVT_STREAM_START: fd %d\n", fd);
 		wakeupFromStandby();
+		if (g_Radiotext)
+			g_Radiotext->setPid(0);
 
 		if (!CStreamManager::getInstance()->AddClient(fd)) {
 			close(fd);
@@ -3680,8 +3691,7 @@ void CNeutrinoApp::ExitRun(const bool /*write_si*/, int retcode)
 
 		dprintf(DEBUG_INFO, "exit\n");
 		StopSubtitles();
-		g_Zapit->stopPlayBack();
-		CMoviePlayerGui::getInstance().stopPlayBack();
+		stopPlayBack();
 
 		frameBuffer->paintBackground();
 		videoDecoder->ShowPicture(DATADIR "/neutrino/icons/shutdown.jpg");
@@ -4600,8 +4610,8 @@ void stop_video()
 
 void sighandler (int signum)
 {
-	signal(signum, SIG_IGN);
-	signal(SIGTERM, SIG_IGN);
+	signal (signum, SIG_IGN);
+	signal (SIGTERM, SIG_IGN);
 	switch (signum) {
 	case SIGTERM:
 	case SIGINT:
@@ -4982,7 +4992,7 @@ void CNeutrinoApp::StopSubtitles(bool enable_glcd_mirroring)
 
 void CNeutrinoApp::StartSubtitles(bool show)
 {
-	printf("%s: %s\n", __FUNCTION__, show ? "Show" : "Not show");
+	//printf("%s: %s\n", __FUNCTION__, show ? "Show" : "Not show");
 
 	if (CMoviePlayerGui::getInstance().Playing()) {
 		CMoviePlayerGui::getInstance().StartSubtitles(show);
