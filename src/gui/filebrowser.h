@@ -54,7 +54,6 @@
 #include <vector>
 
 #define ENABLE_INTERNETRADIO
-#define VLC_URI "vlc://"
 
 bool chooserDir(std::string &setting_dir, bool test_dir, const char *action_str, bool allow_tmp = false);
 bool chooserDir(char *setting_dir, bool test_dir, const char *action_str, size_t str_leng, bool allow_tmp = false);
@@ -152,9 +151,6 @@ class CFileBrowser
 
 		CFileList		selected_filelist;
 		bool			readDir(const std::string & dirname, CFileList* flist);
-#ifdef ENABLE_MOVIEPLAYER_VLC
-		bool			readDir_vlc(const std::string & dirname, CFileList* flist);
-#endif
 		bool			readDir_std(const std::string & dirname, CFileList* flist);
 #ifdef ENABLE_INTERNETRADIO
 		bool			readDir_sc(const std::string & dirname, CFileList* flist);
@@ -187,7 +183,7 @@ class CFileBrowser
 		void paintItem(unsigned pos);
 		void paint();
 		void paintHead();
-		void paintFoot();
+		int  paintFoot(bool show = true);
 		void paintSMSKey();
 		void recursiveDelete(const char* file);
 		bool playlistmode;
@@ -201,7 +197,6 @@ class CFileBrowser
 
 		typedef enum {
 			ModeFile,
-			ModeVLC,
 			ModeSC
 		} tFileBrowserMode;
 
@@ -225,6 +220,7 @@ class CFileBrowser
 		~CFileBrowser();
 
 		bool		exec(const char * const dirname);
+		bool		playlist_manager(CFileList &playlist,unsigned int playing);
 		CFile		*getSelectedFile();
 		
 		inline const CFileList & getSelectedFiles(void) const
@@ -237,6 +233,7 @@ class CFileBrowser
 				return Path;
 			}
 		int  getMenuRet() { return menu_ret; }
+		static bool checkBD(CFile &file);
 
 //		size_t CurlWriteToString(void *ptr, size_t size, size_t nmemb, void *data);
 	private:
