@@ -36,7 +36,7 @@
 #include <gui/widget/menue.h>
 #include <zapit/client/zapittypes.h>
 #include <playback.h>
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 #include <audio.h>
 #endif
 
@@ -78,7 +78,6 @@ class CSectionsdConfigNotifier : public CChangeObserver
                 bool changeNotify(const neutrino_locale_t, void * );
 };
 
-#if 1
 class CTouchFileNotifier : public CChangeObserver
 {
 	const char * filename;
@@ -89,7 +88,6 @@ class CTouchFileNotifier : public CChangeObserver
 		};
 	bool changeNotify(const neutrino_locale_t, void * data);
 };
-#endif
 
 class CColorSetupNotifier : public CChangeObserver
 {
@@ -125,7 +123,7 @@ class CNVODChangeExec : public CMenuTarget
 		int exec(CMenuTarget* parent, const std::string & actionKey);
 };
 
-class CStreamFeaturesChangeExec : public CMenuTarget
+class CMoviePluginChangeExec : public CMenuTarget
 {
 	public:
 		int exec(CMenuTarget* parent, const std::string & actionKey);

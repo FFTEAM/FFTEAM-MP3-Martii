@@ -125,7 +125,7 @@ struct SNeutrinoSettings
 	int analog_mode2;
 	int video_43mode;
 
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	int hdmi_mode;
 	int psi_contrast;
 	int psi_saturation;
@@ -187,7 +187,7 @@ struct SNeutrinoSettings
 	//audio
 	int audio_AnalogMode;
 	int audio_DolbyDigital;
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	int audio_mixer_volume_analog;
 	int audio_mixer_volume_spdif;
 	int audio_mixer_volume_hdmi;
@@ -208,7 +208,7 @@ struct SNeutrinoSettings
 	int hdmi_cec_mode;
 	int hdmi_cec_view_on;
 	int hdmi_cec_standby;
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	int hdmi_cec_broadcast;
 #endif
 	int enabled_video_modes[VIDEOMENU_VIDEOMODE_OPTION_COUNT];
@@ -459,7 +459,7 @@ struct SNeutrinoSettings
 	int recording_audio_pids_std;
 	int recording_audio_pids_alt;
 	int recording_audio_pids_ac3;
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	int recording_bufsize;
 	int recording_bufsize_dmx;
 #endif
@@ -553,9 +553,15 @@ struct SNeutrinoSettings
 	int screenshot_format;
 	int screenshot_cover;
 	int screenshot_mode;
-	int screenshot_res;
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	int screenshot_png_compression;
 	int screenshot_backbuffer;
+	int screenshot_res;
+#else
+	int screenshot_video;
+	int screenshot_scale;
+#endif
+	int auto_cover;
 	std::string screenshot_dir;
 
 	int key_current_transponder;
@@ -607,7 +613,7 @@ struct SNeutrinoSettings
 	int repeat_genericblocker;
 #define LONGKEYPRESS_OFF 499
 	int longkeypress_duration;
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	int accept_other_remotes;
 #endif
 	int remote_control_hardware;
@@ -689,9 +695,8 @@ struct SNeutrinoSettings
 		FONT_TYPE_COUNT
 	};
 
-	std::string infoClockFormat0;
-	std::string infoClockFormat1;
 	int infoClockFontSize;
+	int infoClockSeconds;
 	int infoClockBackground;
 
 	// lcdd

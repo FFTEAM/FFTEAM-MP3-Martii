@@ -86,8 +86,6 @@ extern cDemux *videoDemux;
 extern cDemux *audioDemux;
 extern cDemux *pcrDemux;
 
-extern CHintBox *reloadhintBox;
-
 extern "C" int pinghost( const char *hostname );
 
 COnOffNotifier::COnOffNotifier(int OffValue)
@@ -126,7 +124,6 @@ bool CSectionsdConfigNotifier::changeNotify(const neutrino_locale_t locale, void
 	return false;
 }
 
-#if 0
 bool CTouchFileNotifier::changeNotify(const neutrino_locale_t, void * data)
 {
 	if ((*(int *)data) != 0)
@@ -141,7 +138,6 @@ bool CTouchFileNotifier::changeNotify(const neutrino_locale_t, void * data)
 		remove(filename);
 	return true;
 }
-#endif
 
 void CColorSetupNotifier::setPalette()
 {
@@ -285,7 +281,7 @@ bool CColorSetupNotifier::changeNotify(const neutrino_locale_t, void *)
 	return false;
 }
 
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 bool CAudioSetupNotifier::changeNotify(const neutrino_locale_t OptionName, void *data)
 #else
 bool CAudioSetupNotifier::changeNotify(const neutrino_locale_t OptionName, void *)
@@ -314,7 +310,7 @@ bool CAudioSetupNotifier::changeNotify(const neutrino_locale_t OptionName, void 
 	} else if (ARE_LOCALES_EQUAL(OptionName, LOCALE_AUDIOMENU_CLOCKREC)) {
 		//.Clock recovery enable/disable
 		// FIXME add code here.
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	} else if (ARE_LOCALES_EQUAL(OptionName, LOCALE_AUDIOMENU_MIXER_VOLUME_ANALOG)) {
 			audioDecoder->setMixerVolume("Analog", (long)(*((int *)(data))));
 	} else if (ARE_LOCALES_EQUAL(OptionName, LOCALE_AUDIOMENU_MIXER_VOLUME_HDMI)) {
@@ -385,7 +381,7 @@ printf("CSubtitleChangeExec::exec: TTX, pid %x page %x lang %s\n", pid, page, pt
 			playback->SetSubtitlePid(0);
 			playback->SetTeletextPid(pid);
 			tuxtx_set_pid(pid, page, ptr);
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 			tuxtx_main(pid, page, 0, true);
 #else
 			tuxtx_main(pid, page, 0);
@@ -419,28 +415,18 @@ int CNVODChangeExec::exec(CMenuTarget* parent, const std::string & actionKey)
 	return menu_return::RETURN_EXIT;
 }
 
-int CStreamFeaturesChangeExec::exec(CMenuTarget* parent, const std::string & actionKey)
+int CMoviePluginChangeExec::exec(CMenuTarget* parent, const std::string & actionKey)
 {
-	//printf("CStreamFeaturesChangeExec exec: %s\n", actionKey.c_str());
-	int sel= atoi(actionKey);
-
-	if(parent != NULL)
-		parent->hide();
-	// -- obsolete (rasc 2004-06-10)
-	// if (sel==-1)
-	// {
-	// 	CStreamInfo StreamInfo;
-	//	StreamInfo.exec(NULL, "");
-	// } else
+	int sel= atoi(actionKey.c_str());
+	parent->hide();
 	if(actionKey == "teletext") {
 		g_RCInput->postMsg(CRCInput::RC_timeout, 0);
 		g_RCInput->postMsg(CRCInput::RC_text, 0);
 	}
 	else if (sel>=0)
 	{
-		g_PluginList->startPlugin(sel);
+			g_settings.movieplayer_plugin=g_PluginList->getName(sel);
 	}
-
 	return menu_return::RETURN_EXIT;
 }
 
@@ -519,9 +505,14 @@ bool CTZChangeNotifier::changeNotify(const neutrino_locale_t, void * Data)
                 xmlNodePtr search = xmlDocGetRootElement(parser)->xmlChildrenNode;
                 while (search) {
                         if (!strcmp(xmlGetName(search), "zone")) {
-				name = xmlGetAttribute(search, "name");
+				const char *nptr = xmlGetAttribute(search, "name");
+				if(nptr)
+					name = nptr;
+
 				if(g_settings.timezone == name) {
-					zone = xmlGetAttribute(search, "zone");
+					const char *zptr = xmlGetAttribute(search, "zone");
+					if(zptr)
+						zone = zptr;
 					if (!access("/usr/share/zoneinfo/" + zone, R_OK))
 						found = true;
 					break;
@@ -578,8 +569,6 @@ int CDataResetNotifier::exec(CMenuTarget* /*parent*/, const std::string& actionK
 		CServiceManager::getInstance()->SatelliteList().clear();
 		CZapit::getInstance()->LoadSettings();
 		CZapit::getInstance()->GetConfig(zapitCfg);
-		g_RCInput->postMsg( NeutrinoMessages::REBOOT, 0);
-		ret = menu_return::RETURN_EXIT_ALL;
 #ifdef BOXMODEL_APOLLO
 		/* flag file to erase /var partition on factory reset,
 		   will be done by init scripts */
@@ -587,6 +576,8 @@ int CDataResetNotifier::exec(CMenuTarget* /*parent*/, const std::string& actionK
 		if (fp)
 			fclose(fp);
 #endif
+		g_RCInput->postMsg( NeutrinoMessages::REBOOT, 0);
+		ret = menu_return::RETURN_EXIT_ALL;
 	}
 	if(delete_set) {
 		unlink(NEUTRINO_SETTINGS_FILE);
@@ -628,6 +619,62 @@ void CFanControlNotifier::setSpeed(unsigned int speed)
 
 	close(cfd);
 #endif
+}
+
+bool CFanControlNotifier::changeNotify(const neutrino_locale_t, void * data)
+{
+	unsigned int speed = * (int *) data;
+	setSpeed(speed);
+	return false;
+}
+#elif HAVE_DUCKBOX_HARDWARE
+void CFanControlNotifier::setSpeed(unsigned int speed)
+{
+	int cfd;
+
+	printf("FAN Speed %d\n", speed);
+#if defined (BOXMODEL_IPBOX9900) || defined (BOXMODEL_IPBOX99)
+	cfd = open("/proc/stb/misc/fan", O_WRONLY);
+	if(cfd < 0) {
+		perror("Cannot open /proc/stb/misc/fan");
+#else
+	cfd = open("/proc/stb/fan/fan_ctrl", O_WRONLY);
+	if(cfd < 0) {
+		perror("Cannot open /proc/stb/fan/fan_ctrl");
+#endif
+		return;
+	}
+
+	switch (speed)
+
+#if defined (BOXMODEL_IPBOX9900) || defined (BOXMODEL_IPBOX99)
+	{
+	case 0:
+		write(cfd,"0",1);
+		break;
+	case 1:
+		write(cfd,"1",1);
+		break;
+	}
+#else
+	{
+	case 1:
+		write(cfd,"115",3);
+		break;
+	case 2:
+		write(cfd,"130",3);
+		break;
+	case 3:
+		write(cfd,"145",3);
+		break;
+	case 4:
+		write(cfd,"160",3);
+		break;
+	case 5:
+		write(cfd,"170",3);
+	}
+#endif
+	close(cfd);
 }
 
 bool CFanControlNotifier::changeNotify(const neutrino_locale_t, void * data)
