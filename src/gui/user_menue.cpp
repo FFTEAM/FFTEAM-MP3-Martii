@@ -154,7 +154,6 @@ bool CUserMenu::showUserMenu(neutrino_msg_t msg)
 
 	// define classes
 	CSubChannelSelectMenu subchanselect;
-	CStreamFeaturesChangeExec StreamFeaturesChanger;
 	CNeutrinoApp * neutrino	= CNeutrinoApp::getInstance();
 	
 	std::string txt = g_settings.usermenu[button]->title;
