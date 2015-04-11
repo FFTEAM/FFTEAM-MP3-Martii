@@ -113,12 +113,22 @@ int CMediaPlayerSetup::showMediaPlayerSetup()
 	mf->setHint(NEUTRINO_ICON_HINT_PICVIEW, LOCALE_MENU_HINT_PICTUREVIEWER_SETUP);
 	mediaSetup->addItem(mf);
 
+	CWebTVSetup wsetup;
+	mf = new CMenuForwarder(LOCALE_WEBTV_HEAD, true, NULL, &wsetup, "show_menu", CRCInput::RC_yellow);
+	mf->setHint(NEUTRINO_ICON_HINT_TVMODE /* FIXME */, LOCALE_MENU_HINT_WEBTV_SETUP);
+	mediaSetup->addItem(mf);
+
 	mediaSetup->addItem(new CMenuSeparator(CMenuSeparator::LINE | CMenuSeparator::STRING, LOCALE_MAINMENU_MOVIEPLAYER));
 
 	CMovieBrowser msetup;
 	int shortcut = 1;
 	mf = new CMenuForwarder(LOCALE_MOVIEBROWSER_HEAD, true, NULL, &msetup, "show_menu", CRCInput::convertDigitToKey(shortcut++));
 	mf->setHint(NEUTRINO_ICON_HINT_MB, LOCALE_MENU_HINT_MOVIEBROWSER_SETUP);
+	mediaSetup->addItem(mf);
+
+	CFileBrowserSetup fsetup;
+	mf = new CMenuForwarder(LOCALE_MOVIEPLAYER_FILEPLAYBACK, true, NULL, &fsetup, "show_menu", CRCInput::convertDigitToKey(shortcut++));
+	mf->setHint(NEUTRINO_ICON_HINT_FILEPLAY, LOCALE_MENU_HINT_FILEPLAY_SETUP);
 	mediaSetup->addItem(mf);
 
 	mf = new CMenuForwarder(LOCALE_MOVIEPLAYER_YTPLAYBACK, true, NULL, &msetup, "show_ytmenu", CRCInput::convertDigitToKey(shortcut++));
@@ -129,10 +139,6 @@ int CMediaPlayerSetup::showMediaPlayerSetup()
 	mf->setHint(NEUTRINO_ICON_HINT_NKPLAY, LOCALE_MENU_HINT_NKPLAYBACK_SETUP);
 	mediaSetup->addItem(mf);
 
-	CWebTVSetup wsetup;
-	mf = new CMenuForwarder(LOCALE_WEBTV_HEAD, true, NULL, &wsetup, "show_menu", CRCInput::convertDigitToKey(shortcut++));
-	mf->setHint(NEUTRINO_ICON_HINT_TVMODE /* FIXME */, LOCALE_MENU_HINT_WEBTV_SETUP);
-	mediaSetup->addItem(mf);
 
 	int res = mediaSetup->exec (NULL, "");
 	selected = mediaSetup->getSelected();
