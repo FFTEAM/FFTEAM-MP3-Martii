@@ -479,11 +479,9 @@ void CChannelList::calcSize()
 
 	// calculate height (the infobox below mainbox is handled outside height)
 	info_height = 2*fheight + fdescrheight + 10;
-#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	if (g_settings.channellist_additional != 0)
 		if (g_settings.channellist_foot != 0)
 			info_height = 2*fheight + 10; 
-#endif
 	height = pig_on_win ?  frameBuffer->getScreenHeight(): frameBuffer->getScreenHeightRel();
 	height = height - info_height;
 
@@ -602,13 +600,11 @@ int CChannelList::show()
 
 	new_zap_mode = g_settings.channellist_new_zap_mode;
 
-#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	if (CNeutrinoApp::getInstance()->getMode() == NeutrinoMessages::mode_radio)
 		if (g_settings.channellist_additional == 2) {
 			previous_channellist_additional = g_settings.channellist_additional;
 			g_settings.channellist_additional = 1;
 		}
-#endif
 	calcSize();
 	displayNext = false;
 
@@ -971,11 +967,9 @@ int CChannelList::show()
 
 void CChannelList::hide()
 {
-#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	if (CNeutrinoApp::getInstance()->getMode() == NeutrinoMessages::mode_radio)
 		if (g_settings.channellist_additional == 1 && previous_channellist_additional == 2)
 			g_settings.channellist_additional = 2;
-#endif
 	if ((g_settings.channellist_additional == 2) || (previous_channellist_additional == 2)) // with miniTV
 	{
 		if (cc_minitv)
@@ -984,7 +978,7 @@ void CChannelList::hide()
 	}
 	if (headerClock) {
 		if (headerClock->Stop())
-			headerClock->kill();
+			headerClock->hide();
 	}
 	frameBuffer->paintBackgroundBoxRel(x, y, full_width, height + info_height);
 	clearItem2DetailsLine();
@@ -1074,21 +1068,28 @@ int CChannelList::handleMsg(const neutrino_msg_t msg, neutrino_msg_data_t data, 
 					bouquetList->Bouquets[bnum]->channelList->getChannelFromIndex(i)->last_unlocked_time = (*chanlist)[selected]->last_unlocked_time;
 			}
 		}
-		startvideo = true;
 	}
 	else
 	{
 		/* last_unlocked_time == 0 is the magic to tell zapTo() to not record the time.
 		   Without that, zapping to a locked channel twice would open it without the PIN */
 		(*chanlist)[selected]->last_unlocked_time = 0;
+		startvideo = false;
 	}
 	delete zapProtection;
 	zapProtection = NULL;
 
 out:
 	if (startvideo) {
-		g_RemoteControl->is_video_started = false;
-		g_RemoteControl->startvideo();
+#ifdef ENABLE_PIP
+		if(pip) {
+			if (CNeutrinoApp::getInstance()->StartPip((*chanlist)[selected]->getChannelID())) {
+				calcSize();
+				paintBody();
+			}
+		} else
+#endif
+			g_RemoteControl->startvideo();
 	}
 
 	return messages_return::handled;
@@ -1380,10 +1381,6 @@ int CChannelList::numericZap(int key)
 
 		if(chan && SameTP(chan)) {
 			zapToChannel(chan);
-			if (g_settings.channellist_numeric_adjust && first_mode_found >= 0) {
-				CNeutrinoApp::getInstance()->SetChannelMode(first_mode_found);
-				CNeutrinoApp::getInstance()->channelList->getLastChannels().set_mode(chan->channel_id);
-			}
 			res = 0;
 		} else
 			g_InfoViewer->killTitle();
@@ -1407,7 +1404,11 @@ CZapitChannel* CChannelList::getPrevNextChannel(int key, unsigned int &sl)
 		size_t cactive = sl;
 
 		printf("CChannelList::getPrevNextChannel: selected %d total %d active bouquet %d total %d\n", (int)cactive, (int)(*chanlist).size(), bactive, bsize);
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
+		if ((key == g_settings.key_quickzap_down) || (key == CRCInput::RC_left) || (key == CRCInput::RC_page_down)) {
+#else
 		if ((key == g_settings.key_quickzap_down) || (key == CRCInput::RC_left)) {
+#endif
 			if(cactive == 0) {
 				bactive = getPrevNextBouquet(false);
 				if (bactive >= 0) {
@@ -1417,7 +1418,11 @@ CZapitChannel* CChannelList::getPrevNextChannel(int key, unsigned int &sl)
 			} else
 				--cactive;
 		}
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
+		else if ((key == g_settings.key_quickzap_up) || (key == CRCInput::RC_right) || (key == CRCInput::RC_page_up)) {
+#else
 		else if ((key == g_settings.key_quickzap_up) || (key == CRCInput::RC_right)) {
+#endif
 			cactive++;
 			if(cactive >= (*chanlist).size()) {
 				bactive = getPrevNextBouquet(true);
@@ -1432,13 +1437,21 @@ CZapitChannel* CChannelList::getPrevNextChannel(int key, unsigned int &sl)
 		printf("CChannelList::getPrevNextChannel: selected %d total %d active bouquet %d total %d channel %p (%s)\n",
 				(int)cactive, (int)(*chanlist).size(), bactive, bsize, channel, channel ? channel->getName().c_str(): "");
 	} else {
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
+		if ((key == g_settings.key_quickzap_down) || (key == CRCInput::RC_left) || (key == CRCInput::RC_page_down)) {
+#else
 		if ((key == g_settings.key_quickzap_down) || (key == CRCInput::RC_left)) {
+#endif
 			if(sl == 0)
 				sl = (*chanlist).size()-1;
 			else
 				sl--;
 		}
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
+		else if ((key == g_settings.key_quickzap_up) || (key == CRCInput::RC_right) || (key == CRCInput::RC_page_up)) {
+#else
 		else if ((key==g_settings.key_quickzap_up) || (key == CRCInput::RC_right)) {
+#endif
 			sl = (sl+1)%(*chanlist).size();
 		}
 		channel = (*chanlist)[sl];
@@ -1933,7 +1946,7 @@ void CChannelList::paintItem(int pos, const bool firstpaint)
 		if (paintbuttons)
 			paintButtonBar(iscurrent);
 
-		int icon_space = r_icon_w+s_icon_w+h_icon_w+8; //+8 to be sure
+		int icon_space = r_icon_w+s_icon_w+h_icon_w+8;
 
 		//channel numbers
 		int icon_w = 0, icon_h = 0;
@@ -2215,6 +2228,7 @@ bool CChannelList::SameTP(CZapitChannel * channel)
 	}
 	return iscurrent;
 }
+
 std::string  CChannelList::MaxChanNr()
 {
 	zapit_list_it_t chan_it;
@@ -2334,8 +2348,6 @@ void CChannelList::readEvents(const t_channel_id channel_id)
 	}
 	else
 		sort(evtlist.begin(),evtlist.end(),sortByDateTime);
-
-	return;
 }
 
 void CChannelList::showdescription(int index)

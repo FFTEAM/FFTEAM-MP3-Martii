@@ -124,7 +124,6 @@ private:
 	bool displayNext;
 	bool displayList;
 	bool pig_on_win;
-	int  first_mode_found;
 
 	int ChannelList_Rec;
 
