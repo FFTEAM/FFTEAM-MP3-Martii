@@ -73,6 +73,7 @@ libneutrino_gui_a_SOURCES = \
 	network_setup.cpp \
 	nfs.cpp \
 	opkg_manager.cpp \
+	osd_progressbar_setup.cpp \
 	osd_setup.cpp \
 	osdlang_setup.cpp \
 	parentallock_setup.cpp \
@@ -102,8 +103,8 @@ libneutrino_gui_a_SOURCES = \
 	user_menue_setup.cpp \
 	vfd_setup.cpp \
 	videosettings.cpp \
-	webtv_setup.cpp \
 	volumebar.cpp \
+	webtv_setup.cpp \
 	zapit_setup.cpp
 
 if BOXTYPE_SPARK
