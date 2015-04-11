@@ -17,6 +17,10 @@
         Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
@@ -130,9 +134,9 @@ bool cYTFeedParser::getUrl(std::string &url, std::string &answer, CURL *_curl_ha
 	curl_easy_setopt(_curl_handle, CURLOPT_TIMEOUT, URL_TIMEOUT);
 	curl_easy_setopt(_curl_handle, CURLOPT_NOSIGNAL, (long)1);
 
-	if(g_settings.softupdate_proxyserver != "") {
+	if(!g_settings.softupdate_proxyserver.empty()) {
 		curl_easy_setopt(_curl_handle, CURLOPT_PROXY, g_settings.softupdate_proxyserver.c_str());
-		if(g_settings.softupdate_proxyusername != "") {
+		if(!g_settings.softupdate_proxyusername.empty()) {
 			std::string tmp = g_settings.softupdate_proxyusername + ":" + g_settings.softupdate_proxypassword;
 			curl_easy_setopt(_curl_handle, CURLOPT_PROXYUSERPWD, tmp.c_str());
 		}
@@ -170,9 +174,9 @@ bool cYTFeedParser::DownloadUrl(std::string &url, std::string &file, CURL *_curl
 	curl_easy_setopt(_curl_handle, CURLOPT_TIMEOUT, URL_TIMEOUT);
 	curl_easy_setopt(_curl_handle, CURLOPT_NOSIGNAL, (long)1);
 
-	if(g_settings.softupdate_proxyserver != "") {
+	if(!g_settings.softupdate_proxyserver.empty()) {
 		curl_easy_setopt(_curl_handle, CURLOPT_PROXY, g_settings.softupdate_proxyserver.c_str());
-		if(g_settings.softupdate_proxyusername != "") {
+		if(!g_settings.softupdate_proxyusername.empty()) {
 			std::string tmp = g_settings.softupdate_proxyusername + ":" + g_settings.softupdate_proxypassword;
 			curl_easy_setopt(_curl_handle, CURLOPT_PROXYUSERPWD, tmp.c_str());
 		}
@@ -248,7 +252,7 @@ bool cYTFeedParser::saveToFile(const char * name, std::string str)
 std::string cYTFeedParser::getXmlName(xmlNodePtr node)
 {
 	std::string result;
-	char * name = xmlGetName(node);
+	const char * name = xmlGetName(node);
 	if (name)
 		result = name;
 	return result;
@@ -257,7 +261,7 @@ std::string cYTFeedParser::getXmlName(xmlNodePtr node)
 std::string cYTFeedParser::getXmlAttr(xmlNodePtr node, const char * attr)
 {
 	std::string result;
-	char * value = xmlGetAttribute(node, attr);
+	const char * value = xmlGetAttribute(node, attr);
 	if (value)
 		result = value;
 	return result;
@@ -266,7 +270,7 @@ std::string cYTFeedParser::getXmlAttr(xmlNodePtr node, const char * attr)
 std::string cYTFeedParser::getXmlData(xmlNodePtr node)
 {
 	std::string result;
-	char * value = xmlGetData(node);
+	const char * value = xmlGetData(node);
 	if (value)
 		result = value;
 	return result;
@@ -374,7 +378,7 @@ bool cYTFeedParser::parseFeedXml(std::string &answer)
 						}
 					}
 					else if (name == "yt:duration") {
-						vinfo.duration = atoi(getXmlAttr(media, "seconds"));
+						vinfo.duration = atoi(getXmlAttr(media, "seconds").c_str());
 					}
 #if 0
 					else if (name == "media:player") {

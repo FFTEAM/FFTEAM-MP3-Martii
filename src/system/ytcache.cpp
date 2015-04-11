@@ -20,6 +20,10 @@
 	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "ytcache.h"
 #include <OpenThreads/ScopedLock>
 
@@ -147,9 +151,9 @@ bool cYTCache::download(MI_MOVIE_INFO *mi)
 	char cerror[CURL_ERROR_SIZE];
 	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, cerror);
 
-	if(g_settings.softupdate_proxyserver != "") {
+	if(!g_settings.softupdate_proxyserver.empty()) {
 		curl_easy_setopt(curl, CURLOPT_PROXY, g_settings.softupdate_proxyserver.c_str());
-		if(g_settings.softupdate_proxyusername != "") {
+		if(!g_settings.softupdate_proxyusername.empty()) {
 			std::string tmp = g_settings.softupdate_proxyusername + ":" + g_settings.softupdate_proxypassword;
 			curl_easy_setopt(curl, CURLOPT_PROXYUSERPWD, tmp.c_str());
 		}
@@ -306,7 +310,7 @@ void cYTCache::cancelAll(MI_MOVIE_INFO::miSource source)
 	{
 		OpenThreads::ScopedLock<OpenThreads::Mutex> m_lock(mutex);
 		cancelled = false;
-		if (pending.size() > 0) {
+		if (!pending.empty()) {
 			if (pthread_create(&thread, NULL, downloadThread, this)) {
 				perror("pthread_create");
 				return;
@@ -343,7 +347,7 @@ std::vector<MI_MOVIE_INFO> cYTCache::getPending(MI_MOVIE_INFO::miSource source, 
 	for (std::vector<MI_MOVIE_INFO>::iterator it = pending.begin(); it != pending.end(); ++it)
 		if ((*it).source == source)
 			res.push_back(*it);
-	if (res.size() > 0 && pending.front().source == source) {
+	if (!res.empty() && pending.front().source == source) {
 		if (p_dltotal)
 			*p_dltotal = dltotal;
 		if (p_dlnow)
