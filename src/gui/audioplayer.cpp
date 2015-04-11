@@ -1163,9 +1163,9 @@ void CAudioPlayerGui::scanXmlData(xmlDocPtr answer_parser, const char *nametag, 
 			neutrino_msg_data_t data;
 			g_RCInput->getMsg(&msg, &data, 0);
 			while (element && msg != CRCInput::RC_home) {
-				char *ptr = NULL;
-				char *name = NULL;
-				char *url = NULL;
+				const char *ptr = NULL;
+				const char *name = NULL;
+				const char *url = NULL;
 				time_t bitrate = 0;
 				bool skip = true;
 				listPos++;
@@ -1178,7 +1178,7 @@ void CAudioPlayerGui::scanXmlData(xmlDocPtr answer_parser, const char *nametag, 
 #endif // LCD_UPDATE
 
 				if (usechild) {
-					char *type = NULL;
+					const char *type = NULL;
 					xmlNodePtr child = element->xmlChildrenNode;
 					while (child) {
 						if (strcmp(xmlGetName(child), nametag) == 0)
@@ -1890,7 +1890,7 @@ void CAudioPlayerGui::paintItemID3DetailsLine (int pos)
 			tmp += " / ";
 			tmp += m_playlist[m_selected].MetaData.date;
 		}
-		int w = g_Font[SNeutrinoSettings::FONT_TYPE_MENU]->getRenderWidth(tmp) + 10;
+		int w = g_Font[SNeutrinoSettings::FONT_TYPE_MENU]->getRenderWidth(tmp) + 10; // UTF-8
 		g_Font[SNeutrinoSettings::FONT_TYPE_MENU]->RenderString(m_x + m_width - w - 5, ypos2 + 2 + 1*m_fheight,
 				w, tmp, COL_MENUCONTENTDARK_TEXT);
 		tmp = m_playlist[m_selected].MetaData.artist;
