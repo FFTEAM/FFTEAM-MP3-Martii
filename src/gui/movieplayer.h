@@ -84,9 +84,7 @@ class CMoviePlayerGui : public CMenuTarget
 	std::string	info_1, info_2;
 	std::string    	currentaudioname;
 	bool		playing;
-	bool		first_start_timeshift;
 	bool		time_forced;
-	bool		update_lcd;
 	CMoviePlayerGui::state playstate;
 	int speed;
 	int startposition;
@@ -152,8 +150,9 @@ class CMoviePlayerGui : public CMenuTarget
 	bool showStartingHint;
 	CMovieBrowser* moviebrowser;
 	MI_MOVIE_INFO * p_movie_info;
-	MI_MOVIE_INFO mi;
-	const static int MOVIE_HINT_BOX_TIMER = 5;	// time to show bookmark hints in seconds
+	MI_MOVIE_INFO movie_info;
+	P_MI_MOVIE_LIST milist;
+	const static short MOVIE_HINT_BOX_TIMER = 5;	// time to show bookmark hints in seconds
 #if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	CFrameBuffer::Mode3D old3dmode;
 #endif
@@ -176,6 +175,8 @@ class CMoviePlayerGui : public CMenuTarget
 	bool isBookmark;
 
 	OpenThreads::Mutex mutex;
+	static OpenThreads::Mutex bgmutex;
+	static OpenThreads::Condition cond;
 	pthread_t bgThread;
 
 	cPlayback *playback;
@@ -193,16 +194,12 @@ class CMoviePlayerGui : public CMenuTarget
 	void callInfoViewer();
 	void fillPids();
 	bool getAudioName(int pid, std::string &apidtitle);
-	void getCurrentAudioName(std::string &audioname);
+	void getCurrentAudioName( bool file_player, std::string &audioname);
 	void addAudioFormat(int count, std::string &apidtitle, bool& enabled );
 
 	void handleMovieBrowser(neutrino_msg_t msg, int position = 0);
 	bool SelectFile();
 	void updateLcd();
-
-	static void *ShowWebTVHint(void *arg);
-	void ShowAbortHintBox(void);
-	void HideHintBox(void);
 
 	void selectAutoLang();
 	void parsePlaylist(CFile *file);
@@ -213,6 +210,9 @@ class CMoviePlayerGui : public CMenuTarget
 	void showFileInfos();
 
 	void Cleanup();
+	void ClearFlags();
+	void ClearQueue();
+	void EnableClockAndMute(bool enable);
 	static void *ShowStartHint(void *arg);
 	static void* bgPlayThread(void *arg);
 
@@ -258,7 +258,6 @@ class CMoviePlayerGui : public CMenuTarget
 	void setLastMode(int m) { m_LastMode = m; }
 	void Pause(bool b = true);
 	void selectAudioPid(void);
-	void RequestAbort(void);
 	bool SetPosition(int pos, bool absolute = false);
 	std::string GetFile() { return file_name; }
 };
