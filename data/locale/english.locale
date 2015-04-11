@@ -196,17 +196,6 @@ audioplayer.spectrum lcd a-spectrum
 audioplayer.stop Stop
 audioplayer.title_artist Title, Artist
 audioplayerpicsettings.general Audioplayer/Picviewer/Movieplayer
-batchepg.epg.mhw1 MHW1
-batchepg.epg.mhw2 MHW2
-batchepg.epg.off Off
-batchepg.epg.standard Standard
-batchepg.hint Updating EPG data, please wait. Channel:
-batchepg.refresh Start update
-batchepg.refreshall Update all
-batchepg.run_at_shutdown Update at shutdown
-batchepg.save Save settings
-batchepg.settings Settings
-batchepg.standard_wait_time Wait time für standard EPG
 bluepanel.emu Cam Menue
 bluepanel.emu.none not aktiv
 bluepanel.emu.mgcamd MGCamd
@@ -436,7 +425,7 @@ extra.dboxinfo_ram RAM
 extra.dboxinfo_size Total
 extra.dboxinfo_swap Swap
 extra.dboxinfo_time Time
-extra.dboxinfo_timeformat %FT%H:%M:%S%z
+extra.dboxinfo_timeformat %F, %H:%M:%S
 extra.dboxinfo_uptime Uptime
 extra.dboxinfo_use Use
 extra.dboxinfo_used Used
