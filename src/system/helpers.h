@@ -32,6 +32,10 @@
 #include <vector>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <map>
+ 
+#include <sys/stat.h>
+#include <sys/types.h>
 
 int my_system(const char * cmd);
 int my_system(int argc, const char *arg, ...); /* argc is number of arguments including command */
@@ -51,6 +55,8 @@ bool get_mem_usage(unsigned long &total, unsigned long &free);
 void mySleep(int sec);
 
 std::string find_executable(const char *name);
+/* basically what "foo=`command`" does in the shell */
+std::string backtick(std::string command);
 
 bool hdd_get_standby(const char * fname);
 void hdd_flush(const char * fname);
@@ -69,6 +75,11 @@ std::string& htmlEntityDecode(std::string& text, bool removeTags = false);
 
 class CFileHelpers
 {
+	private:
+		unsigned long FileBufSize;
+		char *FileBuf;
+		int fd1, fd2;
+
 	public:
 		CFileHelpers();
 		~CFileHelpers();
@@ -97,4 +108,6 @@ inline void cstrncpy(char *dest, const char * const src, size_t n) { n--; strncp
 inline void cstrncpy(char *dest, const std::string &src, size_t n) { n--; strncpy(dest, src.c_str(), n); dest[n] = 0; }
 
 std::vector<std::string> split(const std::string &s, char delim);
+
+bool split_config_string(const std::string &str, std::map<std::string,std::string> &smap);
 #endif
