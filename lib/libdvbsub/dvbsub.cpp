@@ -551,6 +551,7 @@ static void* reader_thread(void * /*arg*/)
 #else
 	dmx->Open(DMX_PES_CHANNEL, NULL, 64*1024);
 #endif
+
 	while (reader_running) {
 		if(dvbsub_stopped /*dvbsub_paused*/) {
 			sub_debug.print(Debug::VERBOSE, "%s stopped\n", __FUNCTION__);
