@@ -73,7 +73,7 @@ extern cCpuFreqManager * cpuFreq;
 #define ENABLE_MULTI_CHANNEL
 
 #define TS_SIZE 188
-#define DMX_BUFFER_SIZE (5*2048*TS_SIZE)
+#define DMX_BUFFER_SIZE (2048*TS_SIZE)
 #define IN_SIZE (250*TS_SIZE)
 
 CStreamInstance::CStreamInstance(int clientfd, t_channel_id chid, stream_pids_t &_pids)
@@ -196,11 +196,6 @@ void CStreamInstance::run()
 
 	CCamManager::getInstance()->Start(channel_id, CCamManager::STREAM);
 
-#if HAVE_SPARK_HARDWARE
-	CFrontend *fe = CFEManager::getInstance()->allocateFE(tmpchan, true);
-	CFEManager::getInstance()->lockFrontend(fe);
-	CZapit::getInstance()->SetRecordMode(true);
-#endif
 	while (running) {
 		ssize_t r = dmx->Read(buf, IN_SIZE, 100);
 		if (r > 0)
@@ -209,10 +204,6 @@ void CStreamInstance::run()
 
 	CCamManager::getInstance()->Stop(channel_id, CCamManager::STREAM);
 
-#if HAVE_SPARK_HARDWARE
-	CFEManager::getInstance()->unlockFrontend(fe);
-	CZapit::getInstance()->SetRecordMode(false);
-#endif
 	printf("CStreamInstance::run: exiting %" PRIx64 " (%d fds)\n", channel_id, (int)fds.size());
 
 	Close();
@@ -311,22 +302,19 @@ CFrontend * CStreamManager::FindFrontend(CZapitChannel * channel)
 
 	CFEManager::getInstance()->Lock();
 
-	bool unlock = false;
-	if (!IS_WEBTV(live_channel_id)) {
-		unlock = true;
-		CFEManager::getInstance()->lockFrontend(live_fe);
-	}
+	bool unlock = true;
+	CFEManager::getInstance()->lockFrontend(live_fe);
 
 	OpenThreads::ScopedLock<OpenThreads::Mutex> m_lock(mutex);
 	for (streammap_iterator_t it = streams.begin(); it != streams.end(); ++it)
-		frontends.insert(it->second->frontend);
+			frontends.insert(it->second->frontend);
 
 	for (std::set<CFrontend*>::iterator ft = frontends.begin(); ft != frontends.end(); ft++)
 		CFEManager::getInstance()->lockFrontend(*ft);
 
 	frontend = CFEManager::getInstance()->allocateFE(channel, true);
 
-	if (unlock && frontend == NULL) {
+	if (frontend == NULL) {
 		unlock = false;
 		CFEManager::getInstance()->unlockFrontend(live_fe);
 		frontend = CFEManager::getInstance()->allocateFE(channel, true);
@@ -335,7 +323,7 @@ CFrontend * CStreamManager::FindFrontend(CZapitChannel * channel)
 	CFEManager::getInstance()->Unlock();
 
 	if (frontend) {
-		bool found = (live_fe != frontend) || IS_WEBTV(live_channel_id) || SAME_TRANSPONDER(live_channel_id, chid);
+		bool found = (live_fe != frontend) || SAME_TRANSPONDER(live_channel_id, chid);
 		bool ret = false;
 		if (found)
 			ret = zapit.zapTo_record(chid) > 0;
@@ -644,21 +632,6 @@ bool CStreamManager::StopStream(t_channel_id channel_id)
 		ret = StopAll();
 	}
 	mutex.unlock();
-	return ret;
-}
-
-bool CStreamManager::StopStream(CFrontend * fe)
-{
-	bool ret = false;
-	for (streammap_iterator_t it = streams.begin(); it != streams.end(); ) {
-		if (it->second->frontend == fe) {
-			delete it->second;
-			streams.erase(it++);
-			ret = true;
-		} else {
-			++it;
-		}
-	}
 	return ret;
 }
 

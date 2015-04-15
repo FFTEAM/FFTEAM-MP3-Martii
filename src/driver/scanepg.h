@@ -74,7 +74,6 @@ class CEpgScan
 		void Start(bool instandby = false);
 		void Stop();
 		bool Running();
-		void ConfigureEIT();
 };
 
 #endif

@@ -21,12 +21,13 @@
 	along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#define _FILE_OFFSET_BITS 64
+#include <png.h>
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
 #include <driver/framebuffer_ng.h>
-#include <driver/fbaccel.h>
 
 #include <stdio.h>
 #include <fcntl.h>
@@ -39,24 +40,21 @@
 
 #include <linux/kd.h>
 
+#ifdef USE_OPENGL
+#include <glfb.h>
+extern GLFramebuffer *glfb;
+#endif
+
 #include <gui/audiomute.h>
 #include <gui/color.h>
 #include <gui/pictureviewer.h>
-#include <system/debug.h>
 #include <global.h>
 #include <video.h>
 #include <cs_api.h>
 #ifdef HAVE_COOL_HARDWARE
 #include <cnxtfb.h>
 #endif
-#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
-#include <linux/stmfb.h>
-#include <png.h>
-#endif
 #if HAVE_TRIPLEDRAGON
-#ifdef SCALE
-#undef SCALE
-#endif
 #include <tdgfx/stb04gfx.h>
 extern int gfxfd;
 #endif
@@ -64,7 +62,6 @@ extern int gfxfd;
 
 extern CPictureViewer * g_PicViewer;
 #define ICON_CACHE_SIZE 1024*1024*2 // 2mb
-#define ICONDIR_VAR "/var/tuxbox/icons/"
 
 #define BACKGROUNDIMAGEWIDTH 720
 
@@ -92,62 +89,91 @@ inline unsigned int make16color(uint16_t r, uint16_t g, uint16_t b, uint16_t t,
         return ((t << 24) & 0xFF000000) | ((r << 8) & 0xFF0000) | ((g << 0) & 0xFF00) | (b >> 8 & 0xFF);
 }
 
-static int *getQuarterCircle(int radius)
+// return bottom right corner as alpha bitmap
+static unsigned char *getQuarterCircle(unsigned int radius, bool filled = true)
 {
-	static std::map<int,int *> qc_map;
-	std::map<int, int *>::iterator it = qc_map.find(radius);
-	if (it != qc_map.end())
+	if (radius < 2)
+		return NULL;
+	int key = filled ? -radius : radius;
+
+	static std::map<int,unsigned char *> qa_map;
+	std::map<int, unsigned char *>::iterator it = qa_map.find(key);
+	if (it != qa_map.end())
 		return (*it).second;
 
-	int *qc = (int *) malloc((radius * 2 + 2) * sizeof(int));
-	if (!qc)
+	unsigned char *qa = (unsigned char *) calloc(1, radius * radius);
+	if (!qa)
 		return NULL;
-	int *res = qc_map[radius] = qc;
+	qa_map[key] = qa;
 
-	float r = (radius + .5) * (radius + .5);
-	radius++;
-	for (int x = 0; x < radius; x++) {
-		float y = sqrt(r - x*x);
-		*qc++ = (int) floor(y); //rint?
-		int a = (int)(256.0 * (y - floor(y)));
-		*qc++ = a ? a : 255;
+	unsigned int cs = radius;
+	radius--;
+
+	unsigned int r2 = radius * radius;
+	unsigned int cs2 = cs * cs;
+	for (unsigned int x = 0; x < radius; x++) {
+		double yr = sqrt(r2 - x*x);
+		unsigned int y = (unsigned int) floor(yr);
+		unsigned char a1 = (0xff) & (unsigned char)(256.0 * (yr - y));
+		unsigned char a0 = 255 - a1;
+		qa[x + cs * y] = (unsigned char)a0;
+		qa[y + cs * x] = a0;
+		unsigned int g = x + cs * (y + 1);
+		if (g < cs2)
+			qa[g] = a1;
+		g = y + 1 + cs * x;
+		if (g < cs2)
+			qa[g] = a1;
+		if (x >= y)
+			break;
 	}
-	return res;
+	if (filled)
+		for (unsigned int y = 0; y < radius; y++) {
+			unsigned char *p = qa + y * cs;
+			unsigned int x = 0;
+			for (; x < cs && !*p; x++, p++)
+				*p = 255;
+			for (; x < radius && *(p + 1); x++, p++)
+				*p = 255;
+		}
+	return qa;
 }
 
-static inline bool calcCorners(int *ofs, int *ofl, int *ofr, const int& dy, const int& line, const int& radius,
-				const bool& tl, const bool& tr, const bool& bl, const bool& br, int &alpha)
+static unsigned char *getQuarterArc(unsigned int rad_outer, unsigned int rad_inner)
 {
-/* just a multiplicator for all math to reduce rounding errors */
-	int scl, _ofs = 0;
-	bool ret = false;
-	if (ofl) *ofl = 0;
-	if (ofr) *ofr = 0;
-	int *q_circle = getQuarterCircle(radius);
-	/* one of the top corners */
-	if (line < radius && (tl || tr)) {
-		/* upper round corners */
-		scl = radius - line;
-		_ofs =  radius - q_circle[2 * scl];
-		if (ofl && tl) *ofl = _ofs;
-		if (ofr && tr) *ofr = _ofs;
-		alpha = q_circle[2 * scl + 1];
+	rad_inner++;
+        unsigned int key = (rad_outer << 16 | rad_inner);
+
+        static std::map<unsigned int,unsigned char *> qa_map;
+        std::map<unsigned int, unsigned char *>::iterator it = qa_map.find(key);
+        if (it != qa_map.end())
+                return (*it).second;
+
+        unsigned char *innerQuarter = getQuarterCircle(rad_inner, false);
+        unsigned char *outerQuarter = getQuarterCircle(rad_outer);
+        if (!innerQuarter || !outerQuarter)
+                return NULL;
+
+        unsigned char *qa = (unsigned char *) calloc(1, rad_outer * rad_outer);
+        if (!qa)
+                return NULL;
+        qa_map[key] = qa;
+
+        memcpy(qa, outerQuarter, rad_outer * rad_outer);
+
+        for (unsigned int y = 0; y < rad_inner; y++) {
+		unsigned x = 0;
+                for (; x < rad_inner && !innerQuarter[y * rad_inner + x]; x++)
+			qa[y * rad_outer + x] = qa[x * rad_outer + y] = innerQuarter[y * rad_inner + x];
+                if (x < rad_inner && innerQuarter[y * rad_inner + x])
+			qa[y * rad_outer + x] = qa[x * rad_outer + y] = innerQuarter[y * rad_inner + x];
+		if (x <= y)
+			break;
 	}
-	/* one of the bottom corners */
-	else if ((line >= dy - radius) && (bl || br)) {
-		/* lower round corners */
-		scl = radius - (dy - (line + 1));
-		_ofs = radius - q_circle[2 * scl];
-		if (ofl && bl) *ofl = _ofs;
-		if (ofr && br) *ofr = _ofs;
-		alpha = q_circle[2 * scl + 1];
-	}
-	else
-		ret = true;
-	if (ofs)
-		*ofs = _ofs;
-	return ret;
+
+	return qa;
 }
+
 
 static inline int limitRadius(const int& dx, const int& dy, const int& radius)
 {
@@ -180,13 +206,13 @@ CFrameBuffer::CFrameBuffer()
 	m_transparent_default = CFrameBuffer::TM_BLACK; // TM_BLACK: Transparency when black content ('pseudo' transparency)
 							// TM_NONE:  No 'pseudo' transparency
 							// TM_INI:   Transparency depends on g_settings.infobar_alpha ???
-	m_transparent = m_transparent_default;
+	m_transparent         = m_transparent_default;
 //FIXME: test
 	memset(red, 0, 256*sizeof(__u16));
 	memset(green, 0, 256*sizeof(__u16));
 	memset(blue, 0, 256*sizeof(__u16));
 	memset(trans, 0, 256*sizeof(__u16));
-#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
+#if HAVE_SPARK_HARDWARE
 	autoBlitStatus = false;
 	autoBlitThreadId = 0;
 #endif
@@ -212,46 +238,94 @@ void CFrameBuffer::setupGXA(void)
 }
 #endif
 
-void CFrameBuffer::init(const char * const)
+void CFrameBuffer::init(const char * const fbDevice)
 {
-	int tr = 0xFF;
+        int tr = 0xFF;
+#ifdef USE_OPENGL
+	(void)fbDevice;
+	fd = -1;
+	if (!glfb) {
+		fprintf(stderr, "CFrameBuffer::init: GL Framebuffer is not set up? we are doomed...\n");
+		goto nolfb;
+	}
+	screeninfo = glfb->getScreenInfo();
+	stride = 4 * screeninfo.xres;
+	available = glfb->getOSDBuffer()->size(); /* allocated in glfb constructor */
+	lfb = reinterpret_cast<fb_pixel_t*>(glfb->getOSDBuffer()->data());
+	memset(lfb, 0x7f, stride * screeninfo.yres);
+#else
+	fd = open(fbDevice, O_RDWR);
+	if(!fd) fd = open(fbDevice, O_RDWR);
+
+	if (fd<0) {
+		perror(fbDevice);
+		goto nolfb;
+	}
+
+	if (ioctl(fd, FBIOGET_VSCREENINFO, &screeninfo)<0) {
+		perror("FBIOGET_VSCREENINFO");
+		goto nolfb;
+	}
+
+	memmove(&oldscreen, &screeninfo, sizeof(screeninfo));
+
+	if (ioctl(fd, FBIOGET_FSCREENINFO, &fix)<0) {
+		perror("FBIOGET_FSCREENINFO");
+		goto nolfb;
+	}
+
+	available=fix.smem_len;
+	printf("%dk video mem\n", available/1024);
+	lfb=(fb_pixel_t*)mmap(0, available, PROT_WRITE|PROT_READ, MAP_SHARED, fd, 0);
+
+	if (lfb == MAP_FAILED) {
+		perror("mmap");
+		goto nolfb;
+	}
+
+	memset(lfb, 0, available);
+#endif /* USE_OPENGL */
 	cache_size = 0;
 
-	/* Windows Colors */
-	paletteSetColor(0x1, 0x010101, tr);
-	paletteSetColor(0x2, 0x800000, tr);
-	paletteSetColor(0x3, 0x008000, tr);
-	paletteSetColor(0x4, 0x808000, tr);
-	paletteSetColor(0x5, 0x000080, tr);
-	paletteSetColor(0x6, 0x800080, tr);
-	paletteSetColor(0x7, 0x008080, tr);
-	paletteSetColor(0x8, 0xA0A0A0, tr);
-	paletteSetColor(0x9, 0x505050, tr);
-	paletteSetColor(0xA, 0xFF0000, tr);
-	paletteSetColor(0xB, 0x00FF00, tr);
-	paletteSetColor(0xC, 0xFFFF00, tr);
-	paletteSetColor(0xD, 0x0000FF, tr);
-	paletteSetColor(0xE, 0xFF00FF, tr);
-	paletteSetColor(0xF, 0x00FFFF, tr);
-	paletteSetColor(0x10, 0xFFFFFF, tr);
-	paletteSetColor(0x11, 0x000000, tr);
-	paletteSetColor(COL_BACKGROUND, 0x000000, 0x0);
+        /* Windows Colors */
+        paletteSetColor(0x1, 0x010101, tr);
+        paletteSetColor(0x2, 0x800000, tr);
+        paletteSetColor(0x3, 0x008000, tr);
+        paletteSetColor(0x4, 0x808000, tr);
+        paletteSetColor(0x5, 0x000080, tr);
+        paletteSetColor(0x6, 0x800080, tr);
+        paletteSetColor(0x7, 0x008080, tr);
+        paletteSetColor(0x8, 0xA0A0A0, tr);
+        paletteSetColor(0x9, 0x505050, tr);
+        paletteSetColor(0xA, 0xFF0000, tr);
+        paletteSetColor(0xB, 0x00FF00, tr);
+        paletteSetColor(0xC, 0xFFFF00, tr);
+        paletteSetColor(0xD, 0x0000FF, tr);
+        paletteSetColor(0xE, 0xFF00FF, tr);
+        paletteSetColor(0xF, 0x00FFFF, tr);
+        paletteSetColor(0x10, 0xFFFFFF, tr);
+        paletteSetColor(0x11, 0x000000, tr);
+        paletteSetColor(COL_BACKGROUND, 0x000000, 0xffff);
 
-	paletteSet();
+        paletteSet();
 
-	useBackground(false);
+        useBackground(false);
 	m_transparent = m_transparent_default;
 	accel = new CFbAccel(this);
-#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
+#if HAVE_SPARK_HARDWARE
 	setMixerColor(g_settings.video_mixer_color);
 #endif
 	return;
+
+nolfb:
+	printf("framebuffer not available.\n");
+	lfb=0;
 }
 
 
 CFrameBuffer::~CFrameBuffer()
 {
-#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
+#if HAVE_SPARK_HARDWARE
 	autoBlit(false);
 #endif
 	active = false; /* keep people/infoclocks from accessing */
@@ -273,16 +347,19 @@ CFrameBuffer::~CFrameBuffer()
 		backupBackground = NULL;
 	}
 
+	if (lfb)
+		munmap(lfb, available);
+
 	if (virtual_fb){
 		delete[] virtual_fb;
 		virtual_fb = NULL;
 	}
 	delete accel;
+	close(fd);
 }
 
 int CFrameBuffer::getFileHandle() const
 {
-	fprintf(stderr, "[fb]::%s: WARNING, this should never be used, please report!\n", __func__);
 	return fd;
 }
 
@@ -291,6 +368,40 @@ unsigned int CFrameBuffer::getStride() const
 	return stride;
 }
 
+#if HAVE_SPARK_HARDWARE
+unsigned int CFrameBuffer::getScreenWidth(bool)
+{
+	return DEFAULT_XRES;
+}
+
+unsigned int CFrameBuffer::getScreenHeight(bool)
+{
+	return DEFAULT_YRES;
+}
+
+unsigned int CFrameBuffer::getScreenWidthRel(bool force_small)
+{
+	int percent = force_small ? WINDOW_SIZE_MIN_FORCED : g_settings.window_width;
+	// always reduce a possible detailline
+	return (DEFAULT_XRES - 2*ConnectLineBox_Width) * percent / 100;
+}
+
+unsigned int CFrameBuffer::getScreenHeightRel(bool force_small)
+{
+	int percent = force_small ? WINDOW_SIZE_MIN_FORCED : g_settings.window_height;
+	return DEFAULT_YRES * percent / 100;
+}
+
+unsigned int CFrameBuffer::getScreenX()
+{
+	return 0;
+}
+
+unsigned int CFrameBuffer::getScreenY()
+{
+	return 0;
+}
+#else
 unsigned int CFrameBuffer::getScreenWidth(bool real)
 {
 	if(real)
@@ -329,9 +440,12 @@ unsigned int CFrameBuffer::getScreenY()
 {
 	return g_settings.screen_StartY;
 }
+#endif
 
-fb_pixel_t * CFrameBuffer::getFrameBufferPointer() const
+fb_pixel_t * CFrameBuffer::getFrameBufferPointer(bool real)
 {
+	if (real)
+		return lfb;
 	if (active || (virtual_fb == NULL))
 		return accel->lbb;
 	else
@@ -364,7 +478,71 @@ fprintf(stderr, "CFrameBuffer::setMode avail: %d active: %d\n", available, activ
 	if (!available&&!active)
 		return -1;
 
-	int ret = accel->setMode();
+#if HAVE_AZBOX_HARDWARE
+#ifndef FBIO_BLIT
+#define FBIO_SET_MANUAL_BLIT _IOW('F', 0x21, __u8)
+#define FBIO_BLIT 0x22
+#endif
+	// set manual blit if AZBOX_MANUAL_BLIT environment variable is set
+	unsigned char tmp = getenv("AZBOX_MANUAL_BLIT") ? 1 : 0;
+	if (ioctl(fd, FBIO_SET_MANUAL_BLIT, &tmp)<0)
+		perror("FBIO_SET_MANUAL_BLIT");
+
+	const unsigned int nxRes = DEFAULT_XRES;
+	const unsigned int nyRes = DEFAULT_YRES;
+	const unsigned int nbpp  = DEFAULT_BPP;
+	screeninfo.xres_virtual = screeninfo.xres = nxRes;
+	screeninfo.yres_virtual = (screeninfo.yres = nyRes) * 2;
+	screeninfo.height = 0;
+	screeninfo.width = 0;
+	screeninfo.xoffset = screeninfo.yoffset = 0;
+	screeninfo.bits_per_pixel = nbpp;
+
+	screeninfo.transp.offset = 24;
+	screeninfo.transp.length = 8;
+	screeninfo.red.offset = 16;
+	screeninfo.red.length = 8;
+	screeninfo.green.offset = 8;
+	screeninfo.green.length = 8;
+	screeninfo.blue.offset = 0;
+	screeninfo.blue.length = 8;
+
+	if (ioctl(fd, FBIOPUT_VSCREENINFO, &screeninfo)<0) {
+		// try single buffering
+		screeninfo.yres_virtual = screeninfo.yres = nyRes;
+		if (ioctl(fd, FBIOPUT_VSCREENINFO, &screeninfo) < 0)
+		perror("FBIOPUT_VSCREENINFO");
+		printf("FB: double buffering not available.\n");
+	}
+	else
+		printf("FB: double buffering available!\n");
+
+	ioctl(fd, FBIOGET_VSCREENINFO, &screeninfo);
+
+	if ((screeninfo.xres!=nxRes) && (screeninfo.yres!=nyRes) && (screeninfo.bits_per_pixel!=nbpp))
+	{
+		printf("SetMode failed: wanted: %dx%dx%d, got %dx%dx%d\n",
+		       nxRes, nyRes, nbpp,
+		       screeninfo.xres, screeninfo.yres, screeninfo.bits_per_pixel);
+	}
+#endif
+#if HAVE_SPARK_HARDWARE
+	/* it's all fake... :-) */
+	screeninfo.xres = screeninfo.xres_virtual = DEFAULT_XRES;
+	screeninfo.yres = screeninfo.yres_virtual = DEFAULT_YRES;
+	screeninfo.bits_per_pixel = DEFAULT_BPP;
+	stride = screeninfo.xres * screeninfo.bits_per_pixel / 8;
+#else
+#ifndef USE_OPENGL
+	fb_fix_screeninfo _fix;
+
+	if (ioctl(fd, FBIOGET_FSCREENINFO, &_fix)<0) {
+		perror("FBIOGET_FSCREENINFO");
+		return -1;
+	}
+	stride = _fix.line_length;
+#endif
+#endif
 	xRes = screeninfo.xres;
 	yRes = screeninfo.yres;
 	bpp  = screeninfo.bits_per_pixel;
@@ -379,7 +557,12 @@ fprintf(stderr, "CFrameBuffer::setMode avail: %d active: %d\n", available, activ
 
 	//memset(getFrameBufferPointer(), 0, stride * yRes);
 	paintBackground();
-	return ret;
+#if HAVE_COOL_HARDWARE
+        if (ioctl(fd, FBIOBLANK, FB_BLANK_UNBLANK) < 0) {
+                printf("screen unblanking failed\n");
+        }
+#endif
+	return 0;
 }
 #if 0 
 //never used
@@ -388,7 +571,7 @@ void CFrameBuffer::setTransparency( int /*tr*/ )
 }
 #endif
 
-#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
+#if HAVE_SPARK_HARDWARE
 /* original interfaceL: 1 == pixel alpha, 2 == global alpha premultiplied */
 void CFrameBuffer::setBlendMode(uint8_t mode)
 {
@@ -433,9 +616,9 @@ void CFrameBuffer::setBlendLevel(int level)
 
 	if (ioctl(fd, FBIO_SETOPACITY, value))
 		printf("FBIO_SETOPACITY failed.\n");
-#ifndef BOXMODEL_APOLLO
-	if(level == 100) // TODO: sucks.
-		usleep(20000);
+#if 1
+       if(level == 100) // TODO: sucks.
+               usleep(20000);
 #endif
 #endif
 }
@@ -468,12 +651,20 @@ void CFrameBuffer::setBlendLevel(int level)
 }
 #endif
 
+#if 0 
+//never used
+void CFrameBuffer::setAlphaFade(int in, int num, int tr)
+{
+	for (int i=0; i<num; i++) {
+		cmap.transp[in+i]=tr;
+	}
+}
+#endif
 void CFrameBuffer::paletteFade(int i, __u32 rgb1, __u32 rgb2, int level)
 {
 	__u16 *r = cmap.red+i;
 	__u16 *g = cmap.green+i;
 	__u16 *b = cmap.blue+i;
-
 	*r= ((rgb2&0xFF0000)>>16)*level;
 	*g= ((rgb2&0x00FF00)>>8 )*level;
 	*b= ((rgb2&0x0000FF)    )*level;
@@ -508,23 +699,21 @@ void CFrameBuffer::paletteSet(struct fb_cmap *map)
 		map = &cmap;
 
 	if(bpp == 8) {
-		//printf("Set palette for %dbit\n", bpp);
+//printf("Set palette for %dbit\n", bpp);
 		ioctl(fd, FBIOPUTCMAP, map);
 	}
-
 	uint32_t  rl, ro, gl, go, bl, bo, tl, to;
-
-	rl = screeninfo.red.length;
-	ro = screeninfo.red.offset;
-	gl = screeninfo.green.length;
-	go = screeninfo.green.offset;
-	bl = screeninfo.blue.length;
-	bo = screeninfo.blue.offset;
-	tl = screeninfo.transp.length;
-	to = screeninfo.transp.offset;
+        rl = screeninfo.red.length;
+        ro = screeninfo.red.offset;
+        gl = screeninfo.green.length;
+        go = screeninfo.green.offset;
+        bl = screeninfo.blue.length;
+        bo = screeninfo.blue.offset;
+        tl = screeninfo.transp.length;
+        to = screeninfo.transp.offset;
 	for (int i = 0; i < 256; i++) {
-		realcolor[i] = make16color(cmap.red[i], cmap.green[i], cmap.blue[i], cmap.transp[i],
-					   rl, ro, gl, go, bl, bo, tl, to);
+                realcolor[i] = make16color(cmap.red[i], cmap.green[i], cmap.blue[i], cmap.transp[i],
+                                           rl, ro, gl, go, bl, bo, tl, to);
 	}
 	realcolor[(COL_BACKGROUND + 0)] = 0; // background, no alpha
 }
@@ -537,136 +726,15 @@ inline fb_pixel_t mergeColor(fb_pixel_t oc, int ol, fb_pixel_t ic, int il)
 		|(((( oc        & 0xff) * ol) + (( ic        & 0xff) * il)) >> 8);
 }
 
-void CFrameBuffer::paintHLineRelInternal2Buf(const int& x, const int& dx, const int& y, const int& box_dx, const fb_pixel_t& col, fb_pixel_t* buf)
-{
-	uint8_t * pos = ((uint8_t *)buf) + x * sizeof(fb_pixel_t) + box_dx * sizeof(fb_pixel_t) * y;
-	fb_pixel_t * dest = (fb_pixel_t *)pos;
-	for (int i = 0; i < dx; i++)
-		*(dest++) = col;
-}
-
-fb_pixel_t* CFrameBuffer::paintBoxRel2Buf(const int dx, const int dy, const fb_pixel_t col, fb_pixel_t* buf/* = NULL*/, int radius/* = 0*/, int type/* = CORNER_ALL*/)
-{
-	if (!getActive())
-		return buf;
-	if (dx == 0 || dy == 0) {
-		dprintf(DEBUG_INFO, "[%s - %d]: radius %d, dx %d dy %d\n", __func__, __LINE__, radius, dx, dy);
-		return buf;
-	}
-
-	fb_pixel_t* pixBuf = buf;
-	if (pixBuf == NULL) {
-		pixBuf = (fb_pixel_t*) cs_malloc_uncached(dx*dy*sizeof(fb_pixel_t));
-		if (pixBuf == NULL) {
-			dprintf(DEBUG_NORMAL, "[%s #%d] Error cs_malloc_uncached\n", __func__, __LINE__);
-			return NULL;
-		}
-	}
-	memset((void*)pixBuf, '\0', dx*dy*sizeof(fb_pixel_t));
-
-	if (type && radius) {
-		radius = limitRadius(dx, dy, radius);
-
-		bool corner_tl = !!(type & CORNER_TOP_LEFT);
-		bool corner_tr = !!(type & CORNER_TOP_RIGHT);
-		bool corner_bl = !!(type & CORNER_BOTTOM_LEFT);
-		bool corner_br = !!(type & CORNER_BOTTOM_RIGHT);
-
-		int line = 0;
-		while (line < dy) {
-			int ofl, ofr, olevel;
-			calcCorners(NULL, &ofl, &ofr, dy, line, radius, corner_tl, corner_tr, corner_bl, corner_br, olevel);
-			if (dx-ofr-ofl < 1) {
-				if (dx-ofr-ofl == 0) {
-					dprintf(DEBUG_INFO, "[%s - %d]: radius %d, end x %d y %d\n", __func__, __LINE__, radius, dx-ofr-ofl, line);
-				}
-				else {
-					dprintf(DEBUG_INFO, "[%s - %04d]: Calculated width: %d\n		      (radius %d, dx %d, offsetLeft %d, offsetRight %d).\n		      Width can not be less than 0, abort.\n",
-					       __func__, __LINE__, dx-ofr-ofl, radius, dx, ofl, ofr);
-				}
-				line++;
-				continue;
-			}
-			paintHLineRelInternal2Buf(ofl, dx-ofl-ofr, line, dx, col, pixBuf);
-			line++;
-		}
-	} else {
-		fb_pixel_t *bp = pixBuf;
-		int line = 0;
-		while (line < dy) {
-			for (int pos = 0; pos < dx; pos++)
-				*(bp + pos) = col;
-			bp += dx;
-			line++;
-		}
-	}
-	return pixBuf;
-}
-
-fb_pixel_t* CFrameBuffer::paintBoxRel(const int x, const int y, const int dx, const int dy,
-				      const fb_pixel_t /*col*/, gradientData_t *gradientData,
-				      int radius, int type)
-{
-#define MASK 0xFFFFFFFF
-
-	fb_pixel_t* boxBuf    = paintBoxRel2Buf(dx, dy, MASK, NULL, radius, type);
-	if (!boxBuf)
-		return NULL;
-
-	fb_pixel_t *bp        = boxBuf;
-	fb_pixel_t *gra       = gradientData->gradientBuf;
-	gradientData->boxBuf  = boxBuf;
-
-	if (gradientData->direction == gradientVertical) {
-		// vertical
-		for (int pos = 0; pos < dx; pos++) {
-			for(int count = 0; count < dy; count++) {
-				if (*(bp + pos) == MASK)
-					*(bp + pos) = (fb_pixel_t)(*(gra + count));
-				bp += dx;
-			}
-			bp = boxBuf;
-		}
-	} else {
-		// horizontal
-		for (int line = 0; line < dy; line++) {
-			for (int pos = 0; pos < dx; pos++) {
-				if (*(bp + pos) == MASK)
-					*(bp + pos) = (fb_pixel_t)(*(gra + pos));
-			}
-			bp += dx;
-		}
-	}
-
-	if ((gradientData->mode & pbrg_noPaint) == pbrg_noPaint)
-		return boxBuf;
-
-//	blit2FB(boxBuf, dx, dy, x, y);
-	blitBox2FB(boxBuf, dx, dy, x, y);
-
-	if ((gradientData->mode & pbrg_noFree) == pbrg_noFree)
-		return boxBuf;
-
-	cs_free_uncached(boxBuf);
-
-	return NULL;
-}
-
 void CFrameBuffer::paintBoxRel(const int x, const int y, const int dx, const int dy, const fb_pixel_t col, int radius, int type)
 {
 	/* draw a filled rectangle (with additional round corners) */
-
 	if (!getActive())
 		return;
 
-	bool corner_tl = !!(type & CORNER_TOP_LEFT);
-	bool corner_tr = !!(type & CORNER_TOP_RIGHT);
-	bool corner_bl = !!(type & CORNER_BOTTOM_LEFT);
-	bool corner_br = !!(type & CORNER_BOTTOM_RIGHT);
-
 	checkFbArea(x, y, dx, dy, true);
 
-	if (radius > 0) { // if radius = 0 there is no round corner --tango
+#if HAVE_SPARK_HARDWARE
 	// hack: don't paint round corners unless these are actually visible --martii
 	fb_pixel_t *f = accel->lbb + y * stride/sizeof(fb_pixel_t) + x;
 	if ((col == *f)
@@ -674,47 +742,86 @@ void CFrameBuffer::paintBoxRel(const int x, const int y, const int dx, const int
 	 && (col == *(f + (dy - 1) * stride/sizeof(fb_pixel_t)))
 	 && (col == *(f + (dy - 1) * stride/sizeof(fb_pixel_t) + dx - 1)))
 		type = 0;
+#endif
+
+	unsigned char *corner = NULL;
+	if (type && radius) {
+		/* limit the radius */
+		radius = limitRadius(dx, dy, radius);
+		if (radius < 1)		/* dx or dy = 0... */
+			radius = 1;	/* avoid div by zero below */
+
+		corner = getQuarterCircle(radius);
 	}
 
-	if (!type || !radius)
+	if (!corner)
 	{
 		accel->paintRect(x, y, dx, dy, col);
 		checkFbArea(x, y, dx, dy, false);
 		return;
 	}
 
-	/* limit the radius */
-	radius = limitRadius(dx, dy, radius);
-	if (radius < 1)		/* dx or dy = 0... */
-		radius = 1;	/* avoid div by zero below */
+	accel->waitForIdle();
 
-	int line = 0;
-	while (line < dy) {
-		int ofl, ofr;
-		int level;
-		if (calcCorners(NULL, &ofl, &ofr, dy, line, radius,
-				corner_tl, corner_tr, corner_bl, corner_br, level))
-		{
-			int height = dy - ((corner_tl || corner_tr)?radius: 0 ) - ((corner_bl || corner_br) ? radius : 0);
-			accel->paintRect(x, y + line, dx, height, col);
-			line += height;
-			continue;
+	int radius_tl = (type & CORNER_TOP_LEFT) ? radius : 0;
+	int radius_tr = (type & CORNER_TOP_RIGHT) ? radius : 0;
+	int radius_bl = (type & CORNER_BOTTOM_LEFT) ? radius : 0;
+	int radius_br = (type & CORNER_BOTTOM_RIGHT) ? radius : 0;
+
+	int radius_t = (type & (CORNER_TOP_LEFT | CORNER_TOP_RIGHT)) ? radius : 0;
+	int radius_b = (type & (CORNER_BOTTOM_LEFT | CORNER_BOTTOM_RIGHT)) ? radius : 0;
+
+	if (radius_tl) {
+		fb_pixel_t *p = accel->lbb + y * stride/sizeof(fb_pixel_t) + x;
+		for (int cy = radius - 1; cy > -1; cy--) {
+			for (int cx = radius - 1; cx > -1; cx--, p++) {
+				unsigned char level = corner[cx + cy * radius];
+				if (level)
+					*p = mergeColor(*p, 255 - level, col, level);
+			}
+			p += stride/sizeof(fb_pixel_t) - radius;
 		}
-		if (dx - ofr - ofl < 1) {
-			//printf("FB-NG::%s:%d x %d y %d dx %d dy %d l %d r %d\n", __func__, __LINE__, x,y,dx,dy, ofl, ofr);
-			line++;
-			continue;
-		}
-
-		fb_pixel_t *p = accel->lbb + (y + line) * stride/sizeof(fb_pixel_t) + x + ofl;
-		*p = mergeColor(*p, 255 - level, col, level);
-
-		p = accel->lbb + (y + line) * stride/sizeof(fb_pixel_t) + x + dx - ofr - 1;
-		*p = mergeColor(*p, 255 - level, col, level);
-
-		accel->paintLine(x + ofl + 1, y + line, x + dx - ofr - 1, y + line, col);
-		line++;
 	}
+	if (radius_tr) {
+		fb_pixel_t *p = accel->lbb + y * stride/sizeof(fb_pixel_t) + x + dx - radius_tr;
+		for (int cy = radius - 1; cy > -1; cy--) {
+			for (int cx = 0; cx < radius; cx++, p++) {
+				unsigned char level = corner[cx + cy * radius];
+				if (level)
+					*p = mergeColor(*p, 255 - level, col, level);
+			}
+			p += stride/sizeof(fb_pixel_t) - radius;
+		}
+	}
+	if (radius_bl) {
+		fb_pixel_t *p = accel->lbb + (y + dy - radius_b) * stride/sizeof(fb_pixel_t) + x;
+		for (int cy = 0; cy < radius; cy++) {
+			for (int cx = radius - 1; cx > -1; cx--, p++) {
+				unsigned char level = corner[cx + cy * radius];
+				if (level)
+					*p = mergeColor(*p, 255 - level, col, level);
+			}
+			p += stride/sizeof(fb_pixel_t) - radius;
+		}
+	}
+	if (radius_br) {
+		fb_pixel_t *p = accel->lbb + (y + dy - radius_b) * stride/sizeof(fb_pixel_t) + x + dx - radius_br;
+		for (int cy = 0; cy < radius; cy++) {
+			for (int cx = 0; cx < radius; cx++, p++) {
+				unsigned char level = corner[cx + cy * radius];
+				if (level)
+					*p = mergeColor(*p, 255 - level, col, level);
+			}
+			p += stride/sizeof(fb_pixel_t) - radius;
+		}
+	}
+
+	if (radius_t)
+		accel->paintRect(x + radius_tl, y                , dx - radius_tl - radius_tr, radius_t, col); // top
+	if (radius_b)
+		accel->paintRect(x + radius_bl, y + dy - radius_b, dx - radius_bl - radius_br, radius_b, col); // bottom
+	accel->paintRect(x, y + radius_t, dx, dy - radius_t - radius_b, col);
+
 	checkFbArea(x, y, dx, dy, false);
 }
 
@@ -829,7 +936,7 @@ bool CFrameBuffer::paintIcon8(const std::string & filename, const int x, const i
 		d += stride;
 	}
 	close(lfd);
-	accel->blit();
+	blit();
 	return true;
 }
 
@@ -856,11 +963,7 @@ bool CFrameBuffer::paintIcon(const std::string & filename, const int x, const in
 	/* we cache and check original name */
 	it = icon_cache.find(filename);
 	if(it == icon_cache.end()) {
-		std::string newname = std::string(ICONDIR_VAR) + filename + ".png";
-		if (access(newname.c_str(), F_OK))
-			newname = iconBasePath + filename + ".png";
-		if (filename.find("/", 0) != std::string::npos)
-			newname = filename;
+		std::string newname = iconBasePath + filename.c_str() + ".png";
 		//printf("CFrameBuffer::paintIcon: check for %s\n", newname.c_str());fflush(stdout);
 
 		data = g_PicViewer->getIcon(newname, &width, &height);
@@ -868,6 +971,13 @@ bool CFrameBuffer::paintIcon(const std::string & filename, const int x, const in
 		if(data) {
 			dsize = width*height*sizeof(fb_pixel_t);
 			//printf("CFrameBuffer::paintIcon: %s found, data %x size %d x %d\n", newname.c_str(), data, width, height);fflush(stdout);
+			if(cache_size+dsize >= ICON_CACHE_SIZE) {
+				//purge cache
+				for(it = icon_cache.begin(); it != icon_cache.end(); ++it)
+					cs_free_uncached(it->second.data);
+				icon_cache.clear();
+				cache_size = 0;
+			}
 			if(cache_size+dsize < ICON_CACHE_SIZE) {
 				cache_size += dsize;
 				tmpIcon.width = width;
@@ -879,9 +989,7 @@ bool CFrameBuffer::paintIcon(const std::string & filename, const int x, const in
 			goto _display;
 		}
 
-		newname = std::string(ICONDIR_VAR) + filename + ".raw";
-		if (access(newname.c_str(), F_OK))
-			newname = iconBasePath + filename + ".raw";
+		newname = iconBasePath + filename.c_str() + ".raw";
 
 		lfd = open(newname.c_str(), O_RDONLY);
 
@@ -889,25 +997,10 @@ bool CFrameBuffer::paintIcon(const std::string & filename, const int x, const in
 			//printf("paintIcon: error while loading icon: %s\n", newname.c_str());
 			return false;
 		}
-
-		ssize_t s = read(lfd, &header, sizeof(struct rawHeader));
-		if (s < 0) {
-			perror("read");
-			return false;
-		}
-
-		if (s < (ssize_t) sizeof(rawHeader)){
-			printf("paintIcon: error while loading icon: %s, header too small\n", newname.c_str());
-			return false;
-		}
-
+		read(lfd, &header, sizeof(struct rawHeader));
 
 		tmpIcon.width = width  = (header.width_hi  << 8) | header.width_lo;
 		tmpIcon.height = height = (header.height_hi << 8) | header.height_lo;
-		if (!width || !height) {
-			printf("paintIcon: error while loading icon: %s, wrong dimensions (%dHx%dW)\n", newname.c_str(), height, width);
-			return false;
-		}
 
 		dsize = width*height*sizeof(fb_pixel_t);
 
@@ -961,6 +1054,7 @@ _display:
 	blit2FB(data, width, height, x, yy);
 	checkFbArea(x, yy, width, height, false);
 	return true;
+ 
 }
 
 void CFrameBuffer::loadPal(const std::string & filename, const unsigned char offset, const unsigned char endidx)
@@ -996,90 +1090,82 @@ void CFrameBuffer::loadPal(const std::string & filename, const unsigned char off
 	close(lfd);
 }
 
+
 void CFrameBuffer::paintBoxFrame(const int x, const int y, const int dx, const int dy, const int px, const fb_pixel_t col, const int rad, int type)
 {
 	if (!getActive())
 		return;
 
 	int radius = rad;
-	bool corner_tl = !!(type & CORNER_TOP_LEFT);
-	bool corner_tr = !!(type & CORNER_TOP_RIGHT);
-	bool corner_bl = !!(type & CORNER_BOTTOM_LEFT);
-	bool corner_br = !!(type & CORNER_BOTTOM_RIGHT);
 
-	int r_tl = 0, r_tr = 0, r_bl = 0, r_br = 0;
-	if (type && radius) {
-		int x_rad = radius - 1;
-		if (corner_tl) r_tl = x_rad;
-		if (corner_tr) r_tr = x_rad;
-		if (corner_bl) r_bl = x_rad;
-		if (corner_br) r_br = x_rad;
-	}
-	paintBoxRel(x + r_tl,    y          , dx - r_tl - r_tr, px,               col); // top horizontal
-	paintBoxRel(x + r_bl,    y + dy - px, dx - r_bl - r_br, px,               col); // bottom horizontal
-	paintBoxRel(x          , y + r_tl,    px,               dy - r_tl - r_bl, col); // left vertical
-	paintBoxRel(x + dx - px, y + r_tr,    px,               dy - r_tr - r_br, col); // right vertical
+	radius = limitRadius(dx, dy, rad);
+	if (radius - px < 1)		/* dx or dy = 0... */
+		radius = px + 1;	/* avoid div by zero below */
 
-	if (!radius || !type)
-		return;
+	unsigned char *corner = NULL;
+	if (radius && type)
+		corner = getQuarterArc(radius, radius - px);
 
-	radius = limitRadius(dx, dy, radius);
-	if (radius < 1)		/* dx or dy = 0... */
-		radius = 1;	/* avoid div by zero below */
-	int line = 0;
+	int radius_tl = (corner && (type & CORNER_TOP_LEFT)) ? radius : 0;
+	int radius_tr = (corner && (type & CORNER_TOP_RIGHT)) ? radius : 0;
+	int radius_bl = (corner && (type & CORNER_BOTTOM_LEFT)) ? radius : 0;
+	int radius_br = (corner && (type & CORNER_BOTTOM_RIGHT)) ? radius : 0;
+
+	//int radius_t = (corner && (type & (CORNER_TOP_LEFT | CORNER_TOP_RIGHT))) ? radius : 0;
+	//int radius_b = (corner && (type & (CORNER_BOTTOM_LEFT | CORNER_BOTTOM_RIGHT))) ? radius : 0;
+
 	waitForIdle();
-	while (line < dy) {
-		int ofs = 0, ofs_i = 0;
-		int ilevel = 0, olevel = 0;
-		// inner box
-		if ((line >= px) && (line < (dy - px)))
-			calcCorners(&ofs_i, NULL, NULL, dy - 2 * px, line - px, radius - px,
-					corner_tl, corner_tr, corner_bl, corner_br, ilevel);
-		// outer box
-		calcCorners(&ofs, NULL, NULL, dy, line, radius, corner_tl, corner_tr, corner_bl, corner_br, olevel);
 
-		int _y     = y + line;
-		if (line < px || line >= (dy - px)) {
-			// left
-			if ((corner_tl && line < radius) || (corner_bl && line >= dy - radius)) {
-				accel->paintLine(x + ofs, _y, x + ofs + radius, _y, col);
+	if (radius_tl) {
+		fb_pixel_t *p = accel->lbb + y * stride/sizeof(fb_pixel_t) + x;
+		for (int cy = radius - 1; cy > -1; cy--) {
+			for (int cx = radius - 1; cx > -1; cx--, p++) {
+				unsigned char level = corner[cx + cy * radius];
+				if (level)
+					*p = mergeColor(*p, 255 - level, col, level);
 			}
-			// right
-			if ((corner_tr && line < radius) || (corner_br && line >= dy - radius)) {
-				accel->paintLine(x + dx - radius, _y, x + dx - ofs, _y, col);
-			}
+			p += stride/sizeof(fb_pixel_t) - radius;
 		}
-		else if (line < (dy - px)) {
-			int _dx = (ofs_i - ofs) + px;
-			// left
-			if ((corner_tl && line < radius) || (corner_bl && line >= dy - radius)) {
-				fb_pixel_t *p = accel->lbb + _y * stride/sizeof(fb_pixel_t) + x + ofs;
-				fb_pixel_t *pe = p + _dx;
-
-				*p = mergeColor(*p, 255 - olevel, col, olevel);
-				p++;
-				while (p < pe)
-					*p++ = col;
-				*p = mergeColor(*p, ilevel, col, 255 - ilevel);
-				
+	}
+	if (radius_tr) {
+		fb_pixel_t *p = accel->lbb + y * stride/sizeof(fb_pixel_t) + x + dx - radius_tr;
+		for (int cy = radius - 1; cy > -1; cy--) {
+			for (int cx = 0; cx < radius; cx++, p++) {
+				unsigned char level = corner[cx + cy * radius];
+				if (level)
+					*p = mergeColor(*p, 255 - level, col, level);
 			}
-			// right
-			if ((corner_tr && line < radius) || (corner_br && line >= dy - radius)) {
-				fb_pixel_t *p = accel->lbb + _y * stride/sizeof(fb_pixel_t) + x + dx - ofs_i - px - 1;
-				fb_pixel_t *pe = p + _dx;
-
-				*p = mergeColor(*p, ilevel, col, 255 - ilevel);
-				p++;
-				while (p < pe)
-					*p++ = col;
-				*p = mergeColor(*p, 255 - olevel, col, olevel);
-			}
+			p += stride/sizeof(fb_pixel_t) - radius;
 		}
-		if (line == radius && dy > 2 * radius)
-			// line outside the rounded corners
-			line = dy - radius;
-		else
-			line++;
+	}
+	if (radius_bl) {
+		fb_pixel_t *p = accel->lbb + (y + dy - radius_bl) * stride/sizeof(fb_pixel_t) + x;
+		for (int cy = 0; cy < radius; cy++) {
+			for (int cx = radius - 1; cx > -1; cx--, p++) {
+				unsigned char level = corner[cx + cy * radius];
+				if (level)
+					*p = mergeColor(*p, 255 - level, col, level);
+			}
+			p += stride/sizeof(fb_pixel_t) - radius;
+		}
+	}
+	if (radius_br) {
+		fb_pixel_t *p = accel->lbb + (y + dy - radius_bl) * stride/sizeof(fb_pixel_t) + x + dx - radius_br;
+		for (int cy = 0; cy < radius; cy++) {
+			for (int cx = 0; cx < radius; cx++, p++) {
+				unsigned char level = corner[cx + cy * radius];
+				if (level)
+					*p = mergeColor(*p, 255 - level, col, level);
+			}
+			p += stride/sizeof(fb_pixel_t) - radius;
+		}
+	}
+
+	for (int i = 0; i < px; i++) {
+		paintHLineRel(x + radius_tl, dx - radius_tl - radius_tr, y + i, col); // top
+		paintVLineRel(x + i, y + radius_tl, dy - radius_tl - radius_bl, col); // left
+		paintVLineRel(x + dx - i - 1, y + radius_tr, dy - radius_tr - radius_br, col); // right
+		paintHLineRel(x + radius_tl, dx - radius_bl - radius_br, y + dy - i - 1, col); // bottom
 	}
 }
 
@@ -1169,7 +1255,7 @@ void CFrameBuffer::paintBackground()
 	{
 		paintBoxRel(0, 0, xRes, yRes, backgroundColor);
 	}
-	accel->blit();
+	blit();
 }
 
 void CFrameBuffer::SaveScreen(int x, int y, int dx, int dy, fb_pixel_t * const memp)
@@ -1186,6 +1272,17 @@ void CFrameBuffer::SaveScreen(int x, int y, int dx, int dy, fb_pixel_t * const m
 			*(bkpos++) = *(dest++);
 		pos += stride;
 	}
+#if 0
+	/* todo: check what the problem with this is, it should be better -- probably caching issue */
+	uint8_t * fbpos = ((uint8_t *)getFrameBufferPointer()) + x * sizeof(fb_pixel_t) + stride * y;
+	fb_pixel_t * bkpos = memp;
+	for (int count = 0; count < dy; count++)
+	{
+		memmove(bkpos, fbpos, dx * sizeof(fb_pixel_t));
+		fbpos += stride;
+		bkpos += dx;
+	}
+#endif
 	checkFbArea(x, y, dx, dy, false);
 }
 
@@ -1229,15 +1326,7 @@ void * CFrameBuffer::int_convertRGB2FB(unsigned char *rgbbuff, unsigned long x, 
 {
 	unsigned long i;
 	unsigned int *fbbuff;
-	unsigned long count;
-
-	if (!x || !y) {
-		printf("convertRGB2FB%s: Error: invalid dimensions (%luX x %luY)\n",
-		       ((alpha) ? " (Alpha)" : ""), x, y);
-		return NULL;
-	}
-
-	count = x * y;
+	unsigned long count = x * y;
 
 	fbbuff = (unsigned int *) cs_malloc_uncached(count * sizeof(unsigned int));
 	if(fbbuff == NULL) {
@@ -1248,9 +1337,9 @@ void * CFrameBuffer::int_convertRGB2FB(unsigned char *rgbbuff, unsigned long x, 
 	if (alpha) {
 		for(i = 0; i < count ; i++)
 			fbbuff[i] = ((rgbbuff[i*4+3] << 24) & 0xFF000000) | 
-				    ((rgbbuff[i*4]   << 16) & 0x00FF0000) | 
-				    ((rgbbuff[i*4+1] <<  8) & 0x0000FF00) | 
-				    ((rgbbuff[i*4+2])       & 0x000000FF);
+			            ((rgbbuff[i*4]   << 16) & 0x00FF0000) | 
+		        	    ((rgbbuff[i*4+1] <<  8) & 0x0000FF00) | 
+			            ((rgbbuff[i*4+2])       & 0x000000FF);
 	} else {
 		switch (m_transparent) {
 			case CFrameBuffer::TM_BLACK:
@@ -1290,60 +1379,51 @@ void CFrameBuffer::blit2FB(void *fbbuff, uint32_t width, uint32_t height, uint32
 	accel->blit2FB(fbbuff, width, height, xoff, yoff, xp, yp, transp);
 }
 
-void CFrameBuffer::blitBox2FB(const fb_pixel_t* boxBuf, uint32_t width, uint32_t height, uint32_t xoff, uint32_t yoff)
-{
-	checkFbArea(xoff, yoff, width, height, true);
-
-	uint32_t swidth = stride / sizeof(fb_pixel_t);
-	fb_pixel_t *fbp = getFrameBufferPointer() + (swidth * yoff);
-	fb_pixel_t* data = (fb_pixel_t*)boxBuf;
-
-	uint32_t line = 0;
-	while (line < height) {
-		fb_pixel_t *pixpos = &data[line * width];
-		for (uint32_t pos = xoff; pos < xoff + width; pos++) {
-			//don't paint backgroundcolor (*pixpos = 0x00000000)
-			if (*pixpos)
-				*(fbp + pos) = *pixpos;
-			pixpos++;
-		}
-		fbp += swidth;
-		line++;
-	}
-
-	checkFbArea(xoff, yoff, width, height, false);
-}
-
 void CFrameBuffer::displayRGB(unsigned char *rgbbuff, int x_size, int y_size, int x_pan, int y_pan, int x_offs, int y_offs, bool clearfb, int transp)
 {
-	void *fbbuff = NULL;
+        void *fbbuff = NULL;
 
-	if(rgbbuff == NULL)
-		return;
+        if(rgbbuff == NULL)
+                return;
 
-	/* correct panning */
-	if(x_pan > x_size - (int)xRes) x_pan = 0;
-	if(y_pan > y_size - (int)yRes) y_pan = 0;
+        /* correct panning */
+        if(x_pan > x_size - (int)xRes) x_pan = 0;
+        if(y_pan > y_size - (int)yRes) y_pan = 0;
 
-	/* correct offset */
-	if(x_offs + x_size > (int)xRes) x_offs = 0;
-	if(y_offs + y_size > (int)yRes) y_offs = 0;
+        /* correct offset */
+        if(x_offs + x_size > (int)xRes) x_offs = 0;
+        if(y_offs + y_size > (int)yRes) y_offs = 0;
 
-	/* blit buffer 2 fb */
-	fbbuff = convertRGB2FB(rgbbuff, x_size, y_size, transp);
-	if(fbbuff==NULL)
-		return;
+        /* blit buffer 2 fb */
+        fbbuff = convertRGB2FB(rgbbuff, x_size, y_size, transp);
+        if(fbbuff==NULL)
+                return;
 
-	/* ClearFB if image is smaller */
-	/* if(x_size < (int)xRes || y_size < (int)yRes) */
-	if(clearfb)
-		CFrameBuffer::getInstance()->Clear();
+        /* ClearFB if image is smaller */
+        /* if(x_size < (int)xRes || y_size < (int)yRes) */
+        if(clearfb)
+                CFrameBuffer::getInstance()->Clear();
 
-	blit2FB(fbbuff, x_size, y_size, x_offs, y_offs, x_pan, y_pan);
-	cs_free_uncached(fbbuff);
+        blit2FB(fbbuff, x_size, y_size, x_offs, y_offs, x_pan, y_pan);
+        cs_free_uncached(fbbuff);
 }
 
-#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
+void CFrameBuffer::paintMuteIcon(bool paint, int ax, int ay, int dx, int dy, bool paintFrame)
+{
+	if(paint) {
+		if (paintFrame) {
+			paintBackgroundBoxRel(ax, ay, dx, dy);
+			paintBoxRel(ax, ay, dx, dy, COL_MENUCONTENT_PLUS_0, RADIUS_SMALL);
+		}
+		int icon_dx=0, icon_dy=0;
+		getIconSize(NEUTRINO_ICON_BUTTON_MUTE, &icon_dx, &icon_dy);
+		paintIcon(NEUTRINO_ICON_BUTTON_MUTE, ax+((dx-icon_dx)/2), ay+((dy-icon_dy)/2));
+	}
+	else
+		paintBackgroundBoxRel(ax, ay, dx, dy);
+	blit();
+}
+#if HAVE_SPARK_HARDWARE
 CFrameBuffer::Mode3D CFrameBuffer::get3DMode()
 {
 	return mode3D;
@@ -1354,7 +1434,8 @@ void CFrameBuffer::set3DMode(Mode3D m)
 	if (mode3D != m) {
 		accel->ClearFB();
 		mode3D = m;
-		accel->blit();
+		accel->borderColorOld = 0x01010101;
+		blit();
 	}
 }
 
@@ -1419,6 +1500,26 @@ void CFrameBuffer::resChange(void)
 	accel->resChange();
 }
 
+void CFrameBuffer::setBorder(int sx, int sy, int ex, int ey)
+{
+	accel->setBorder(sx, sy, ex, ey);
+}
+
+void CFrameBuffer::getBorder(int &sx, int &sy, int &ex, int &ey)
+{
+	accel->getBorder(sx, sy, ex, ey);
+}
+
+void CFrameBuffer::setBorderColor(fb_pixel_t col)
+{
+	accel->setBorderColor(col);
+}
+
+fb_pixel_t CFrameBuffer::getBorderColor(void)
+{
+	return accel->getBorderColor();
+}
+
 void CFrameBuffer::ClearFB(void)
 {
 	accel->ClearFB();
@@ -1447,7 +1548,7 @@ void *CFrameBuffer::autoBlitThread(void *arg)
 void CFrameBuffer::autoBlitThread(void)
 {
 	while (autoBlitStatus) {
-		accel->blit();
+		blit();
 		for (int i = 4; i && autoBlitStatus; i--)
 			usleep(50000);
 	}
@@ -1550,14 +1651,3 @@ bool CFrameBuffer::_checkFbArea(int _x, int _y, int _dx, int _dy, bool prev)
 
 	return true;
 }
-
-/* TODO: can we get rid of that? */
-void CFrameBuffer::mark(int x, int y, int dx, int dy)
-{
-	accel->mark(x, y, dx, dy);
-};
-
-void CFrameBuffer::blit()
-{
-	accel->blit();
-};

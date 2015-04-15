@@ -385,27 +385,24 @@ bool CScreenShot::SaveBmp()
  */
 void CScreenShot::MakeFileName(const t_channel_id channel_id)
 {
-	char		fname[512]; // UTF-8
 	std::string	channel_name;
 	CEPGData	epgData;
-	unsigned int	pos = 0;
 
 	filename = g_settings.screenshot_dir + "/";
 
 	channel_name = CServiceManager::getInstance()->GetServiceName(channel_id);
 	if (!(channel_name.empty())) {
 		std::string tmp = UTF8_TO_FILESYSTEM_ENCODING(channel_name.c_str());
-		ZapitTools::replace_char(&fname[pos]);
+		ZapitTools::replace_char(tmp);
 		filename += tmp + "_";
 	}
-	pos = strlen(fname);
 
 	if(CEitManager::getInstance()->getActualEPGServiceKey(channel_id, &epgData)) {
 		CShortEPGData epgdata;
 		if(CEitManager::getInstance()->getEPGidShort(epgData.eventID, &epgdata)) {
 			if (!(epgdata.title.empty())) {
 				std::string tmp = epgdata.title;
-				ZapitTools::replace_char(&fname[pos]);
+				ZapitTools::replace_char(tmp);
 				filename += tmp;
 			}
 		}

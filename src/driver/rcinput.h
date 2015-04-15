@@ -301,7 +301,6 @@ class CRCInput
 
 		uint64_t repeat_block;
 		uint64_t repeat_block_generic;
-		bool		firstKey;
 		CRCInput(bool &_timer_wakeup);      //constructor - opens rc-device and starts needed threads
 		~CRCInput();     //destructor - closes rc-device
 

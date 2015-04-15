@@ -66,8 +66,7 @@ int mycasecmp(const void * a, const void * b)
 	return strcasecmp(*(const char * *)a, *(const char * *)b);
 }
 
-CFile::CFile()
-  : Size( 0 ), Mode( 0 ), Marked( false ), Time( 0 )
+CFile::CFile() : Size( 0 ), Mode( 0 ), Marked( false ), Time( 0 )
 {
 	Type = -1;
 }
@@ -92,7 +91,6 @@ CFile::FileType CFile::getType(void) const
 	}
 	return (CFile::FileType) Type;
 }
-
 
 std::string CFile::getFileName(void) const  // return name.extension or folder name without trailing /
 {
