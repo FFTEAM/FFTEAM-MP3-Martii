@@ -303,7 +303,6 @@ bool CTimerManager::listEvents(CTimerEventMap &Events)
 	}
 	return true;
 }
-//------------------------------------------------------------
 
 CTimerd::CTimerEventTypes* CTimerManager::getEventType(int peventID)
 {
@@ -437,8 +436,7 @@ void CTimerManager::loadEventsFromConfig()
 	}
 	else
 	{
-		std::vector<int> savedIDs;
-		savedIDs = config.getInt32Vector ("IDS");
+		std::vector<int> savedIDs = config.getInt32Vector("IDS");
 		dprintf("%d timer(s) in config\n", (int)savedIDs.size());
 		for(unsigned int i=0; i < savedIDs.size(); i++)
 		{
@@ -793,6 +791,7 @@ bool CTimerManager::shutdown()
 void CTimerManager::shutdownOnWakeup(int currEventID)
 {
 	time_t nextAnnounceTime=0;
+
 	pthread_mutex_lock(&tm_eventsMutex);
 	if(!wakeup) {
 		pthread_mutex_unlock(&tm_eventsMutex);
@@ -1064,19 +1063,11 @@ void CTimerEvent::printEvent(void)
 void CTimerEvent::saveToConfig(CConfigFile *config)
 {
 	dprintf("CTimerEvent::saveToConfig\n");
-	std::vector<int> allIDs;
-	allIDs.clear();
-	if (!(config->getString("IDS").empty()))
-	{
-		// sonst bekommen wir den bloeden 0er
-		allIDs=config->getInt32Vector("IDS");
-	}
+	std::vector<int> allIDs = config->getInt32Vector("IDS");
 
 	allIDs.push_back(eventID);
-	dprintf("adding %d to IDS\n",eventID);
-	//SetInt-Vector haengt komischerweise nur an, deswegen erst loeschen
-	config->setString("IDS","");
-	config->setInt32Vector ("IDS",allIDs);
+	dprintf("adding %d to IDS\n", eventID);
+	config->setInt32Vector("IDS", allIDs);
 
 	std::stringstream ostr;
 	ostr << eventID;
@@ -1551,3 +1542,4 @@ void CTimerEvent_ExecPlugin::saveToConfig(CConfigFile *config)
 	dprintf("set NAME_%s to %s (%p)\n",id.c_str(),name,name);
 
 }
+
