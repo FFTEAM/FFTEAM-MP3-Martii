@@ -37,8 +37,8 @@
 #include <OpenThreads/ScopedLock>
 #include "settings.h"
 #include "helpers.h"
-#include <global.h>
 #include "set_threadname.h"
+#include <global.h>
 
 #include "ytparser.h"
 #include "ytcache.h"

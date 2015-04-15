@@ -192,8 +192,6 @@ struct SNeutrinoSettings
 	int audio_mixer_volume_spdif;
 	int audio_mixer_volume_hdmi;
 #endif
-	int audio_volume_percent_ac3;
-	int audio_volume_percent_pcm;
 	int auto_lang;
 	int auto_subs;
 	int srs_enable;
@@ -203,6 +201,9 @@ struct SNeutrinoSettings
 	int hdmi_dd;
 	int spdif_dd;
 	int analog_out;
+	int audio_volume_percent_ac3;
+	int audio_volume_percent_pcm;
+
 	//video
 	int video_dbdr;
 	int hdmi_cec_mode;
@@ -430,6 +431,8 @@ struct SNeutrinoSettings
 	int colored_events_infobar;
 	int contrast_fonts;
 	int gradiant;
+	int info_top_gradiant;
+	int info_bottom_gradiant;
 
 	//network
 #define NETWORK_NFS_NR_OF_ENTRIES 8
@@ -644,6 +647,7 @@ struct SNeutrinoSettings
 	std::string softupdate_proxyserver;
 	std::string softupdate_proxyusername;
 	std::string softupdate_proxypassword;
+	int softupdate_autocheck;
 	int softupdate_name_mode_apply;
 	int softupdate_name_mode_backup;
 	int apply_settings;
@@ -722,6 +726,7 @@ struct SNeutrinoSettings
 	int lcd_info_line;
 	std::string lcd_setting_dim_time;
 	int lcd_setting_dim_brightness;
+	int lcd_vfd_scroll;
 #if HAVE_SPARK_HARDWARE
 	enum LED_MODE {
 		LED_MODE_TV = 0,
