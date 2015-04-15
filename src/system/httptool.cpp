@@ -30,6 +30,7 @@
 
 #include <global.h>
 
+
 CHTTPTool::CHTTPTool()
 {
 	statusViewer = NULL;
@@ -95,10 +96,17 @@ printf("url is %s\n", URL.c_str());
 		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
 #endif
 
-		if(g_settings.softupdate_proxyserver != "") {
+		if (!g_settings.softupdate_proxyserver.empty()) {//use proxyserver
+#ifdef DEBUG
+printf("use proxyserver : %s\n", g_settings.softupdate_proxyserver.c_str());
+#endif
 			curl_easy_setopt(curl, CURLOPT_PROXY, g_settings.softupdate_proxyserver.c_str());
-			if(g_settings.softupdate_proxyusername != "") {
-				std::string tmp = g_settings.softupdate_proxyusername + ":" + g_settings.softupdate_proxypassword;
+
+			if (!g_settings.softupdate_proxyusername.empty()) {//use auth
+				//printf("use proxyauth\n");
+				std::string tmp = g_settings.softupdate_proxyusername;
+				tmp += ":";
+				tmp += g_settings.softupdate_proxypassword;
 				curl_easy_setopt(curl, CURLOPT_PROXYUSERPWD, tmp.c_str());
 			}
 		}
