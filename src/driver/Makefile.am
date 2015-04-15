@@ -12,6 +12,7 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir)/lib/libconfigfile \
 	-I$(top_srcdir)/lib/connection \
 	-I$(top_srcdir)/lib/libeventserver \
+	@SIGC_CFLAGS@ \
 	@FREETYPE_CFLAGS@ \
 	@HWLIB_CFLAGS@
 
@@ -22,6 +23,7 @@ libneutrino_driver_a_SOURCES = \
 	audiofile.cpp \
 	audiometadata.cpp \
 	audioplay.cpp \
+	colorgradient.cpp \
 	fade.cpp \
 	fb_window.cpp \
 	fbaccel.cpp \
@@ -29,6 +31,7 @@ libneutrino_driver_a_SOURCES = \
 	fontrenderer.cpp \
 	framebuffer_ng.cpp \
 	genpsi.cpp \
+	moviecut.cpp \
 	neutrinofonts.cpp \
 	radiotext.cpp \
 	radiotools.cpp \
@@ -50,6 +53,11 @@ endif
 if ENABLE_SHAIRPLAY
 libneutrino_driver_a_SOURCES += \
 	shairplay.cpp
+endif
+
+if BOXTYPE_DUCKBOX
+libneutrino_driver_a_SOURCES += \
+	vfd.cpp
 endif
 
 if BOXTYPE_COOL
