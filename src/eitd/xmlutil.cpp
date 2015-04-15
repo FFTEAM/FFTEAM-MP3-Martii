@@ -41,9 +41,6 @@
 #include "eitd.h"
 #include "debug.h"
 #include <system/set_threadname.h>
-#if HAVE_SPARK_HARDWARE
-#include <system/safe_system.h>
-#endif
 
 void addEvent(const SIevent &evt, const time_t zeit, bool cn = false);
 extern MySIeventsOrderServiceUniqueKeyFirstStartTimeEventUniqueKey mySIeventsOrderServiceUniqueKeyFirstStartTimeEventUniqueKey;
@@ -312,9 +309,6 @@ void *insertEventsfromFile(void * data)
 		reader_ready = true;
 		pthread_exit(NULL);
 	}
-#if HAVE_SPARK_HARDWARE
-	safe_system("/bin/spark_fp -l2 >/dev/null 2>/dev/null&");
-#endif
 	time_t now = time_monotonic_ms();
 	printdate_ms(stdout);
 	printf("[sectionsd] Reading Information from file %s:\n", indexname.c_str());
@@ -479,11 +473,9 @@ void *insertEventsfromFile(void * data)
 	printdate_ms(stdout);
 	printf("[sectionsd] Reading Information finished after %ld milliseconds (%d events)\n",
 			time_monotonic_ms()-now, ev_count);
-#if HAVE_SPARK_HARDWARE
-	safe_system("/bin/spark_fp -L2 >/dev/null 2>/dev/null&");
-#endif
 
 	reader_ready = true;
+
 	pthread_exit(NULL);
 }
 
@@ -538,9 +530,6 @@ void writeEventsToFile(const char *epgdir)
 	t_original_network_id onid = 0;
 	t_transport_stream_id tsid = 0;
 	t_service_id sid = 0;
-#if HAVE_SPARK_HARDWARE
-	safe_system("/bin/spark_fp -l2 >/dev/null 2>/dev/null&");
-#endif
 	deleteOldfileEvents(epgdir);
 
 	tmpname  = (std::string)epgdir + "/index.tmp";
@@ -587,10 +576,7 @@ _done:
 	filename  = (std::string)epgdir + "/index.xml";
 	rename(tmpname.c_str(), filename.c_str());
 
-	sync();
+	// sync();
 	printf("[sectionsd] Writing Information finished\n");
-#if HAVE_SPARK_HARDWARE
-	safe_system("/bin/spark_fp -L2 >/dev/null 2>/dev/null&");
-#endif
 	return ;
 }
