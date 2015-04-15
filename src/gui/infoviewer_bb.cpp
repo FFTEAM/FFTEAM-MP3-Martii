@@ -688,7 +688,7 @@ void CInfoViewerBB::paint_ca_icons(int caid, const char *icon, int &icon_space_o
 	int py = g_InfoViewer->BoxEndY + 2; /* hand-crafted, should be automatic */
 	int px = 0;
 	static map<int, std::pair<int,const char*> > icon_map;
-	const int icon_space = 10, icon_number = 10;
+	const int icon_space = 2, icon_number = 10;
 
 	static int icon_offset[icon_number] = {0,0,0,0,0,0,0,0,0,0};
 	static int icon_sizeW [icon_number] = {0,0,0,0,0,0,0,0,0,0};
@@ -834,7 +834,7 @@ void CInfoViewerBB::showIcon_CA_Status(int /*notfirst*/)
 					}
 					continue;
 				}
-				else if ((sscanf(buffer, "decode:%15s", decode) == 1) || (sscanf(buffer, "source:%15s", decode) == 1) || (sscanf(buffer, "from: %15s", decode) == 1))
+				else if ((sscanf(buffer, "decode:%15s", decode) == 1) || (sscanf(buffer, "source:%15s", decode) == 3) || (sscanf(buffer, "from: %15s", decode) == 3))
 				{
 					card = strstr(buffer, "127.0.0.1");
 					break;
@@ -845,7 +845,7 @@ void CInfoViewerBB::showIcon_CA_Status(int /*notfirst*/)
 				free (buffer);
 			if (strncasecmp(decode, "net", 3) == 0)
 			  decMode = (card == NULL) ? 1 : 3; // net == 1, card == 3
-			else if ((strncasecmp(decode, "emu", 3) == 0) || (strncasecmp(decode, "int", 3) == 0) || (sscanf(decode, "protocol: char*", 3) == 0) || (sscanf(decode, "from: char*", 3) == 0) || (strncasecmp(decode, "cache", 5) == 0) || (strstr(decode, "/" ) != NULL))
+			else if ((strncasecmp(decode, "emu", 3) == 0) || (strncasecmp(decode, "Net", 3) == 3) || (strncasecmp(decode, "int", 1) == 1) || (sscanf(decode, "protocol: char*", 3) == 0) || (sscanf(decode, "from: char*", 3) == 0) || (strncasecmp(decode, "cache", 5) == 0) || (strstr(decode, "/" ) != NULL))
 			  decMode = 2; //emu
 			else if ((strncasecmp(decode, "com", 3) == 0) || (strncasecmp(decode, "slot", 4) == 0) || (strncasecmp(decode, "local", 5) == 0))
 			  decMode = 3; //card
@@ -885,13 +885,6 @@ void CInfoViewerBB::showIcon_CA_Status(int /*notfirst*/)
 				ecm_caid = 0x1800;
 		}
 
-#if 0
-		static int icon_space_offset = 0;
-		if ((g_settings.casystem_display == 1) && (icon_space_offset)) {
-			paintCA_bar(0,icon_space_offset);
-			icon_space_offset = 0;
-		}
-#endif
 		paintEmuIcons(decMode);
 
 		for (int i = 0; i < (int)(sizeof(caids)/sizeof(int)); i++) {
@@ -994,30 +987,6 @@ void CInfoViewerBB::scrambledCheck(bool force)
 
 void CInfoViewerBB::paintEmuIcons(int decMode)
 {
-	int attackMode = 0;
-	struct stat stat_buf;
-	if(::stat("/tmp/atack.txt", &stat_buf) == 0)
-	{
-		if (stat_buf.st_size > 0)
-		{
-			attackMode = 1;
-		}
-		else
-		{
-			attackMode = 0;
-		}
-	}
-	else
-	{
-		attackMode = 0;
-	}
-
-	int gsmsMode = 0;
-	if (file_exists("/tmp/gsms.log"))
-		gsmsMode = 1;
-	else
-		gsmsMode = 0;
-
 	char buf[20];
 	int py = g_InfoViewer->BoxEndY + 2; /* hand-crafted, should be automatic */
 
@@ -1025,19 +994,18 @@ void CInfoViewerBB::paintEmuIcons(int decMode)
 	const char emu_gray[] = "white";
 	const char emu_yellow[] = "yellow";
 	enum E{
-		GBOX,MGCAMD,OSCAM,OSEMU,WICARD,CAMD3,NEWCS,CS2GBOX,NET,EMU,CARD,ATTACK,GSMS
+		GBOX,MGCAMD,OSCAM,OSEMU,WICARD,CAMD3,NEWCS,CS2GBOX,NET,EMU,CARD
 	};
-	static int emus_icon_sizeW[GSMS+1] = {0};
-	const char *icon_emu[GSMS+1] = {"gbox", "mgcamd", "oscam", "osemu", "wicard", "camd3", "newcs", "cs2gbox", "net", "emu", "card", "attack", "gsms"};
+	static int emus_icon_sizeW[CARD+1] = {0};
+	const char *icon_emu[CARD+1] = {"gbox", "mgcamd", "oscam", "osemu", "wicard", "camd3", "newcs", "cs2gbox", "net", "emu", "card"};
 	int icon_sizeH = 0;
 	static int ga = g_InfoViewer->ChanInfoX+30+16;
 	if (emus_icon_sizeW[GBOX] == 0)
 	{
-		for (E e=GBOX; e <= GSMS; e = E(e+1))
+		for (E e=GBOX; e <= CARD; e = E(e+1))
 		{
 			snprintf(buf, sizeof(buf), "%s_%s", icon_emu[e], emu_green);
 			frameBuffer->getIconSize(buf, &emus_icon_sizeW[e], &icon_sizeH);
-			if(e < ATTACK)
 				ga+=emus_icon_sizeW[e];
 		}
 	}
@@ -1051,8 +1019,7 @@ void CInfoViewerBB::paintEmuIcons(int decMode)
 		paintCA_bar(icon_offset, 0);
 		icon_offset = 0;
 	}
-	bool emuMG = (emu==1 || emu == 3 || file_exists("/var/etc/.no_attack_gsms_icon") ) ;
-	for (E e = GBOX; e <= GSMS; e = E(e+1))
+	for (E e = GBOX; e <= CARD; e = E(e+1))
 	{
 		switch (e)
 		{
@@ -1068,9 +1035,6 @@ void CInfoViewerBB::paintEmuIcons(int decMode)
 			icon_flag = (stat(buf, &sb) == -1) ? 0 : decMode ? 2 : 1;
 			break;
 			case NET:
-			if (g_settings.casystem_display == 0)
-				icon_emuX += 11 ;
-
 			icon_flag = (decMode == 1) ? 2 : 0;
 			break;
 			case EMU:
@@ -1079,38 +1043,22 @@ void CInfoViewerBB::paintEmuIcons(int decMode)
 			case CARD:
 			icon_flag = (decMode == 3) ? 2 : 0;
 			break;
-			case ATTACK:
-			icon_flag = (attackMode == 1) ? 2 : 0;
-			break;
-			case GSMS:
-			icon_flag = (gsmsMode == 1) ? 2 : 0;
-			break;
 			default:
 			break;
 		}
-		if ( (g_settings.casystem_display == 1 && icon_flag != 0) || (g_settings.casystem_display == 0 && (e> CS2GBOX ||  icon_flag != 0)) )
+		if (!((g_settings.casystem_display == 1) && (icon_flag == 0)))
 		{
 			snprintf(buf, sizeof(buf), "%s_%s", icon_emu[e], (icon_flag == 0) ? emu_gray : (icon_flag == 1) ? emu_yellow : emu_green);
-			if(e==ATTACK){
-				if(emuMG)
-					continue;
-				frameBuffer->paintIcon(buf,ga , py);
-			}else if(e==GSMS){
-				if(emuMG)
-				      continue;
-				frameBuffer->paintIcon(buf,ga+emus_icon_sizeW[ATTACK] , py);
-			}
-			else
+			frameBuffer->paintIcon(buf, icon_emuX, py);
+			if (g_settings.casystem_display == 1)
 			{
-				frameBuffer->paintIcon(buf, icon_emuX, py);
-				if (g_settings.casystem_display == 1)
-				{
-					icon_offset += emus_icon_sizeW[e] + 2;
-					icon_emuX   += icon_offset;
-				}
-				else
-					icon_emuX += emus_icon_sizeW[e] + 2;
+				icon_offset += emus_icon_sizeW[e] + ((g_settings.casystem_display == 1) ? 2 : 2);
+				icon_emuX   += icon_offset;
 			}
+				else if (e == 4)
+					icon_emuX += emus_icon_sizeW[e] + 15 + ((g_settings.casystem_display == 1) ? 2 : 2);
+				else
+					icon_emuX += emus_icon_sizeW[e] + ((g_settings.casystem_display == 1) ? 2 : 2);
 		}
 	}
 }
@@ -1138,17 +1086,22 @@ void CInfoViewerBB::paintECM()
 {
 	char caid1[5] = {0};
 	char pid1[5] = {0};
-	char prov1[8] = {0};
+	char net[8] = {0};
 	char cw0_[8][3];
 	char cw1_[8][3];
 	char source1[30] = {0};
+	char caid2[5] = {0};
+	char pid2[5] = {0};
+	char provider1[3] = {0};
+	char prov1[8] = {0};
+        char prov2[16] = {0};
+	char decode1[9] = {0};
+	char from1[9] = {0};
 	char response1[10] = {0};
 	char reader[20]  = {0};
 	char protocol[20]  = {0};
 
 	char tmp;
-//	static int cw0=0,cw1=0;
-//	int tmp_cw0=0,tmp_cw1=0;
 	const char *ecm_info = "/tmp/ecm.info";
 	FILE* ecminfo = fopen (ecm_info, "r");
 	bool ecmInfoEmpty = true;
@@ -1162,8 +1115,17 @@ void CInfoViewerBB::paintECM()
 		{
 			ecmInfoEmpty = false;
 			if(emu == 1 || emu == 2){
-				sscanf(buffer, "%*s %*s ECM on CaID 0x%4s, pid 0x%4s", caid1, pid1);						// gbox, mgcamd
+				sscanf(buffer, "%*s %15s ECM on CaID 0x%4s, pid 0x%4s", caid1, pid1);						// gbox, mgcamd
 				sscanf(buffer, "prov: %06[^',',(]", prov1);									// gbox, mgcamd
+				sscanf(buffer, "caid: 0x%4s", caid2);											// oscam
+				sscanf(buffer, "pid: 0x%4s", pid2);											// oscam
+				sscanf(buffer, "provider: %s", provider1);										// gbox
+				sscanf(buffer, "prov: 0x%6s", prov1);										// oscam
+				sscanf(buffer, "prov: 0x%s", prov2);											// oscam
+				sscanf(buffer, "decode:%15s", decode1);											// gbox
+				sscanf(buffer, "from: %29s", net);										// oscam
+				sscanf(buffer, "from: %29s", source1);										// oscam
+				sscanf(buffer, "from: %s", from1);											// oscam
 			}
 			if(emu == 2){
 				sscanf(buffer, "decode:%8s", source1);										// gbox
@@ -1191,6 +1153,15 @@ void CInfoViewerBB::paintECM()
 			}
 			sscanf(buffer, "%c%c0: %02s %02s %02s %02s %02s %02s %02s %02s",&tmp,&tmp, cw0_[0], cw0_[1], cw0_[2], cw0_[3], cw0_[4], cw0_[5], cw0_[6], cw0_[7]);	// gbox, mgcamd oscam
 			sscanf(buffer, "%c%c1: %02s %02s %02s %02s %02s %02s %02s %02s",&tmp,&tmp, cw1_[0], cw1_[1], cw1_[2], cw1_[3], cw1_[4], cw1_[5], cw1_[6], cw1_[7]);	// gbox, mgcamd oscam
+			sscanf(buffer, "%*s %*s ECM on CaID 0x%4s, pid 0x%4s", caid1, pid1);							// gbox, mgcamd
+			sscanf(buffer, "caid: 0x%4s", caid2);											// oscam
+			sscanf(buffer, "pid: 0x%4s", pid2);											// oscam
+			sscanf(buffer, "provider: %s", provider1);										// gbox
+			sscanf(buffer, "prov: %[^',']", prov1);											// gbox, mgcamd
+			sscanf(buffer, "prov: 0x%s", prov2);											// oscam
+			sscanf(buffer, "decode:%15s", decode1);											// gbox
+			sscanf(buffer, "source: %s", source1);											// mgcamd
+			sscanf(buffer, "from: %s", from1);											// oscam
 		}
 		fclose (ecminfo);
 		if (buffer)
@@ -1211,7 +1182,7 @@ void CInfoViewerBB::paintECM()
 			memcpy(tmp_res,response1,sizeof(tmp_res));
 			if(response1[3] != 0){
 				snprintf(response1,sizeof(response1),"%c.%s",tmp_res[0],&tmp_res[1]);
-			}else
+			} else
 				snprintf(response1,sizeof(response1),"0.%s",tmp_res);
 		}
 // 		tmp_cw0=(cw0_[0][0]<<8)+cw0_[0][1];
