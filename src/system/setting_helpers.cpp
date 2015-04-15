@@ -419,7 +419,7 @@ int CMoviePluginChangeExec::exec(CMenuTarget* parent, const std::string & action
 {
 	int sel= atoi(actionKey.c_str());
 	parent->hide();
-	if(actionKey == "teletext") {
+	if (actionKey == "teletext") {
 		g_RCInput->postMsg(CRCInput::RC_timeout, 0);
 		g_RCInput->postMsg(CRCInput::RC_text, 0);
 	}
