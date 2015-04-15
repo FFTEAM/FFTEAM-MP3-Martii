@@ -81,7 +81,7 @@ CComponentsInfoBox::~CComponentsInfoBox()
 
 void CComponentsInfoBox::setPicture(const std::string& picture_name)
 {
-	pic_name 	= picture_name;
+	pic_name = picture_name;
 }
 
 void CComponentsInfoBox::setPicture(const char* picture_name)
