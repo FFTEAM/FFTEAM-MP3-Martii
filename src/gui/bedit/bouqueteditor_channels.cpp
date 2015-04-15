@@ -323,14 +323,12 @@ int CBEChannelWidget::exec(CMenuTarget* parent, const std::string & /*actionKey*
 		x = ConnectLineBox_Width;
 	y = getScreenStartY(height + info_height);
 
-
 	mode = CZapitClient::MODE_TV;
 	if (g_bouquetManager->Bouquets[bouquet]->tvChannels.empty())
 		mode = CZapitClient::MODE_RADIO;
 	else if (g_bouquetManager->Bouquets[bouquet]->radioChannels.empty())
 		mode = CZapitClient::MODE_TV;
 	Channels = mode == CZapitClient::MODE_TV ? &(g_bouquetManager->Bouquets[bouquet]->tvChannels) : &(g_bouquetManager->Bouquets[bouquet]->radioChannels);
-
 	paintHead();
 	paint();
 	paintFoot();
@@ -430,16 +428,7 @@ int CBEChannelWidget::exec(CMenuTarget* parent, const std::string & /*actionKey*
 					switchLockChannel();
 			}
 		}
-/* TODO upgrade
-		else if (msg == CRCInput::RC_forward )
-		{
-			if (selected < Channels->size())
-			{
-				if (state == beDefault)
-					moveChannelToBouquet();
-			}
-		}
-*/
+
 		else if( msg == (neutrino_msg_t) g_settings.key_tvradio_mode || msg==CRCInput::RC_tv  ) {
 			if (mode == CZapitClient::MODE_TV)
 				mode = CZapitClient::MODE_RADIO;
