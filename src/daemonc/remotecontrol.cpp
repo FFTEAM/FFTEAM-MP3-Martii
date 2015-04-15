@@ -679,6 +679,9 @@ const std::string & CRemoteControl::subChannelDown(void)
 
 void CRemoteControl::zapTo_ChannelID(const t_channel_id channel_id, const std::string & channame, int channum, const bool start_video) // UTF-8
 {
+	current_channel_id = channel_id;
+	current_channel_name = channame;
+	current_channel_num = channum;
 //printf("zapTo_ChannelID: start_video: %d\n", start_video);
 	if (start_video)
 		startvideo();
@@ -720,9 +723,6 @@ void CRemoteControl::zapTo_ChannelID(const t_channel_id channel_id, const std::s
 		//g_Sectionsd->setServiceChanged( channel_id, false );
 		//g_RCInput->killTimer( current_programm_timer );
 	}
-	current_channel_id = channel_id;
-	current_channel_name = channame;
-	current_channel_num = channum;
 }
 
 void CRemoteControl::startvideo()
