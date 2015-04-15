@@ -85,6 +85,7 @@ class CMoviePlayerGui : public CMenuTarget
 	std::string    	currentaudioname;
 	bool		playing;
 	bool		time_forced;
+	bool		update_lcd;
 	CMoviePlayerGui::state playstate;
 	int speed;
 	int startposition;
