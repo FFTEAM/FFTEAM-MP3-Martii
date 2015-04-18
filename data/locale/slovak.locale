@@ -98,7 +98,6 @@ GENRE.TRAVEL_HOBBIES.6 inzertovanie/nakupovanie
 GENRE.TRAVEL_HOBBIES.7 záhradkárstvo
 GENRE.UNKNOWN neznáme
 adzap Prepnúť za
-apidselector.head Výber jazyka
 adzap.announce O 15 sekúnd bude kanál prepnutý na
 adzap.cancel Časovač bol zrušený
 adzap.disable Deaktivovať
@@ -107,6 +106,7 @@ adzap.minute minúta
 adzap.minutes minúty
 adzap.monitor Počas aktuálneho vysielania zostať aktívny
 adzap.switchback Prepnúť späť po
+apidselector.head Výber jazyka
 audio.srs_algo Režim
 audio.srs_algo_heavy Hrubý
 audio.srs_algo_light Jemný
@@ -142,10 +142,6 @@ audiomenu.pref_languages Nastavenie zvuku a titulkov
 audiomenu.pref_subs Preferované titulky
 audiomenu.pref_subs_head Nastavenie jazyka vybraných titulkov
 audiomenu.spdif_dd Zvuk DD cez SPDIF
-audiomenu.pref_languages Nastavenie jazyka
-audiomenu.pref_subs Preferovaný jazyk titulkov
-audiomenu.pref_subs_head Nastavenie jazyka titulkov
-audiomenu.spdif_dd Encoded DD cez SPDIF
 audiomenu.stereo stereo
 audiomenu.volume_adjust Nastavená hlasitosť, v %
 audiomenu.volume_adjustment Špecifické nastavenie hlasitosti kanálu
@@ -404,7 +400,7 @@ epgextended.original_title Originálny titul
 epgextended.presenter Produkcia
 epgextended.year_of_production Rok výroby
 epglist.noevents Programové informácie (EPG) sú nedostupné...
-epgviewer.More_Screenings Podobné relácie na tomto kanály
+epgviewer.More_Screenings Podobné relácie na tomto kanáli
 epgviewer.More_Screenings_short Ďaľšie vysielania
 epgviewer.age_rating Vekové obmedzenie
 epgviewer.audio Zvuk
@@ -432,6 +428,7 @@ extra.add_to_bouquet Pridať do buketu
 extra.audio_run_player Stlačenie AUDIO spustí prehrávač
 extra.auto_delete Automatické mazanie
 extra.auto_timeshift Automatické nahrávanie, sekundy (0=vypnuté)
+extra.bigwindows Velké okna
 extra.cache_txt Vyrovnávacia pamäť teletextu
 extra.chadded Aktuálny kanál bol pridaný do vybraného buketu....\n
 extra.chalreadyinbq Aktuálny kanál sa už nachádza vo vybranom bukete....\n
@@ -520,7 +517,7 @@ extra.rounded_corners_off hranatý
 extra.rounded_corners_on zaoblený
 extra.saveconfig Uložiť nastavenia do...
 extra.savekeys Uložiť nastavenia kláves do ...
-extra.scrambled_message Správa kódovania
+extra.scrambled_message Správa o kódovaní
 extra.show_mute_icon Ikona umlčania pri hlasitosti 0
 extra.sms_channel Mód SMS pre kanál
 extra.south Južne
@@ -1029,6 +1026,7 @@ menu.hint_back_brief Návrat do predchádzajúcej ponuky
 menu.hint_backlight Nastavenie podsvietených tlačidiel
 menu.hint_backup Záloha konfigurácie a kanálov do vybranej zložky
 menu.hint_bedit Úprava obľúbených a buketov
+menu.hint_bigwindows Seznam kanálů, programové informace, přehrávač hudby a některé další okna budou zobrazovány na celé obrazovce
 menu.hint_bluepanel FFTeam Bluepanel
 menu.hint_boot_spark Nespúšťajte systém cez SPARK pokiaľ si nie ste istý ako prepnúť späť na Neutrino.
 menu.hint_buildinfo Informácie o kompileroch, kompilácii, jadre
@@ -1097,6 +1095,7 @@ menu.hint_font_scaling_y Nastavenie globálnej mierky fontu vertikálneho uživa
 menu.hint_font_sub Select font file to use for Movieplayer subtitles
 menu.hint_font_ttx Výber písma pre teletext
 menu.hint_fonts Konfigurácia písma GUI
+menu.hint_gamelist_fonts Změna velikosti písma seznamu her a skriptů
 menu.hint_games Zobrazenie zoznamu inštalovaných hier
 menu.hint_hdd Formátovanie/kontrola pevného disku
 menu.hint_hdd_apply Použitie parametrov uspania/stíšenia
@@ -1538,7 +1537,6 @@ miscsettings.energy Energia
 miscsettings.epg.batch.head Aktualizácia EPG
 miscsettings.epg.batch.settings Aktualizácia EPG
 miscsettings.epg_cache Ukladanie EPG (dni)
-miscsettings.epg_cache Zachytávanie EPG (dni)
 miscsettings.epg_cache_hint1 Ako dlho uchovávať dáta EPG v budúcnosti?
 miscsettings.epg_cache_hint2 (Nastavenie v dňoch)
 miscsettings.epg_dir Zložka EPG
@@ -1821,9 +1819,14 @@ moviebrowser.yt_failed Chybné sťahovania
 moviebrowser.yt_history Hľadať históriu
 moviebrowser.yt_max_history Maximálna veľkosť hľadania histórie
 moviebrowser.yt_max_results Maximálny počet výsledkov
+moviebrowser.yt_most_discussed Nejdiskutovanější
 moviebrowser.yt_most_popular Najpopulárnejšie dnes
 moviebrowser.yt_most_popular_all_time Najpopulárnejšie
+moviebrowser.yt_most_resent Nejvíc odmítaný
+moviebrowser.yt_most_responded Nejvíc odpovědí
+moviebrowser.yt_most_shared Nejvíc sdílení
 moviebrowser.yt_next_results Ďaľšie výsledky
+moviebrowser.yt_on_the_web Trendové videa
 moviebrowser.yt_orderby Triediť podľa
 moviebrowser.yt_orderby.published dátum zverejnenia
 moviebrowser.yt_orderby.rating obľúbenosť
@@ -1836,6 +1839,8 @@ moviebrowser.yt_recently_featured Nedávno odporúčané
 moviebrowser.yt_region Región
 moviebrowser.yt_related Podobné videá
 moviebrowser.yt_search Hľadať slovo
+moviebrowser.yt_top_favorites Nejoblíbenější
+moviebrowser.yt_top_rated Nejhodnotnější
 movieplayer.bookmark Záložky
 movieplayer.bookmarkname Názov záložky
 movieplayer.bookmarkname_hint1 Vloženie názvu novej záložky
@@ -1888,7 +1893,7 @@ networkmenu.hostname_hint1 Vložiť hostiteľa,
 networkmenu.hostname_hint2 pre zmenu potrebný reštart
 networkmenu.inactive_network Sieť neaktívna!
 networkmenu.ipaddress IP adresa
-networkmenu.mount Úprava sieťových zložiek (NFS / CIFS)
+networkmenu.mount Úprava sieťových zložiek (NFS / CIFS / FTPFS)
 networkmenu.nameserver DNS
 networkmenu.netmask Maska podsiete
 networkmenu.ntpenable Synchronizovať čas cez
@@ -2119,7 +2124,7 @@ recordingmenu.record_is_running Nahrávanie beží!
 recordingmenu.save_in_channeldir Nahrávanie do zložky s názvom kanálu
 recordingmenu.server server
 recordingmenu.server_mac Adresa MAC servera
-recordingmenu.setupnow Použi nastavenia
+recordingmenu.setupnow Použiť nastavenia
 recordingmenu.slow_warn Upozorniť na pomalé nahrávanie
 recordingmenu.timeshift Časový posun
 recordingmenu.tsdir Zložka časového posunu
@@ -2127,6 +2132,8 @@ recordingmenu.vcr videomagnetofón
 recordingmenu.vtxt_pid Nahrať teletext
 recordingmenu.zap_on_announce Prepnúť na kanál pred začatím nahrávania
 recordtimer.announce Začatie nahrávania za pár minút.
+repeatblocker.hint_1 Doba zpoždění (ms) mezi dvěma stisky klávesy
+repeatblocker.hint_2 0 = vypnutí blokování (červené tlačítko)
 reset_all Továrenské nastavenie
 reset_channels Zmazanie všetkych kanálov
 reset_confirm Skutočne?
@@ -2155,14 +2162,17 @@ satsetup.fastscan_auto_diseqc_wait Prebieha automatická konfigurácia DiSEqC
 satsetup.fastscan_hd len HD
 satsetup.fastscan_head Rýchle prehľadávanie (FastScan)
 satsetup.fastscan_prov Poskytovateľ
+satsetup.fastscan_prov_cd CanalDigitaal
 satsetup.fastscan_prov_cd_hd CanalDigitaal (HD)
 satsetup.fastscan_prov_cd_sd CanalDigitaal (SD)
 satsetup.fastscan_prov_hda AustriaSat (HD)
 satsetup.fastscan_prov_hello M7 Group (HU)
 satsetup.fastscan_prov_skylink_c M7 Group [Skylink] (CZ)
 satsetup.fastscan_prov_skylink_s M7 Group [Skylink] (SK)
+satsetup.fastscan_prov_telesat TéléSAT
 satsetup.fastscan_prov_telesat_b TeleSAT Belgium
 satsetup.fastscan_prov_telesat_l TeleSAT Luxemburg
+satsetup.fastscan_prov_tvv TV Vlaanderen
 satsetup.fastscan_prov_tvv_hd TV Vlaanderen (HD)
 satsetup.fastscan_prov_tvv_sd TV Vlaanderen (SD)
 satsetup.fastscan_sd len SD
@@ -2459,10 +2469,19 @@ unit.short.hour h
 unit.short.millisecond ms
 unit.short.minute min
 unit.short.second s
+upnpbrowser.current Currently Playing
+upnpbrowser.dir Directory
+upnpbrowser.duration Duration
 upnpbrowser.head UPnP prehliadač
+upnpbrowser.nores No resource for Item
 upnpbrowser.noservers Nenájdený UPnP server
+upnpbrowser.proto Protocol
+upnpbrowser.res Resource
 upnpbrowser.rescan Znova hľadať
 upnpbrowser.scanning Hľadanie UPnP serverov
+upnpbrowser.selected Selected
+upnpbrowser.type MIME-Type
+upnpbrowser.url URL
 usermenu.button_blue Uživateľské menu MODRÉ
 usermenu.button_green Uživateľské menu ZELENÉ
 usermenu.button_red Uživateľské menu ČERVENÉ
