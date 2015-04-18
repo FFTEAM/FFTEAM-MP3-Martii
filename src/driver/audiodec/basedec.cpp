@@ -94,7 +94,7 @@ CBaseDec::RetCode CBaseDec::DecoderBase(CAudiofile* const in,
 		{
 			struct stat st;
 			if (!fstat(fileno(fp), &st))
-						in->MetaData.filesize = st.st_size;
+				in->MetaData.filesize = st.st_size;
 
 		}
 		in->MetaData.type = ft;
@@ -153,7 +153,7 @@ bool CBaseDec::GetMetaDataBase(CAudiofile* const in, const bool nice)
 	if ( fp == NULL )
 	{
 		fprintf( stderr, "Error opening file %s for meta data reading.\n",
-				 in->Filename.c_str() );
+				in->Filename.c_str() );
 		Status = false;
 	}
 	else
@@ -170,7 +170,7 @@ bool CBaseDec::GetMetaDataBase(CAudiofile* const in, const bool nice)
 		if ( fclose( fp ) == EOF )
 		{
 			fprintf( stderr, "Could not close file %s.\n",
-					 in->Filename.c_str() );
+					in->Filename.c_str() );
 		}
 	}
 	return Status;
