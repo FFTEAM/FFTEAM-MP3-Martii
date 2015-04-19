@@ -36,6 +36,10 @@
 #ifndef __AUDIO_METADATA__
 #define __AUDIO_METADATA__
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <string>
 
 class CAudioMetaData
