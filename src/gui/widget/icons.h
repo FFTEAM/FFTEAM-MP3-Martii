@@ -32,6 +32,11 @@
 #define NEUTRINO_ICON_BUTTON_RED	"rot"
 #define NEUTRINO_ICON_BUTTON_YELLOW	"gelb"
 
+#define NEUTRINO_ICON_INFO_BLUE		"info_blue"
+#define NEUTRINO_ICON_INFO_GREEN	"info_green"
+#define NEUTRINO_ICON_INFO_RED		"info_red"
+#define NEUTRINO_ICON_INFO_YELLOW	"info_yellow"
+
 #define NEUTRINO_ICON_BUTTON_MENU	"menu"
 #define NEUTRINO_ICON_BUTTON_MENU_SMALL	"menu_small"
 #define NEUTRINO_ICON_BUTTON_HELP	"help"
@@ -254,7 +259,7 @@
 #define NEUTRINO_ICON_HINT_FACTORY	"hint_factory"
 
 #define NEUTRINO_ICON_MOVIE		"movie"
-#define NEUTRINO_ICON_PICTURE	"picture"
+#define NEUTRINO_ICON_PICTURE		"picture"
 
 /* plugins */
 #define NEUTRINO_ICON_HINT_PLUGIN	"hint_plugin"
