@@ -46,10 +46,6 @@
 #include <gui/widget/messagebox.h>
 #include <gui/network_service.h>
 
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-
 #include <global.h>
 #include <neutrino.h>
 #include <mymenu.h>
@@ -207,16 +203,6 @@ static int my_filter(const struct dirent * dent)
 	return 1;
 }
 
-void CNetworkSetup::setBroadcast(void)
-{
-	in_addr_t na = inet_addr(network_address.c_str());
-	in_addr_t nm = inet_addr(network_netmask.c_str());
-	struct in_addr in;
-	in.s_addr = na | ~nm;
-	char tmp[40];
-	network_broadcast = (inet_ntop(AF_INET, &in, tmp, sizeof(tmp))) ? std::string(tmp) : "0.0.0.0";
-}
-
 int CNetworkSetup::showNetworkSetup()
 {
 	struct dirent **namelist;
@@ -231,7 +217,7 @@ int CNetworkSetup::showNetworkSetup()
 	bool found = false;
 
 	for(int i = 0; i < ifcount; i++) {
-		ifSelect->addOption(std::string(namelist[i]->d_name));
+		ifSelect->addOption(namelist[i]->d_name);
 		if(strcmp(g_settings.ifname.c_str(), namelist[i]->d_name) == 0)
 			found = true;
 		free(namelist[i]);
@@ -289,11 +275,11 @@ int CNetworkSetup::showNetworkSetup()
 	m5->setHint("", LOCALE_MENU_HINT_NET_NAMESERVER);
 	m8->setHint("", LOCALE_MENU_HINT_NET_HOSTNAME);
 
-	dhcpDisable[0] = m1;
-	dhcpDisable[1] = m2;
-	dhcpDisable[2] = m3;
-	dhcpDisable[3] = m4;
-	dhcpDisable[4] = m5;
+	dhcpDisable.Add(m1);
+	dhcpDisable.Add(m2);
+	dhcpDisable.Add(m3);
+	dhcpDisable.Add(m4);
+	dhcpDisable.Add(m5);
 
 	CMenuOptionChooser* o2 = new CMenuOptionChooser(LOCALE_NETWORKMENU_DHCP, &network_dhcp, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true, this);
 	o2->setHint("", LOCALE_MENU_HINT_NET_DHCP);
@@ -342,8 +328,8 @@ int CNetworkSetup::showNetworkSetup()
 		CKeyboardInput * networkSettings_ssid = new CKeyboardInput(LOCALE_NETWORKMENU_SSID, &network_ssid);
 		//key
 		CKeyboardInput * networkSettings_key = new CKeyboardInput(LOCALE_NETWORKMENU_PASSWORD, &network_key);
-		CMenuForwarder *m9 = new CMenuDForwarder(LOCALE_NETWORKMENU_SSID      , networkConfig->wireless, NULL, networkSettings_ssid );
-		CMenuForwarder *m10 = new CMenuDForwarder(LOCALE_NETWORKMENU_PASSWORD , networkConfig->wireless, NULL, networkSettings_key );
+		CMenuForwarder *m9 = new CMenuDForwarder(LOCALE_NETWORKMENU_SSID      , networkConfig->wireless, network_ssid , networkSettings_ssid );
+		CMenuForwarder *m10 = new CMenuDForwarder(LOCALE_NETWORKMENU_PASSWORD , networkConfig->wireless, network_key , networkSettings_key );
 		CMenuForwarder *m11 = new CMenuForwarder(LOCALE_NETWORKMENU_SSID_SCAN , networkConfig->wireless, NULL, this, "scanssid");
 		CMenuOptionChooser* m12 = new CMenuOptionChooser(LOCALE_NETWORKMENU_WLAN_SECURITY, &network_encryption, OPTIONS_WLAN_SECURITY_OPTIONS, OPTIONS_WLAN_SECURITY_OPTION_COUNT, true);
 
@@ -351,17 +337,15 @@ int CNetworkSetup::showNetworkSetup()
 		m10->setHint("", LOCALE_MENU_HINT_NET_PASS);
 		m11->setHint("", LOCALE_MENU_HINT_NET_SSID_SCAN);
 
-		wlanEnable[0] = m9;
-		wlanEnable[1] = m10;
-		wlanEnable[2] = m11;
-		wlanEnable[3] = m12;
+		wlanEnable.Add(m9);
+		wlanEnable.Add(m10);
+		wlanEnable.Add(m11);
+		wlanEnable.Add(m12);
 
 		networkSettings->addItem( m11);	//ssid scan
 		networkSettings->addItem( m9);	//ssid
 		networkSettings->addItem( m10);	//key
-
 		networkSettings->addItem( m12); //encryption
-
 		networkSettings->addItem(GenericMenuSeparatorLine);
 	}
 	//------------------------------------------------
@@ -389,13 +373,11 @@ int CNetworkSetup::showNetworkSetup()
 	mf->setHint("", LOCALE_MENU_HINT_NET_PROXY);
 	networkSettings->addItem(mf);
 
-#if !HAVE_SPARK_HARDWARE
 	//services
 	CNetworkServiceSetup services;
 	mf = new CMenuForwarder(LOCALE_NETWORKMENU_SERVICES, true, NULL, &services, NULL, CRCInput::RC_1);
 	mf->setHint("", LOCALE_MENU_HINT_NET_SERVICES);
 	networkSettings->addItem(mf);
-#endif
 
 	int ret = 0;
 	while(true) {
@@ -408,13 +390,10 @@ int CNetworkSetup::showNetworkSetup()
 			break;
 	}
 
+	dhcpDisable.Clear();
+	wlanEnable.Clear();
 	delete networkSettings;
 	delete sectionsdConfigNotifier;
-
-	// Width may have changed.
-	CFrameBuffer::getInstance()->Clear();
-	CFrameBuffer::getInstance()->blit();
-
 	return ret;
 }
 
@@ -504,7 +483,7 @@ bool CNetworkSetup::checkStringSettings()
 			return true;
 	}
 	if(CNetworkConfig::getInstance()->wireless) {
-		if((old_network_ssid != network_ssid) || (old_network_key != network_key) || (old_network_encryption != network_encryption))
+		if((old_network_ssid != network_ssid) || (old_network_key != network_key))
 			return true;
 	}
 
@@ -663,36 +642,36 @@ void CNetworkSetup::restoreNetworkSettings()
 	networkConfig->encryption 	= network_encryption ? "WPA2" : "WPA";
 
 	networkConfig->commitConfig();
+	changeNotify(LOCALE_NETWORKMENU_SELECT_IF, NULL);
 }
 
-bool CNetworkSetup::changeNotify(const neutrino_locale_t locale, void *)
+bool CNetworkSetup::changeNotify(const neutrino_locale_t locale, void * Data)
 {
 	if(locale == LOCALE_NETWORKMENU_IPADDRESS) {
-		setBroadcast();
-	} else if(locale == LOCALE_NETWORKMENU_NETMASK) {
-		setBroadcast();
-	} else if(locale == LOCALE_NETWORKMENU_SELECT_IF) {
-		// Width may change. Clear framebuffer, caller will redraw anyway.
-		CFrameBuffer::getInstance()->Clear();
-		CFrameBuffer::getInstance()->blit();
+		char ip[16];
+		unsigned char _ip[4];
+		sscanf((char*) Data, "%hhu.%hhu.%hhu.%hhu", &_ip[0], &_ip[1], &_ip[2], &_ip[3]);
 
+		sprintf(ip, "%hhu.%hhu.%hhu.255", _ip[0], _ip[1], _ip[2]);
+		networkConfig->broadcast = ip;
+		network_broadcast = networkConfig->broadcast;
+
+		networkConfig->netmask = (_ip[0] == 10) ? "255.0.0.0" : "255.255.255.0";
+		network_netmask = networkConfig->netmask;
+
+	} else if(locale == LOCALE_NETWORKMENU_SELECT_IF) {
 		networkConfig->readConfig(g_settings.ifname);
 		readNetworkSettings();
 		printf("CNetworkSetup::changeNotify: using %s, static %d\n", g_settings.ifname.c_str(), CNetworkConfig::getInstance()->inet_static);
 
 		changeNotify(LOCALE_NETWORKMENU_DHCP, &CNetworkConfig::getInstance()->inet_static);
 
-		int ecnt = sizeof(wlanEnable) / sizeof(CMenuItem*);
-		for(int i = 0; i < ecnt; i++)
-			wlanEnable[i]->setActive(CNetworkConfig::getInstance()->wireless);
+		wlanEnable.Activate(CNetworkConfig::getInstance()->wireless);
 	} else if(locale == LOCALE_NETWORKMENU_DHCP) {
 		CNetworkConfig::getInstance()->inet_static = (network_dhcp == NETWORK_DHCP_OFF);
-		int ecnt = sizeof(dhcpDisable) / sizeof(CMenuForwarder*);
-
-		for(int i = 0; i < ecnt; i++)
-			dhcpDisable[i]->setActive(CNetworkConfig::getInstance()->inet_static);
+		dhcpDisable.Activate(CNetworkConfig::getInstance()->inet_static);
 	}
-	return true; // repaint
+	return false;
 }
 
 //sets menu mode to "wizard" or "default"
@@ -804,7 +783,7 @@ void CNetworkSetup::testNetworkSettings()
 		text += (std::string)g_Locale->getText(LOCALE_NETWORKMENU_NAMESERVER) + ":\n";
 		text += offset + our_nameserver + " " + mypinghost(our_nameserver) + "\n";
 		//NTPserver
-		if ( (pinghost(our_nameserver) == 1) && g_settings.network_ntpenable && (g_settings.network_ntpserver != "") )
+		if ( (pinghost(our_nameserver) == 1) && g_settings.network_ntpenable && (!g_settings.network_ntpserver.empty()) )
 		{
 			text += std::string(g_Locale->getText(LOCALE_NETWORKMENU_NTPSERVER)) + ":\n";
 			text += offset + g_settings.network_ntpserver + " " + mypinghost(g_settings.network_ntpserver) + "\n";
@@ -857,7 +836,7 @@ int CNetworkSetup::showWlanList()
 		const char * icon = NULL;
 		if (networks[i].encrypted)
 			icon = NEUTRINO_ICON_LOCK;
-		CMenuForwarder * net = new CMenuForwarder(networks[i].ssid, true, option[i], selector, cnt, CRCInput::RC_nokey, NULL, icon);
+		CMenuForwarder * net = new CMenuForwarder(networks[i].ssid.c_str(), true, option[i], selector, cnt, CRCInput::RC_nokey, NULL, icon);
 		net->setItemButton(NEUTRINO_ICON_BUTTON_OKAY, true);
 		wlist.addItem(net, networks[i].ssid == network_ssid);
 	}

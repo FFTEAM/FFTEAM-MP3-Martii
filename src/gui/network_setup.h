@@ -76,8 +76,8 @@ class CNetworkSetup : public CMenuTarget, CChangeObserver
 		std::string old_mac_addr;
 
 
-		CMenuForwarder* dhcpDisable[5];
-		CMenuItem* wlanEnable[4];
+		CGenericMenuActivate dhcpDisable;
+		CGenericMenuActivate wlanEnable;
 
 		CSectionsdConfigNotifier* sectionsdConfigNotifier;
 			
@@ -98,7 +98,6 @@ class CNetworkSetup : public CMenuTarget, CChangeObserver
 		bool checkForIP();
 		bool settingsChanged();
 		const char * mypinghost(std::string &host);
-		void setBroadcast(void);
 				
 	public:	
 		enum NETWORK_DHCP_MODE

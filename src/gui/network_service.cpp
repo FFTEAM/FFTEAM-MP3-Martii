@@ -24,7 +24,6 @@
 #include <config.h>
 #endif
 
-#include <unistd.h>
 #include <global.h>
 #include <neutrino.h>
 
@@ -51,8 +50,7 @@ struct network_service
 	int enabled;
 };
 
-#define SERVICE_COUNT 6
-static struct network_service services[SERVICE_COUNT] =
+static struct network_service services[] =
 {
 	{ "FTP", "vsftpd", "", LOCALE_MENU_HINT_NET_FTPD, NULL, 0 },
 	{ "Telnet", "telnetd", "-l/bin/login", LOCALE_MENU_HINT_NET_TELNET, NULL, 0 },
@@ -61,6 +59,7 @@ static struct network_service services[SERVICE_COUNT] =
 	{ "xupnpd", "xupnpd", "", LOCALE_MENU_HINT_NET_XUPNPD, NULL, 0 },
 	{ "Dropbear", "dropbear", "-B", LOCALE_MENU_HINT_NET_DROPBEAR, NULL, 0 },
 };
+#define SERVICE_COUNT (sizeof(services)/sizeof(struct network_service))
 
 CNetworkService::CNetworkService(std::string cmd, std::string opts)
 {
@@ -188,9 +187,7 @@ int CNetworkServiceSetup::showNetworkServiceSetup()
 		if ( (services[i].name == "Telnet") && useinetd)
 			active = false;
 		
-		CMenuOptionChooser * mc = new CMenuOptionChooser(services[i].name.c_str(), &services[i].enabled, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, active, items[i], CRCInput::convertDigitToKey(shortcut), "");
-		if (active)
-			shortcut++;
+		CMenuOptionChooser * mc = new CMenuOptionChooser(services[i].name.c_str(), &services[i].enabled, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, active, items[i], CRCInput::convertDigitToKey(shortcut++), "");
 
 		mc->setHint(services[i].icon, services[i].hint);
 		setup->addItem(mc);
