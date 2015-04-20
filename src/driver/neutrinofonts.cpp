@@ -39,8 +39,8 @@
 
 #include <driver/fontrenderer.h>
 #include <driver/neutrinofonts.h>
+#include <system/debug.h>
 #include <system/settings.h>
-#include <system/helpers.h>
 
 #include <configfile.h>
 
@@ -117,7 +117,7 @@ void CNeutrinoFonts::SetupDynamicFonts(bool initRenderClass/*=true*/)
 		dynFontStyle[0] = g_dynFontRenderer->AddFont(fontDescr.filename.c_str());
 
 		fontDescr.name = g_dynFontRenderer->getFamily(fontDescr.filename.c_str());
-		printf("[neutrino] font family %s\n", fontDescr.name.c_str());
+		dprintf(DEBUG_NORMAL, " dynamic font family: %s\n", fontDescr.name.c_str());
 		dynFontStyle[1] = "Bold Regular";
 
 		g_dynFontRenderer->AddFont(fontDescr.filename.c_str(), true);  // make italics
@@ -135,8 +135,8 @@ void CNeutrinoFonts::SetupNeutrinoFonts(bool initRenderClass/*=true*/)
 		old_fontDescr.size_offset = fontDescr.size_offset;
 		old_fontDescr.filename = fontDescr.filename;
 		fontDescr.filename = "";
-		printf("[neutrino] settings font file %s\n", g_settings.font_file.c_str());
-		if (access(g_settings.font_file, F_OK)) {
+		dprintf(DEBUG_NORMAL, "font file: %s\n", g_settings.font_file.c_str());
+		if (access(g_settings.font_file.c_str(), F_OK)) {
 			if (!access(FONTDIR"/neutrino.ttf", F_OK)) {
 				fontDescr.filename = FONTDIR"/neutrino.ttf";
 				g_settings.font_file = fontDescr.filename;
@@ -154,7 +154,7 @@ void CNeutrinoFonts::SetupNeutrinoFonts(bool initRenderClass/*=true*/)
 		old_fontDescr.name = fontDescr.name;
 		fontDescr.name = "";
 		fontDescr.name = g_fontRenderer->getFamily(fontDescr.filename.c_str());
-		printf("[neutrino] font family %s\n", fontDescr.name.c_str());
+		dprintf(DEBUG_NORMAL, "standard font family: %s\n", fontDescr.name.c_str());
 		fontStyle[1] = "Bold Regular";
 
 		g_fontRenderer->AddFont(fontDescr.filename.c_str(), true);  // make italics
@@ -239,8 +239,8 @@ int CNeutrinoFonts::getDynFontSize(int dx, int dy, std::string text, int style)
 		int _height 	= getFontHeight(dynFont);;
 
 		std::string tmpText = text;
-		if (text == "") tmpText = "x";
-		_width = dynFont->getRenderWidth(tmpText.c_str());
+		if (text.empty()) tmpText = "x";
+		_width = dynFont->getRenderWidth(tmpText);
 		if ((_height > dy) || (_width > dx)) {
 			if (dynFlag)
 				dynSize--;
@@ -302,7 +302,7 @@ Font **CNeutrinoFonts::getDynFontWithID(int &dx, int &dy, std::string text, int 
 {
 	if ((dx <= 0) && (dy <= 0))
 		return NULL;
-	if ((fontDescr.name == "") || (fontDescr.filename == ""))
+	if ((fontDescr.name.empty()) || (fontDescr.filename.empty()))
 		SetupNeutrinoFonts();
 	if (g_dynFontRenderer == NULL)
 		SetupDynamicFonts();
@@ -314,8 +314,8 @@ Font **CNeutrinoFonts::getDynFontWithID(int &dx, int &dy, std::string text, int 
 	if (f_id < v_dyn_fonts.size()) {
 		if ((v_dyn_fonts[f_id].size == dynSize) && (v_dyn_fonts[f_id].font != NULL)) {
 			dy = v_dyn_fonts[f_id].font->getHeight();
-			if (text != "")
-				dx = v_dyn_fonts[f_id].font->getRenderWidth(text.c_str());
+			if (!text.empty())
+				dx = v_dyn_fonts[f_id].font->getRenderWidth(text);
 			return &(v_dyn_fonts[f_id].font);
 		}
 
@@ -335,8 +335,8 @@ Font **CNeutrinoFonts::getDynFontWithID(int &dx, int &dy, std::string text, int 
 		return NULL;
 
 	dy = (*ret)->getHeight();
-	if (text != "")
-		dx = (*ret)->getRenderWidth(text.c_str());
+	if (!text.empty())
+		dx = (*ret)->getRenderWidth(text);
 #ifdef DEBUG_NFONTS
 	printf("##### [%s] dx: %d, dy: %d, dynSize: %d, dynFont: %p, ret: %p, FontID: %d\n", __FUNCTION__, dx, dy, dynSize, *ret, ret, f_id);
 #endif
@@ -347,7 +347,7 @@ Font **CNeutrinoFonts::getDynFontShare(int &dx, int &dy, std::string text, int s
 {
 	if ((dx <= 0) && (dy <= 0))
 		return NULL;
-	if ((fontDescr.name == "") || (fontDescr.filename == "") || (g_dynFontRenderer == NULL))
+	if ((fontDescr.name.empty()) || (fontDescr.filename.empty()) || (g_dynFontRenderer == NULL))
 		SetupNeutrinoFonts();
 
 	int dynSize = getDynFontSize(dx, dy, text, style);
@@ -389,8 +389,8 @@ Font **CNeutrinoFonts::getDynFontShare(int &dx, int &dy, std::string text, int s
 	}
 
 	dy = (*ret)->getHeight();
-	if (text != "")
-		dx = (*ret)->getRenderWidth(text.c_str());
+	if (!text.empty())
+		dx = (*ret)->getRenderWidth(text);
 #ifdef DEBUG_NFONTS
 	printf("##### [%s] dx: %d, dy: %d, dynSize: %d, dynFont: %p, ret: %p, fontAvailable: %d\n", __FUNCTION__, dx, dy, dynSize, *ret, ret, fontAvailable);
 #endif
