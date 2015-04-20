@@ -1,7 +1,7 @@
 /*
  * neutrino-mp lua to c++ bridge
  *
- * (C) 2013-2014 Stefan Seyfried <seife@tuxboxcvs.slipkontur.de>
+ * (C) 2013-2015 Stefan Seyfried <seife@tuxboxcvs.slipkontur.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,6 +24,7 @@
 #include <unistd.h>
 
 #include <global.h>
+#include <system/debug.h>
 #include <system/helpers.h>
 #include <system/settings.h>
 #include <system/set_threadname.h>
@@ -34,7 +35,7 @@
 #include <gui/movieplayer.h>
 #include <driver/pictureviewer/pictureviewer.h>
 #include <neutrino.h>
-#include <system/debug.h>
+
 #include "luainstance.h"
 #include <video.h>
 
@@ -440,11 +441,11 @@ void CLuaInstance::runScript(const char *fileName, std::vector<std::string> *arg
 		}
 	}
 	lua_setglobal(lua, "arg");
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	CFrameBuffer::getInstance()->autoBlit();
 #endif
 	status = lua_pcall(lua, 0, LUA_MULTRET, 0);
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	CFrameBuffer::getInstance()->autoBlit(false);
 #endif
 	if (result_code)
@@ -909,7 +910,7 @@ int CLuaInstance::GCWindow(lua_State *L)
 #if 1
 int CLuaInstance::Blit(lua_State *)
 {
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	CFrameBuffer::getInstance()->autoBlit(false);
 #endif
 	return 0;
@@ -917,7 +918,7 @@ int CLuaInstance::Blit(lua_State *)
 #else
 int CLuaInstance::Blit(lua_State *L)
 {
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	CFrameBuffer::getInstance()->autoBlit(false);
 #endif
 	CLuaData *W = CheckData(L, 1);
@@ -1255,7 +1256,7 @@ int CLuaInstance::MenuAddKey(lua_State *L)
 	std::string id;		tableLookup(L, "id", id);
 	lua_Unsigned directkey = CRCInput::RC_nokey;
 	tableLookup(L, "directkey", directkey);
-	if ((action != "") && (directkey != CRCInput::RC_nokey)) {
+	if ((!action.empty()) && (directkey != CRCInput::RC_nokey)) {
 		CLuaMenuForwarder *forwarder = new CLuaMenuForwarder(L, action, id);
 		m->m->addKey(directkey, forwarder, action);
 		m->targets.push_back(forwarder);
@@ -1784,25 +1785,33 @@ int CLuaInstance::CWindowNew(lua_State *L)
 	else {
 		CComponentsFooter* footer = (*udata)->w->getFooterObject();
 		if (footer) {
-			int btnCount = 0;
-			if (btnRed    != "") btnCount++;
-			if (btnGreen  != "") btnCount++;
-			if (btnYellow != "") btnCount++;
-			if (btnBlue   != "") btnCount++;
-			if (btnCount) {
-				fb_pixel_t col = footer->getColorBody();
-				int btnw = (dx-20) / btnCount;
-				int btnh = footer->getHeight();
-				int start = 10;
-				if (btnRed != "")
-					footer->addCCItem(new CComponentsButtonRed(start, CC_CENTERED, btnw, btnh, btnRed, 0, false , true, false, col, col));
-				if (btnGreen != "")
-					footer->addCCItem(new CComponentsButtonGreen(start+=btnw, CC_CENTERED, btnw, btnh, btnGreen, 0, false , true, false, col, col));
-				if (btnYellow != "")
-					footer->addCCItem(new CComponentsButtonYellow(start+=btnw, CC_CENTERED, btnw, btnh, btnYellow, 0, false , true, false, col, col));
-				if (btnBlue != "")
-					footer->addCCItem(new CComponentsButtonBlue(start+=btnw, CC_CENTERED, btnw, btnh, btnBlue, 0, false , true, false, col, col));
+			vector<button_label_s> buttons;
+			if (!btnRed.empty()){
+				button_label_s btnSred;
+				btnSred.button 		= NEUTRINO_ICON_BUTTON_RED;
+				btnSred.text 		= btnRed;
+				buttons.push_back(btnSred);
 			}
+			if (!btnGreen.empty()){
+				button_label_s btnSgreen;
+				btnSgreen.button 	= NEUTRINO_ICON_BUTTON_GREEN;
+				btnSgreen.text		= btnGreen;
+				buttons.push_back(btnSgreen);
+			}
+			if (!btnYellow.empty()){
+				button_label_s btnSyellow;
+				btnSyellow.button 	= NEUTRINO_ICON_BUTTON_YELLOW;
+				btnSyellow.text 	= btnYellow;
+				buttons.push_back(btnSyellow);
+			}
+			if (!btnBlue.empty()){
+				button_label_s btnSblue;
+				btnSblue.button 	= NEUTRINO_ICON_BUTTON_YELLOW;
+				btnSblue.text 		= btnBlue;
+				buttons.push_back(btnSblue);
+			}
+			if(!buttons.empty())
+				footer->setButtonLabels(buttons, dx-20, (dx-20) / (buttons.size()+1));
 		}
 	}
 
@@ -2536,4 +2545,3 @@ int CLuaInstance::LuaConfigFileDelete(lua_State *L)
 	return 0;
 }
 
-// --------------------------------------------------------------------------------
