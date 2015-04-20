@@ -422,7 +422,7 @@ int request_file(URL *url)
 
 				if(meta_int)
 				{
-					if (slot < 0){
+					if (slot < 0) {
 						dprintf(stderr, "error: meta_int != 0 && slot < 0");
 					} else {
 						/* hook in the filter function if there is meta */
@@ -572,7 +572,7 @@ void readln(int fd, char *buf)
 
 int parse_response(URL *url, void * /*opt*/, CSTATE *state)
 {
-	char header[2049], /*str[255]*/ str[2048]; // combined with 2nd local str from id3 part
+	char header[2048], /*str[255]*/ str[2048]; // combined with 2nd local str from id3 part
 	char *ptr, chr=0, lastchr=0;
 	int hlen = 0, response;
 	int meta_interval = 0, rval;
