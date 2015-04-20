@@ -40,15 +40,9 @@
  * Description:
  *
  * This Plugin display an background image while the vdr is switcht to radio channels.
- *
+ * Portions (C) 2013 by martii (m4rtii@gmx.de)
  
 */
-
-/*
- * Portions (C) 2013 by martii (m4rtii@gmx.de)
- *
- */
-
 
 #include <stdio.h>
 #include <string.h>
@@ -71,7 +65,6 @@
 #include <system/settings.h>
 #include <neutrino.h>
 #include <gui/color.h>
-#include <system/helpers.h>
 #include <system/set_threadname.h>
 #include <video.h>
 #include <libmd5sum/libmd5sum.h>
@@ -96,6 +89,8 @@ bool ARec_Receive = false, ARec_Record = false;
 #define RASS_GALMAX 999
 bool Rass_Gallery[RASS_GALMAX+1];
 int Rass_GalStart, Rass_GalEnd, Rass_GalCount, Rass_SlideFoto;
+
+#define DataDir g_settings.radiotext_rass_dir.c_str()
 
 // RDS-Chartranslation: 0x80..0xff
 unsigned char rds_addchar[128] = {
@@ -227,7 +222,7 @@ int CRadioText::PES_Receive(unsigned char *data, int len)
 		while (DividePes(&data[0], pesl, &substart, &subend))
 		{
 			int inner_offset = subend + 1;
-//if (inner_offset < 3) fprintf(stderr, "RT %s: inner_offset < 3 (%d)\n", __FUNCTION__, inner_offset);
+if (inner_offset < 3) fprintf(stderr, "RT %s: inner_offset < 3 (%d)\n", __FUNCTION__, inner_offset);
 			int rdsl = data[subend - 1];	// RDS DataFieldLength
 			// RDS DataSync = 0xfd @ end
 			if (data[subend] == 0xfd && rdsl > 0) {
@@ -239,7 +234,7 @@ int CRadioText::PES_Receive(unsigned char *data, int len)
 					printf("(End)\n\n");
 				}
 
-//if (subend-2-rdsl < 0) fprintf(stderr, "RT %s: start: %d subend-2-rdsl < 0 (%d-2-%d)\n", __FUNCTION__, substart,subend,rdsl);
+if (subend-2-rdsl < 0) fprintf(stderr, "RT %s: start: %d subend-2-rdsl < 0 (%d-2-%d)\n", __FUNCTION__, substart,subend,rdsl);
 				for (int i = subend - 2, val; i > subend - 2 - rdsl; i--) { // <-- data reverse, from end to start
 if (i < 0) { fprintf(stderr, "RT %s: i < 0 (%d)\n", __FUNCTION__, i); break; }
 					val = data[i];
@@ -662,7 +657,7 @@ void CRadioText::RadioStatusMsg(void)
 	if (S_RtMsgItems >= 2) {
 		char temp[100];
 		int ind = (RT_Index == 0) ? S_RtOsdRows - 1 : RT_Index - 1;
-		cstrncpy(temp, RT_Text[ind], sizeof(temp));
+		strcpy(temp, RT_Text[ind]);
 		printf("RadioStatusMsg = %s\n", temp);
 //		cStatus::MsgOsdTextItem(rtrim(temp), false);
 	}
@@ -801,13 +796,15 @@ void CRadioText::RassDecode(unsigned char *mtext, int len)
 			if (index == filemax) {
 				if (slideshow || (slidecan && Rass_Show == -1)) {
 					if (filetype == 1) {	// show only mpeg-still
-						std::string filepath = g_settings.radiotext_rass_dir + "/Rass_show.m2v";
-						std::string filepath_tmp = filepath + ".tmp";
-						if ((fd = fopen(filepath_tmp.c_str(), "wb")) != NULL) {
+						char *filepath;
+						asprintf(&filepath, "%s/%s", DataDir, "Rass_show.m2v");
+						char *filepath_tmp;
+						asprintf(&filepath_tmp, "%s.tmp", filepath);
+						if ((fd = fopen(filepath_tmp, "wb")) != NULL) {
 							fwrite(daten, 1, filemax, fd);
 							//fflush(fd);		// for test in replaymode
 							fclose(fd);
-							rename(filepath_tmp.c_str(), filepath.c_str());
+							rename(filepath_tmp, filepath);
 							if (!Rass_interactive_mode)
 								RassShow(filepath);
 							Rass_Show = 1;
@@ -815,7 +812,11 @@ void CRadioText::RassDecode(unsigned char *mtext, int len)
 								printf("Rass-File: ready for displaying :-)\n");
 						}
 						else
-							printf("ERROR %s: writing imagefile failed '%s'", __func__, filepath.c_str());
+							printf("ERROR %s: writing imagefile failed '%s'", __func__, filepath);
+						free(filepath);
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
+						free(filepath_tmp);
+#endif
 					}
 				}
 				if (slidesave || slidedel || slidenumr < RASS_GALMAX) {
@@ -825,21 +826,26 @@ void CRadioText::RassDecode(unsigned char *mtext, int len)
 						slidenumr = Rass_SlideFoto;
 					}
 					//
-					std::string filepath = g_settings.radiotext_rass_dir + "/Rass_" + to_string(slidenumr) + ((filetype == 2) ? ".def" : ".m2v");
-					std::string filepath_tmp = filepath + ".tmp";
+					char *filepath;
+					(filetype == 2) ? asprintf(&filepath, "%s/Rass_%d.def", DataDir, slidenumr)
+							: asprintf(&filepath, "%s/Rass_%d.m2v", DataDir, slidenumr);
+					char *filepath_tmp;
+					asprintf(&filepath_tmp, "%s.tmp", filepath);
 					if (filetype == 1 && (slideshow || (slidecan && Rass_Show == -1))) {
-						std::string showpath = g_settings.radiotext_rass_dir + "/Rass_show.m2v";
-						link(showpath.c_str(), filepath_tmp.c_str());
-					} else if ((fd = fopen(filepath_tmp.c_str(), "wb")) != NULL) {
+						char *showpath;
+						asprintf(&showpath, "%s/%s", DataDir, "Rass_show.m2v");
+						link(showpath, filepath_tmp);
+						free(showpath);
+					} else if ((fd = fopen(filepath_tmp, "wb")) != NULL) {
 						fwrite(daten, 1, filemax, fd);
 						fclose(fd);
 					}
-					rename(filepath_tmp.c_str(), filepath.c_str());
+					rename(filepath_tmp, filepath);
 					if (true) {
 						if (filetype == 1)
 							RassUpdate(filepath, slidenumr);
 						if (S_Verbose >= 1)
-							printf("Rass-File: saving '%s'\n", filepath.c_str());
+							printf("Rass-File: saving '%s'\n", filepath);
 						// archivemarker mpeg-stills
 						if (filetype == 1) { 
 							// 0, 1000/1100/1110/1111..9000/9900/9990/9999
@@ -876,7 +882,11 @@ void CRadioText::RassDecode(unsigned char *mtext, int len)
 						}
 					}
 					else
-						printf("ERROR %s: writing image/data-file failed '%s'", __func__, filepath.c_str());
+						printf("ERROR %s: writing image/data-file failed '%s'", __func__, filepath);
+					free(filepath);
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
+					free(filepath_tmp);
+#endif
 				}
 			}
 			dstart = false;
@@ -985,14 +995,14 @@ void CRadioText::run()
 	set_threadname("CRadioText::run");
 	uint current_pid = 0;
 
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	audioDemux = new cDemux(0); // live demux
 #else
 	audioDemux = new cDemux(1);
 #endif
 	audioDemux->Open(DMX_PES_CHANNEL,0,128*1024);
 
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	int buflen = 0;
 	unsigned char *buf = NULL;
 #endif
@@ -1024,7 +1034,7 @@ void CRadioText::run()
 		}
 		mutex.unlock();
 		if (pid) {
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 			int n;
 			unsigned char tmp[6];
 
@@ -1068,7 +1078,7 @@ void CRadioText::run()
 			}
 		}
 	}
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	if (buf)
 		free(buf);
 #endif
@@ -1101,16 +1111,16 @@ void CRadioText::RASS_slides::clear(void)
 	sim.clear();
 }
 
-void CRadioText::RassShow(std::string &filename, unsigned char *md5sum)
+void CRadioText::RassShow(char *filename, unsigned char *md5sum)
 {
 	unsigned char _md5sum[16];
 	if (!md5sum) {
 		md5sum = _md5sum;
-		md5_file(filename.c_str(), 1, md5sum);
+		md5_file(filename, 1, md5sum);
 	}
 	if (memcmp(md5sum, last_md5sum, 16)) {
 		extern cVideo *videoDecoder;
-		videoDecoder->ShowPicture(filename.c_str());
+		videoDecoder->ShowPicture(filename);
 		lastRassPid = pid;
 		memcpy(last_md5sum, md5sum, 16);
 	}
@@ -1118,17 +1128,18 @@ void CRadioText::RassShow(std::string &filename, unsigned char *md5sum)
 
 void CRadioText::RassShow(int slidenumber, unsigned char *md5sum)
 {
-	std::string filename = g_settings.radiotext_rass_dir + "/Rass_" + to_string(slidenumber) + ".m2v";
+	char filename[255];
+	snprintf(filename, sizeof(filename), "%s/Rass_%d.m2v", DataDir, slidenumber);
 	RassShow(filename, md5sum);
 }
 
-void CRadioText::RassUpdate(std::string &filename, int slidenumber)
+void CRadioText::RassUpdate(char *filename, int slidenumber)
 {
 	if (slidenumber > -1 && slidenumber < Rass_first_slide)
 		Rass_first_slide = slidenumber;
 
 	slideinfo si;
-	md5_file(filename.c_str(), 1, si.md5sum);
+	md5_file(filename, 1, si.md5sum);
 	bool newslide = !slides.exists(slidenumber);
 	bool updated = slides.set(slidenumber, si);
 
@@ -1331,9 +1342,11 @@ void CRadioText::RASS_interactive_mode(void)
 		}
 		msg_old = msg;
 	}
-	
-	std::string filename = g_settings.radiotext_rass_dir + "/Rass_show.m2v";
-	RassShow (filename);
+
+	char *filepath;
+	asprintf(&filepath, "%s/%s", DataDir, "Rass_show.m2v");
+	RassShow (filepath);
+	free(filepath);
 	framebuffer->Clear();
 	framebuffer->blit();
 }

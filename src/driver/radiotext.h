@@ -79,9 +79,9 @@ private:
 	void RadioStatusMsg(void);
 	void RassDecode(uchar *Data, int Length);
 	bool DividePes(unsigned char *data, int length, int *substart, int *subend);
-	void RassShow(std::string &filename, unsigned char *md5sum = NULL);
+	void RassShow(char *filename, unsigned char *md5sum = NULL);
 	void RassShow(int slidenumber, unsigned char *md5sum = NULL);
-	void RassUpdate(std::string &filename, int slidenumber = -1);
+	void RassUpdate(char *filename, int slidenumber = -1);
 	void RassPaint(int slidenumber = -1, bool blit = true);
 	neutrino_msg_t RassShow_prev(void);
 	neutrino_msg_t RassShow_next(void);
