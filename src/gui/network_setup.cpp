@@ -159,7 +159,6 @@ void CNetworkSetup::readNetworkSettings()
 	mac_addr		= networkConfig->mac_addr;
 	network_ssid		= networkConfig->ssid;
 	network_key		= networkConfig->key;
-	network_encryption	= (networkConfig->encryption == "WPA") ? 0 : 1;
 }
 
 void CNetworkSetup::backupNetworkSettings()
@@ -177,7 +176,6 @@ void CNetworkSetup::backupNetworkSettings()
 	old_network_key			= networkConfig->key;
 	old_ifname 			= g_settings.ifname;
 	old_mac_addr			= mac_addr;
-	old_network_encryption		= (networkConfig->encryption == "WPA") ? 0 : 1;
 }
 
 #define OPTIONS_NTPENABLE_OPTION_COUNT 2
@@ -185,13 +183,6 @@ const CMenuOptionChooser::keyval OPTIONS_NTPENABLE_OPTIONS[OPTIONS_NTPENABLE_OPT
 {
 	{ CNetworkSetup::NETWORK_NTP_OFF, LOCALE_OPTIONS_NTP_OFF },
 	{ CNetworkSetup::NETWORK_NTP_ON, LOCALE_OPTIONS_NTP_ON }
-};
-
-#define OPTIONS_WLAN_SECURITY_OPTION_COUNT 2
-const CMenuOptionChooser::keyval_ext OPTIONS_WLAN_SECURITY_OPTIONS[OPTIONS_WLAN_SECURITY_OPTION_COUNT] =
-{
-        { 0, NONEXISTANT_LOCALE, "WPA" },
-        { 1, NONEXISTANT_LOCALE, "WPA2"  }
 };
 
 static int my_filter(const struct dirent * dent)
@@ -331,7 +322,6 @@ int CNetworkSetup::showNetworkSetup()
 		CMenuForwarder *m9 = new CMenuDForwarder(LOCALE_NETWORKMENU_SSID      , networkConfig->wireless, network_ssid , networkSettings_ssid );
 		CMenuForwarder *m10 = new CMenuDForwarder(LOCALE_NETWORKMENU_PASSWORD , networkConfig->wireless, network_key , networkSettings_key );
 		CMenuForwarder *m11 = new CMenuForwarder(LOCALE_NETWORKMENU_SSID_SCAN , networkConfig->wireless, NULL, this, "scanssid");
-		CMenuOptionChooser* m12 = new CMenuOptionChooser(LOCALE_NETWORKMENU_WLAN_SECURITY, &network_encryption, OPTIONS_WLAN_SECURITY_OPTIONS, OPTIONS_WLAN_SECURITY_OPTION_COUNT, true);
 
 		m9->setHint("", LOCALE_MENU_HINT_NET_SSID);
 		m10->setHint("", LOCALE_MENU_HINT_NET_PASS);
@@ -340,12 +330,10 @@ int CNetworkSetup::showNetworkSetup()
 		wlanEnable.Add(m9);
 		wlanEnable.Add(m10);
 		wlanEnable.Add(m11);
-		wlanEnable.Add(m12);
 
 		networkSettings->addItem( m11);	//ssid scan
 		networkSettings->addItem( m9);	//ssid
 		networkSettings->addItem( m10);	//key
-		networkSettings->addItem( m12); //encryption
 		networkSettings->addItem(GenericMenuSeparatorLine);
 	}
 	//------------------------------------------------
@@ -512,7 +500,6 @@ void CNetworkSetup::prepareSettings()
 	networkConfig->hostname 	= network_hostname;
 	networkConfig->ssid 		= network_ssid;
 	networkConfig->key 		= network_key;
-	networkConfig->encryption 	= network_encryption ? "WPA2" : "WPA";
 
 	readNetworkSettings();
 	backupNetworkSettings();
@@ -627,7 +614,6 @@ void CNetworkSetup::restoreNetworkSettings()
 	network_hostname		= old_network_hostname;
 	network_ssid			= old_network_ssid;
 	network_key			= old_network_key;
-	network_encryption		= old_network_encryption;
 
 	networkConfig->automatic_start 	= network_automatic_start;
 	networkConfig->inet_static 	= (network_dhcp ? false : true);
@@ -639,7 +625,6 @@ void CNetworkSetup::restoreNetworkSettings()
 	networkConfig->hostname 	= network_hostname;
 	networkConfig->ssid 		= network_ssid;
 	networkConfig->key 		= network_key;
-	networkConfig->encryption 	= network_encryption ? "WPA2" : "WPA";
 
 	networkConfig->commitConfig();
 	changeNotify(LOCALE_NETWORKMENU_SELECT_IF, NULL);
