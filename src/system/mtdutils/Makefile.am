@@ -18,12 +18,6 @@ AM_CPPFLAGS = \
 	@FREETYPE_CFLAGS@ \
 	@HWLIB_CFLAGS@
 
-if BOXMODEL_APOLLO
-AM_CPPFLAGS += -I$(top_srcdir)/lib/libcoolstream2
-else
-AM_CPPFLAGS += -I$(top_srcdir)/lib/libcoolstream
-endif
-
 noinst_LIBRARIES = libneutrino_system_mtdutils.a
 
 libneutrino_system_mtdutils_a_SOURCES = \
