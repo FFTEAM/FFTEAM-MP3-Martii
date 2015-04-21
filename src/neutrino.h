@@ -87,6 +87,9 @@ private:
 	CPersonalizeGui			personalize;
 	int                             network_dhcp;
 	int                             network_automatic_start;
+
+	int				m_idletime;
+	bool				m_screensaver;
 	CMenuWidget			*mainMenu;
 
 	int				mode;
@@ -232,10 +235,6 @@ public:
 	void stopDaemonsForFlash();
 	int showChannelList(const neutrino_msg_t msg, bool from_menu = false);
 	CPersonalizeGui & getPersonalizeGui() { return personalize; }
-
-	void setTheme(CConfigFile &themefile);
-	void getTheme(CConfigFile &themefile);
-
 	bool getChannellistIsVisible() { return channellist_visible; }
 	void zapTo(t_channel_id channel_id);
 	bool wakeupFromStandby(void);
@@ -243,6 +242,7 @@ public:
 	void lockPlayBack(bool blank = true);
 	void stopPlayBack(bool lock = false);
 	bool adjustToChannelID(const t_channel_id channel_id);
+	void screensaver(bool);
 };
 #endif
 
