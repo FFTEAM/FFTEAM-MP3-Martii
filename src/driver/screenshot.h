@@ -22,7 +22,7 @@
 #ifndef __screenshot_h_
 #define __screenshot_h_
 
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 class CScreenShot
 #else
 #include <OpenThreads/Thread>
@@ -46,7 +46,7 @@ class CScreenShot : public OpenThreads::Thread
 		bool get_osd;
 		bool get_video;
 		bool scale_to_video;
-#if !HAVE_SPARK_HARDWARE
+#if !HAVE_SPARK_HARDWARE && !HAVE_DUCKBOX_HARDWARE
 		FILE *fd;
 
 		bool GetData();

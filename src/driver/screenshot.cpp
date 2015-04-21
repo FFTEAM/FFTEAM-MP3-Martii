@@ -41,7 +41,6 @@
 #include <zapit/debug.h>
 #include <zapit/getservices.h>
 #include <eitd/sectionsd.h>
-#include <system/helpers.h>
 
 #include <video.h>
 #include <cs_api.h>
@@ -59,21 +58,25 @@ CScreenShot::CScreenShot(const std::string fname, screenshot_format_t fmt)
 	format = fmt;
 	filename = fname;
 	pixel_data = NULL;
-#if !HAVE_SPARK_HARDWARE
+#if !HAVE_SPARK_HARDWARE && !HAVE_DUCKBOX_HARDWARE
 	fd = NULL;
 #endif
 	xres = 0;
 	yres = 0;
 	get_video = g_settings.screenshot_mode & 1;
 	get_osd = g_settings.screenshot_mode & 2;
+#if HAVE_GENERIC_HARDWARE
+	scale_to_video = (g_settings.screenshot_mode == 3);
+#else
 	scale_to_video = (g_settings.screenshot_mode == 3) & (g_settings.screenshot_res & 1);
+#endif
 }
 
 CScreenShot::~CScreenShot()
 {
 }
 
-#if !HAVE_SPARK_HARDWARE
+#if !HAVE_SPARK_HARDWARE && !HAVE_DUCKBOX_HARDWARE
 /* try to get video frame data in ARGB format, restore GXA state */
 bool CScreenShot::GetData()
 {
@@ -86,7 +89,9 @@ bool CScreenShot::GetData()
 #endif
 	if (videoDecoder->getBlank()) 
 		get_video = false;
+#if !HAVE_GENERIC_HARDWARE
 	res = videoDecoder->GetScreenImage(pixel_data, xres, yres, get_video, get_osd, scale_to_video);
+#endif
 
 #ifdef USE_NEVIS_GXA
 	/* sort of hack. GXA used to transfer/convert live image to RGB,
@@ -109,7 +114,7 @@ bool CScreenShot::GetData()
 /* start ::run in new thread to save file in selected format */
 bool CScreenShot::Start()
 {
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	std::string cmd = "/bin/grab ";
 	if (get_osd && !get_video)
 		cmd += "-o ";
@@ -119,7 +124,7 @@ bool CScreenShot::Start()
 		case FORMAT_PNG:
 			cmd += "-p "; break;
 		case FORMAT_JPG:
-			cmd += "-j "; break;
+			cmd += "-j 100"; break;
 		default:
 			;
 	}
@@ -148,7 +153,7 @@ bool CScreenShot::Start()
 #endif
 }
 
-#if !HAVE_SPARK_HARDWARE
+#if !HAVE_SPARK_HARDWARE && !HAVE_DUCKBOX_HARDWARE
 /* thread function to save data asynchroniosly. delete itself after saving */
 void CScreenShot::run()
 {
@@ -227,7 +232,11 @@ bool CScreenShot::SavePng()
 
 	png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, (png_voidp)NULL, (png_error_ptr)NULL, (png_error_ptr)NULL);
 	info_ptr = png_create_info_struct(png_ptr);
+#if (PNG_LIBPNG_VER < 10500)
+	if (setjmp(png_ptr->jmpbuf))
+#else
 	if (setjmp(png_jmpbuf(png_ptr)))
+#endif
 	{
 		printf("CScreenShot::SavePng: %s save error\n", filename.c_str());
 		png_destroy_write_struct(&png_ptr, &info_ptr);
@@ -385,47 +394,54 @@ bool CScreenShot::SaveBmp()
  */
 void CScreenShot::MakeFileName(const t_channel_id channel_id)
 {
+	char		fname[512]; // UTF-8
 	std::string	channel_name;
 	CEPGData	epgData;
+	unsigned int	pos = 0;
 
-	filename = g_settings.screenshot_dir + "/";
+	snprintf(fname, sizeof(fname), "%s/", g_settings.screenshot_dir.c_str());
+	pos = strlen(fname);
 
 	channel_name = CServiceManager::getInstance()->GetServiceName(channel_id);
 	if (!(channel_name.empty())) {
-		std::string tmp = UTF8_TO_FILESYSTEM_ENCODING(channel_name.c_str());
-		ZapitTools::replace_char(tmp);
-		filename += tmp + "_";
+		strcpy(&(fname[pos]), UTF8_TO_FILESYSTEM_ENCODING(channel_name.c_str()));
+		ZapitTools::replace_char(&fname[pos]);
+		strcat(fname, "_");
 	}
+	pos = strlen(fname);
 
 	if(CEitManager::getInstance()->getActualEPGServiceKey(channel_id, &epgData)) {
 		CShortEPGData epgdata;
 		if(CEitManager::getInstance()->getEPGidShort(epgData.eventID, &epgdata)) {
 			if (!(epgdata.title.empty())) {
-				std::string tmp = epgdata.title;
-				ZapitTools::replace_char(tmp);
-				filename += tmp;
+				strcpy(&(fname[pos]), epgdata.title.c_str());
+				ZapitTools::replace_char(&fname[pos]);
 			}
 		}
 	}
+	if (g_settings.screenshot_cover != 1) {
+	pos = strlen(fname);
+
 	struct timeval tv;
 	gettimeofday(&tv, NULL);
-	filename += strftime("_%Y%m%d_%H%M%S", localtime(&tv.tv_sec));
-	char buf[40];
-	snprintf(buf, sizeof(buf), "_%03d", (int) tv.tv_usec/1000);
-	filename += std::string(buf);
+	strftime(&(fname[pos]), sizeof(fname) - pos - 1, "_%Y%m%d_%H%M%S", localtime(&tv.tv_sec));
+	pos = strlen(fname);
+	snprintf(&(fname[pos]), sizeof(fname) - pos - 1, "_%03d", (int) tv.tv_usec/1000);
+	}
 
 	switch (format) {
 	case FORMAT_PNG:
-		filename += ".png";
+		strcat(fname, ".png");
 		break;
 	default:
 		printf("CScreenShot::MakeFileName unsupported format %d, using jpeg\n", format);
 	case FORMAT_JPG:
-		filename += ".jpg";
+		strcat(fname, ".jpg");
 		break;
 	case FORMAT_BMP:
-		filename += ".bmp";
+		strcat(fname, ".bmp");
 		break;
 	}
-	printf("CScreenShot::MakeFileName: [%s]\n", filename.c_str());
+	printf("CScreenShot::MakeFileName: [%s]\n", fname);
+	filename = std::string(fname);
 }
