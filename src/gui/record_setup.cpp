@@ -99,8 +99,8 @@ int CRecordSetup::exec(CMenuTarget* parent, const std::string &actionKey)
 				timeshiftDir = g_settings.network_nfs_recordingdir + "/.timeshift";
 				safe_mkdir(timeshiftDir.c_str());
 				printf("New timeshift dir: %s\n", timeshiftDir.c_str());
+				CRecordManager::getInstance()->SetTimeshiftDirectory(timeshiftDir);
 			}
-			CRecordManager::getInstance()->SetTimeshiftDirectory(timeshiftDir);
 			cHddStat::getInstance()->setDir(g_settings.network_nfs_recordingdir);
 		}
 		return res;
@@ -185,16 +185,15 @@ int CRecordSetup::showRecordSetup()
 	recordingSettings->addItem(mf);
 	recordingSettings->addItem(GenericMenuSeparatorLine);
 
+	bool recstatus = CNeutrinoApp::getInstance()->recordingstatus;
 	//record dir
-	CMenuForwarder* fRecDir = new CMenuForwarder(LOCALE_RECORDINGMENU_DEFDIR, true, g_settings.network_nfs_recordingdir, this, "recordingdir");
+	CMenuForwarder* fRecDir = new CMenuForwarder(LOCALE_RECORDINGMENU_DEFDIR, !recstatus, g_settings.network_nfs_recordingdir, this, "recordingdir");
 	fRecDir->setHint("", LOCALE_MENU_HINT_RECORD_DIR);
 	recordingSettings->addItem(fRecDir);
 
-	//filename template
-	CKeyboardInput* filename_template = new CKeyboardInput(LOCALE_RECORDINGMENU_FILENAME_TEMPLATE, &g_settings.recording_filename_template, 0, NULL, NULL, LOCALE_RECORDINGMENU_FILENAME_TEMPLATE_HINT, LOCALE_RECORDINGMENU_FILENAME_TEMPLATE_HINT2);
-	CMenuForwarder* ft = new CMenuDForwarder(LOCALE_RECORDINGMENU_FILENAME_TEMPLATE, true, g_settings.recording_filename_template, filename_template);
-	ft->setHint("", LOCALE_MENU_HINT_RECORD_FILENAME_TEMPLATE);
-	recordingSettings->addItem(ft);
+	CMenuOptionChooser* channel_rec_dir = new CMenuOptionChooser(LOCALE_RECORDINGMENU_SAVE_IN_CHANNELDIR, &g_settings.recording_save_in_channeldir, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true);
+	channel_rec_dir->setHint("", LOCALE_MENU_HINT_RECORD_CHANDIR);
+	recordingSettings->addItem(channel_rec_dir);
 
 	//rec hours
 	CMenuOptionNumberChooser * mc = new CMenuOptionNumberChooser(LOCALE_EXTRA_RECORD_TIME, &g_settings.record_hours, true, 1, 24, NULL);
@@ -215,6 +214,16 @@ int CRecordSetup::showRecordSetup()
 	startstop_msg->setHint("", LOCALE_MENU_HINT_RECORD_STARTSTOP_MSG);
 	recordingSettings->addItem(startstop_msg);
 
+	//filename template
+	CKeyboardInput* filename_template = new CKeyboardInput(LOCALE_RECORDINGMENU_FILENAME_TEMPLATE, &g_settings.recording_filename_template, 0, NULL, NULL, LOCALE_RECORDINGMENU_FILENAME_TEMPLATE_HINT, LOCALE_RECORDINGMENU_FILENAME_TEMPLATE_HINT2);
+	CMenuForwarder* ft = new CMenuDForwarder(LOCALE_RECORDINGMENU_FILENAME_TEMPLATE, true, g_settings.recording_filename_template, filename_template, NULL, CRCInput::RC_1);
+	ft->setHint("", LOCALE_MENU_HINT_RECORD_FILENAME_TEMPLATE);
+	recordingSettings->addItem(ft);
+
+	CMenuOptionChooser* cover = new CMenuOptionChooser(LOCALE_RECORDINGMENU_AUTO_COVER, &g_settings.auto_cover, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true);
+	cover->setHint("", LOCALE_MENU_HINT_RECORD_AUTO_COVER);
+	recordingSettings->addItem(cover);
+
 #if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	CMenuOptionNumberChooser *ch;
 	ch = new CMenuOptionNumberChooser(LOCALE_EXTRA_RECORD_BUFSIZE, &g_settings.recording_bufsize, true, 1, 25, NULL);
@@ -224,6 +233,7 @@ int CRecordSetup::showRecordSetup()
 	ch->setNumberFormat("%d MB");
 	recordingSettings->addItem(ch);
 #endif
+
 	recordingSettings->addItem(GenericMenuSeparatorLine);
 
 	//timeshift
@@ -250,7 +260,7 @@ int CRecordSetup::showRecordSetup()
 	//datasettings
 	CMenuWidget recordingaDataSettings(LOCALE_MAINSETTINGS_RECORDING, NEUTRINO_ICON_SETTINGS, width, MN_WIDGET_ID_RECORDSETUP_DATASETTINGS);
 	showRecordDataSetup(&recordingaDataSettings);
-	mf = new CMenuForwarder(LOCALE_RECORDINGMENU_DATA_PIDS, true, NULL, &recordingaDataSettings, NULL,  CRCInput::RC_1);
+	mf = new CMenuForwarder(LOCALE_RECORDINGMENU_DATA_PIDS, true, NULL, &recordingaDataSettings, NULL,  CRCInput::RC_2);
 	mf->setHint("", LOCALE_MENU_HINT_RECORD_DATA);
 	recordingSettings->addItem(mf);
 
@@ -258,8 +268,8 @@ int CRecordSetup::showRecordSetup()
 	delete recordingSettings;
 
 	/* activate changes */
-        CRecordManager::getInstance()->SetDirectory(g_settings.network_nfs_recordingdir);
-        CRecordManager::getInstance()->Config(g_settings.recording_stopsectionsd, g_settings.recording_stream_vtxt_pid, g_settings.recording_stream_pmt_pid, g_settings.recording_stream_subtitle_pids);
+	CRecordManager::getInstance()->SetDirectory(g_settings.network_nfs_recordingdir);
+	CRecordManager::getInstance()->Config(g_settings.recording_stopsectionsd, g_settings.recording_stream_vtxt_pid, g_settings.recording_stream_pmt_pid, g_settings.recording_stream_subtitle_pids);
 	g_Timerd->setRecordingSafety(g_settings.record_safety_time_before * 60, g_settings.record_safety_time_after * 60);
 
 	return res;
@@ -267,7 +277,7 @@ int CRecordSetup::showRecordSetup()
 
 void CRecordSetup::showRecordTimerSetup(CMenuWidget *menu_timersettings)
 {
-	//recording start/end correction
+	//recording start/end correcture
 	int pre,post;
 	g_Timerd->getRecordingSafety(pre,post);
 	g_settings.record_safety_time_before = pre/60;
@@ -356,31 +366,35 @@ void CRecordSetup::showRecordTimeShiftSetup(CMenuWidget *menu_ts)
 	menu_ts->addIntroItems(LOCALE_RECORDINGMENU_TIMESHIFT);
 
 	//timeshift dir
-	CMenuForwarder* fTsDir = new CMenuForwarder(LOCALE_RECORDINGMENU_TSDIR, true, g_settings.timeshiftdir, this, "timeshiftdir");
+	bool recstatus = CNeutrinoApp::getInstance()->recordingstatus;
+	CMenuForwarder* fTsDir = new CMenuForwarder(LOCALE_RECORDINGMENU_TSDIR, !recstatus, g_settings.timeshiftdir, this, "timeshiftdir");
 	fTsDir->setHint("", LOCALE_MENU_HINT_RECORD_TDIR);
 	menu_ts->addItem(fTsDir);
 
-	CMenuOptionChooser * mc = new CMenuOptionChooser(LOCALE_EXTRA_TIMESHIFT_PAUSE, &g_settings.timeshift_pause, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true);
-	mc->setHint("", LOCALE_MENU_HINT_RECORD_TIMESHIFT_PAUSE);
-	menu_ts->addItem(mc);
+	if (1) //has_hdd
+	{
+		CMenuOptionChooser * mc = new CMenuOptionChooser(LOCALE_EXTRA_TIMESHIFT_PAUSE, &g_settings.timeshift_pause, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true);
+		mc->setHint("", LOCALE_MENU_HINT_RECORD_TIMESHIFT_PAUSE);
+		menu_ts->addItem(mc);
 
-	CMenuOptionNumberChooser * mn = new CMenuOptionNumberChooser(LOCALE_EXTRA_AUTO_TIMESHIFT, &g_settings.auto_timeshift, true, 0, 300, NULL);
-	mn->setHint("", LOCALE_MENU_HINT_RECORD_TIMESHIFT_AUTO);
-	menu_ts->addItem(mn);
+		CMenuOptionNumberChooser * mn = new CMenuOptionNumberChooser(LOCALE_EXTRA_AUTO_TIMESHIFT, &g_settings.auto_timeshift, true, 0, 300, NULL);
+		mn->setHint("", LOCALE_MENU_HINT_RECORD_TIMESHIFT_AUTO);
+		menu_ts->addItem(mn);
 
-	mc = new CMenuOptionChooser(LOCALE_EXTRA_AUTO_DELETE, &g_settings.auto_delete, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true);
-	mc->setHint("", LOCALE_MENU_HINT_RECORD_TIMESHIFT_DELETE);
-	menu_ts->addItem(mc);
+		mc = new CMenuOptionChooser(LOCALE_EXTRA_AUTO_DELETE, &g_settings.auto_delete, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true);
+		mc->setHint("", LOCALE_MENU_HINT_RECORD_TIMESHIFT_DELETE);
+		menu_ts->addItem(mc);
 
-	mc = new CMenuOptionChooser(LOCALE_EXTRA_TEMP_TIMESHIFT, &g_settings.temp_timeshift, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true);
-	mc->setHint("", LOCALE_MENU_HINT_RECORD_TIMESHIFT_TEMP);
-	menu_ts->addItem(mc);
+		mc = new CMenuOptionChooser(LOCALE_EXTRA_TEMP_TIMESHIFT, &g_settings.temp_timeshift, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true);
+		mc->setHint("", LOCALE_MENU_HINT_RECORD_TIMESHIFT_TEMP);
+		menu_ts->addItem(mc);
 
-	//rec hours
-	mn = new CMenuOptionNumberChooser(LOCALE_EXTRA_RECORD_TIME_TS, &g_settings.timeshift_hours, true, 1, 24, NULL);
-	mn->setNumberFormat(std::string("%d ") + g_Locale->getText(LOCALE_UNIT_SHORT_HOUR));
-	mn->setHint("", LOCALE_MENU_HINT_RECORD_TIME_TS);
-	menu_ts->addItem(mn);
+		//rec hours
+		mn = new CMenuOptionNumberChooser(LOCALE_EXTRA_RECORD_TIME_TS, &g_settings.timeshift_hours, true, 1, 24, NULL);
+		mn->setNumberFormat(std::string("%d ") + g_Locale->getText(LOCALE_UNIT_SHORT_HOUR));
+		mn->setHint("", LOCALE_MENU_HINT_RECORD_TIME_TS);
+		menu_ts->addItem(mn);
+	}
 }
 
 bool CRecordSetup::changeNotify(const neutrino_locale_t OptionName, void * /*data*/)
