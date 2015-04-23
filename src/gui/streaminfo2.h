@@ -36,7 +36,7 @@ class CStreamInfo2 : public CMenuTarget
 
 		CFrameBuffer	*frameBuffer;
 		CFrontend	*frontend;
-		CComponentsPIP  *pip;
+		CComponentsPIP  * pip;
 		int x;
 		int y;
 		int width;
