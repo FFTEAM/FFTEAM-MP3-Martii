@@ -88,6 +88,7 @@ libneutrino_gui_a_SOURCES = \
 	record_setup.cpp \
 	scan.cpp \
 	scan_setup.cpp \
+	screensaver.cpp \
 	screensetup.cpp \
 	settings_manager.cpp \
 	sleeptimer.cpp \
@@ -113,11 +114,10 @@ libneutrino_gui_a_SOURCES += \
 	psisetup.cpp
 endif
 
-if !BOXTYPE_SPARK
+if BOXTYPE_DUCKBOX
 libneutrino_gui_a_SOURCES += \
-	update.cpp \
-	update_menue.cpp \
-	update_settings.cpp
+	3dsetup.cpp \
+	psisetup.cpp
 endif
 
 if ENABLE_GRAPHLCD
