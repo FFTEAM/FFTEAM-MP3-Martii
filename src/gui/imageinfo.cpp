@@ -208,7 +208,7 @@ void CImageInfo::ShowWindow()
 	InitInfoText(getLicenseText());
 
 	//paint window
-	cc_win->paint();
+	cc_win->paint(CC_SAVE_SCREEN_NO);
 }
 
 //prepare minitv
@@ -270,15 +270,19 @@ void CImageInfo::InitInfoData()
 
 	image_info_t imagename 	= {LOCALE_IMAGEINFO_IMAGE,	config.getString("imagename", "Neutrino-MP3")};
 	v_info.push_back(imagename);
-	image_info_t date	= {LOCALE_IMAGEINFO_DATE,	builddate};
-	v_info.push_back(date);
 	image_info_t version	= {LOCALE_IMAGEINFO_VERSION,	version_string};
 	v_info.push_back(version);
+#ifdef VCS
+	image_info_t vcs	= {LOCALE_IMAGEINFO_VCS,	VCS};
+	v_info.push_back(vcs);
+#endif
+	image_info_t date	= {LOCALE_IMAGEINFO_DATE,	builddate};
+	v_info.push_back(date);
 	if (uname(&uts_info) == 0) {
 		image_info_t kernel	= {LOCALE_IMAGEINFO_KERNEL,	uts_info.release};
 		v_info.push_back(kernel);
 	}
-	image_info_t creator	= {LOCALE_IMAGEINFO_CREATOR,	config.getString("creator", "Thomas")};
+	image_info_t creator	= {LOCALE_IMAGEINFO_CREATOR,	config.getString("creator", "n/a")};
 	v_info.push_back(creator);
 	image_info_t www	= {LOCALE_IMAGEINFO_HOMEPAGE,	config.getString("homepage", "http://www.familienforum.biz")};
 	v_info.push_back(www);
@@ -344,6 +348,13 @@ string CImageInfo::getLicenseText()
 	CComponentsText txt;
 	string res = txt.getTextFromFile(file);
 
+	//assign default text, if language file is not available
+	if(res.empty()){
+		file = LICENSEDIR;
+		file += "deutsch.license";
+		res = txt.getTextFromFile(file);
+	}
+
 	return res;
 }
 
@@ -371,6 +382,7 @@ void CImageInfo::InitInfoText(const std::string& text)
 		cc_lic = new CComponentsInfoBox(CC_CENTERED, CC_APPEND, w_body-2*item_offset, h_txt);
 	cc_lic->setSpaceOffset(1);
 	cc_lic->setText(text, CTextBox::TOP | CTextBox::AUTO_WIDTH | CTextBox::SCROLL, g_Font[SNeutrinoSettings::FONT_TYPE_MENU_HINT]);
+	cc_lic->doPaintTextBoxBg(true);
 
 	//add text to container
 	if (!cc_lic->isAdded())
@@ -384,12 +396,12 @@ void CImageInfo::ScrollLic(bool scrollDown)
 		//get the textbox instance from infobox object and use CTexBbox scroll methods
 		CTextBox* ctb = cc_lic->cctext->getCTextBoxObject();
 		if (ctb) {
-			ctb->enableBackgroundPaint(true);
+			//ctb->enableBackgroundPaint(true);
 			if (scrollDown)
 				ctb->scrollPageDown(1);
 			else
 				ctb->scrollPageUp(1);
-			ctb->enableBackgroundPaint(false);
+			//ctb->enableBackgroundPaint(false);
 		}
 	}
 }
@@ -398,7 +410,7 @@ void CImageInfo::hide()
 {
 	printf("[CImageInfo]   [%s - %d] hide...\n", __FUNCTION__, __LINE__);
 	if (cc_win){
-		cc_win->hide();
+		cc_win->kill();
 		Clean();
 		CFrameBuffer::getInstance()->blit();
 	}
