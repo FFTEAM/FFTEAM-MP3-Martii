@@ -41,9 +41,9 @@
 
 #include <daemonc/remotecontrol.h>
 
+#include <driver/display.h>
 #include <driver/fontrenderer.h>
 #include <driver/rcinput.h>
-#include <driver/display.h>
 
 #include <gui/audiomute.h>
 
@@ -64,7 +64,6 @@
 #include <gui/widget/helpbox.h>
 #include <gui/widget/stringinput.h>
 #include <driver/screen_max.h>
-#include <driver/display.h>
 
 #include <system/helpers.h>
 #include <system/settings.h>
@@ -556,6 +555,12 @@ int CPictureViewerGui::show()
 					update=true;
 				}
 			}
+#if HAVE_SPARK_HARDWARE
+			else
+			{
+				m_viewer->Zoom(0.0); // Reset original view
+			}
+#endif
 		}
 		else if ( msg == CRCInput::RC_6 )
 		{
