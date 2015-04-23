@@ -85,7 +85,6 @@ class CMoviePlayerGui : public CMenuTarget
 	std::string    	currentaudioname;
 	bool		playing;
 	bool		time_forced;
-	bool		update_lcd;
 	CMoviePlayerGui::state playstate;
 	int speed;
 	int startposition;
@@ -105,7 +104,6 @@ class CMoviePlayerGui : public CMenuTarget
 	unsigned int ac3flags[REC_MAX_APIDS];
 #endif
 	int currentapid, currentac3;
-	bool probePids;
 	AUDIO_FORMAT StreamType;
 	repeat_mode_enum repeat_mode;
 
