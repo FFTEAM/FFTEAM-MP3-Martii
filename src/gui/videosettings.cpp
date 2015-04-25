@@ -51,8 +51,8 @@
 #include <gui/widget/colorchooser.h>
 #endif
 
-#include <driver/screen_max.h>
 #include <driver/display.h>
+#include <driver/screen_max.h>
 
 #include <daemonc/remotecontrol.h>
 
@@ -64,6 +64,10 @@
 #include <zapit/zapit.h>
 #include "3dsetup.h"
 #include "screensetup.h"
+#endif
+
+#ifdef BOXMODEL_APOLLO
+#include <cnxtfb.h>
 #endif
 
 extern cVideo *videoDecoder;
@@ -111,8 +115,8 @@ int CVideoSettings::exec(CMenuTarget* parent, const std::string &/*actionKey*/)
 	return res;
 }
 
-#define VIDEOMENU_43MODE_OPTION_COUNT 4
-const CMenuOptionChooser::keyval VIDEOMENU_43MODE_OPTIONS[VIDEOMENU_43MODE_OPTION_COUNT] =
+#define VIDEOMENU_43MODE_OPTION_COUNT (sizeof(VIDEOMENU_43MODE_OPTIONS)/sizeof(CMenuOptionChooser::keyval))
+const CMenuOptionChooser::keyval VIDEOMENU_43MODE_OPTIONS[] =
 {
 	{ DISPLAY_AR_MODE_PANSCAN, LOCALE_VIDEOMENU_PANSCAN },
 	{ DISPLAY_AR_MODE_PANSCAN2, LOCALE_VIDEOMENU_PANSCAN2 },
@@ -121,14 +125,12 @@ const CMenuOptionChooser::keyval VIDEOMENU_43MODE_OPTIONS[VIDEOMENU_43MODE_OPTIO
 	//{ 2, LOCALE_VIDEOMENU_AUTO } // whatever is this auto mode, it seems its totally broken
 };
 
-#ifndef BOXMODEL_APOLLO
 #define VIDEOMENU_VIDEOSIGNAL_TD_OPTION_COUNT 2
 const CMenuOptionChooser::keyval VIDEOMENU_VIDEOSIGNAL_TD_OPTIONS[VIDEOMENU_VIDEOSIGNAL_TD_OPTION_COUNT] =
 {
 	{ ANALOG_SD_RGB_SCART,   LOCALE_VIDEOMENU_ANALOG_SD_RGB_SCART   },
 	{ ANALOG_SD_YPRPB_SCART, LOCALE_VIDEOMENU_ANALOG_SD_YPRPB_SCART }
 };
-#endif
 
 #if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 #define VIDEOMENU_COLORFORMAT_TDT_ANALOG_OPTION_COUNT 4
@@ -267,7 +269,9 @@ CMenuOptionChooser::keyval_ext VIDEOMENU_VIDEOMODE_OPTIONS[VIDEOMENU_VIDEOMODE_O
 	{ VIDEO_STD_1080I60, NONEXISTANT_LOCALE, "1080i 60Hz"	},
 #ifdef BOXMODEL_APOLLO
 	/* TODO: fix this crap */
-	{ VIDEO_STD_1080P60, NONEXISTANT_LOCALE, "1080p 60Hz"	},
+	{ VIDEO_STD_1080P60,   NONEXISTANT_LOCALE, "1080p 60Hz"	},
+	{ VIDEO_STD_1080P2397, NONEXISTANT_LOCALE, "1080p 23.97Hz"},
+	{ VIDEO_STD_1080P2997, NONEXISTANT_LOCALE, "1080p 29.97Hz"},
 #endif
 	{ VIDEO_STD_AUTO,    NONEXISTANT_LOCALE, "Auto"         }
 };
@@ -359,9 +363,9 @@ int CVideoSettings::showVideoSetup()
 	CMenuOptionChooser * vs_colorformat_hdmi = NULL;
 
 #if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
-	vs_colorformat_analog = new CMenuOptionChooser(LOCALE_VIDEOMENU_COLORFORMAT_ANALOG, &g_settings.analog_mode1, VIDEOMENU_COLORFORMAT_TDT_ANALOG_OPTIONS, VIDEOMENU_COLORFORMAT_TDT_ANALOG_OPTION_COUNT, true, this, CRCInput::RC_nokey, "", true);
+	vs_colorformat_analog = new CMenuOptionChooser(LOCALE_VIDEOMENU_COLORFORMAT_ANALOG, &g_settings.analog_mode1, VIDEOMENU_COLORFORMAT_TDT_ANALOG_OPTIONS, VIDEOMENU_COLORFORMAT_TDT_ANALOG_OPTION_COUNT, true, this);
 	vs_colorformat_analog->setHint("", LOCALE_MENU_HINT_VIDEO_COLORFORMAT_ANALOG);
-	vs_colorformat_hdmi = new CMenuOptionChooser(LOCALE_VIDEOMENU_COLORFORMAT_HDMI, &g_settings.hdmi_mode, VIDEOMENU_COLORFORMAT_TDT_HDMI_OPTIONS, VIDEOMENU_COLORFORMAT_TDT_HDMI_OPTION_COUNT, true, this, CRCInput::RC_nokey, "", true);
+	vs_colorformat_hdmi = new CMenuOptionChooser(LOCALE_VIDEOMENU_COLORFORMAT_HDMI, &g_settings.hdmi_mode, VIDEOMENU_COLORFORMAT_TDT_HDMI_OPTIONS, VIDEOMENU_COLORFORMAT_TDT_HDMI_OPTION_COUNT, true, this);
 	vs_colorformat_hdmi->setHint("", LOCALE_MENU_HINT_VIDEO_COLORFORMAT_HDMI);
 #else
 	if (system_rev == 0x06)
@@ -386,12 +390,10 @@ int CVideoSettings::showVideoSetup()
 			vs_chinch_ch->setHint("", LOCALE_MENU_HINT_VIDEO_CINCH_MODE);
 		}
 	}
-#ifndef BOXMODEL_APOLLO
 	else if (g_info.hw_caps->has_SCART) /* TRIPLEDRAGON hack... :-) */
 	{
 		vs_scart_ch = new CMenuOptionChooser(LOCALE_VIDEOMENU_SCART, &g_settings.analog_mode1, VIDEOMENU_VIDEOSIGNAL_TD_OPTIONS, VIDEOMENU_VIDEOSIGNAL_TD_OPTION_COUNT, true, this);
 	}
-#endif
 #endif
 
 	//4:3 mode
@@ -426,8 +428,18 @@ int CVideoSettings::showVideoSetup()
 			if (VIDEOMENU_VIDEOMODE_OPTIONS[i].key != -1)
 				videomodes.addItem(new CMenuOptionChooser(VIDEOMENU_VIDEOMODE_OPTIONS[i].valname, &g_settings.enabled_video_modes[i], OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true, &anotify));
 
-		vs_videomodes_fw = new CMenuForwarder(LOCALE_VIDEOMENU_ENABLED_MODES, true, NULL, &videomodes, NULL, (neutrino_msg_t) g_settings.key_switchformat);
+		vs_videomodes_fw = new CMenuForwarder(LOCALE_VIDEOMENU_ENABLED_MODES, true, NULL, &videomodes, NULL, CRCInput::RC_mode);
 		vs_videomodes_fw->setHint("", LOCALE_MENU_HINT_VIDEO_MODES);
+
+#ifdef BOXMODEL_APOLLO
+		automodes.addIntroItems(LOCALE_VIDEOMENU_ENABLED_MODES_AUTO);
+
+		for (int i = 0; i < VIDEOMENU_VIDEOMODE_OPTION_COUNT - 1; i++)
+			automodes.addItem(new CMenuOptionChooser(VIDEOMENU_VIDEOMODE_OPTIONS[i].valname, &g_settings.enabled_auto_modes[i], OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true, &anotify));
+
+		vs_automodes_fw = new CMenuForwarder(LOCALE_VIDEOMENU_ENABLED_MODES_AUTO, true, NULL, &automodes, NULL, CRCInput::RC_green);
+		vs_automodes_fw->setHint("", LOCALE_MENU_HINT_VIDEO_MODES_AUTO);
+#endif
 	}
 
 	if (vs_colorformat_analog || vs_colorformat_hdmi) {
@@ -460,8 +472,12 @@ int CVideoSettings::showVideoSetup()
 	videosetup->addItem(vs_videomodes_ch);	  //video system
 	if (vs_dbdropt_ch != NULL)
 		videosetup->addItem(vs_dbdropt_ch);	  //dbdr options
-	if (vs_videomodes_fw != NULL)
+	if (vs_videomodes_fw != NULL) {
 		videosetup->addItem(vs_videomodes_fw);	  //video modes submenue
+#ifdef BOXMODEL_APOLLO
+		videosetup->addItem(vs_automodes_fw);	  //video auto modes submenue
+#endif
+	}
 
 #if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	CColorSetupNotifier *colorSetupNotifier = new CColorSetupNotifier();
@@ -510,6 +526,11 @@ int CVideoSettings::showVideoSetup()
 	mf->setHint("", LOCALE_MENU_HINT_VIDEO_THREE_D);
 	videosetup->addItem(mf);
 
+	CScreenSetup channelScreenSetup;
+	channelScreenSetup.loadBorder(CZapit::getInstance()->GetCurrentChannelID());
+	mf = new CMenuForwarder(LOCALE_VIDEOMENU_MASKSETUP, true, NULL, &channelScreenSetup, NULL, CRCInput::RC_yellow);
+	mf->setHint("", LOCALE_MENU_HINT_VIDEO_MASK);
+	videosetup->addItem(mf);
 #endif
 #ifdef BOXMODEL_APOLLO
 	/* values are from -128 to 127, but brightness really no sense after +/- 40. changeNotify multiply contrast and saturation to 3 */
@@ -522,6 +543,10 @@ int CVideoSettings::showVideoSetup()
 	videosetup->addItem(bcont);
 	videosetup->addItem(ccont);
 	videosetup->addItem(scont);
+
+	CMenuOptionChooser * sd = new CMenuOptionChooser(LOCALE_VIDEOMENU_SDOSD, &g_settings.enable_sd_osd, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true, this);
+	sd->setHint("", LOCALE_MENU_HINT_VIDEO_SDOSD);
+	videosetup->addItem(sd);
 #endif
 #ifdef ENABLE_PIP
 	CPipSetup pip;
@@ -567,10 +592,6 @@ void CVideoSettings::setVideoSettings()
 #endif
 	//setupVideoSystem(false/*don't ask*/);// focus: CVideoSettings constructor do this already ?
 
-#if 0
-	videoDecoder->setAspectRatio(-1, g_settings.video_43mode);
-	videoDecoder->setAspectRatio(g_settings.video_Format, -1);
-#endif
 	videoDecoder->setAspectRatio(g_settings.video_Format, g_settings.video_43mode);
 #ifdef ENABLE_PIP
 	pipDecoder->setAspectRatio(g_settings.video_Format, g_settings.video_43mode);
@@ -583,6 +604,7 @@ void CVideoSettings::setVideoSettings()
 	changeNotify(LOCALE_VIDEOMENU_BRIGHTNESS, NULL);
 	changeNotify(LOCALE_VIDEOMENU_CONTRAST, NULL);
 	changeNotify(LOCALE_VIDEOMENU_SATURATION, NULL);
+	changeNotify(LOCALE_VIDEOMENU_SDOSD, NULL);
 #endif
 #if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	frameBuffer->setMixerColor(g_settings.video_mixer_color);
@@ -642,6 +664,9 @@ bool CVideoSettings::changeNotify(const neutrino_locale_t OptionName, void * /* 
 	{
 		videoDecoder->SetDBDR(g_settings.video_dbdr);
 	}
+	else if (ARE_LOCALES_EQUAL(OptionName, LOCALE_VIDEOMENU_VCRSIGNAL))
+	{
+	}
 	else if (ARE_LOCALES_EQUAL(OptionName, LOCALE_VIDEOMENU_VIDEOFORMAT) ||
 			ARE_LOCALES_EQUAL(OptionName, LOCALE_VIDEOMENU_43MODE))
 	{
@@ -671,6 +696,14 @@ bool CVideoSettings::changeNotify(const neutrino_locale_t OptionName, void * /* 
 	{
 		videoDecoder->SetControl(VIDEO_CONTROL_SATURATION, g_settings.saturation*3);
 	}
+        else if (ARE_LOCALES_EQUAL(OptionName, LOCALE_VIDEOMENU_SDOSD))
+	{
+		int val = g_settings.enable_sd_osd;
+		printf("SD OSD enable: %d\n", val);
+		int fd = CFrameBuffer::getInstance()->getFileHandle();
+		if (ioctl(fd, FBIO_SCALE_SD_OSD, &val))
+			perror("FBIO_SCALE_SD_OSD");
+	}
 #endif
 #if 0
         else if (ARE_LOCALES_EQUAL(OptionName, LOCALE_VIDEOMENU_SHARPNESS))
@@ -699,14 +732,14 @@ void CVideoSettings::next43Mode(void)
 	neutrino_locale_t text;
 	int curmode = 0;
 
-	for (int i = 0; i < VIDEOMENU_43MODE_OPTION_COUNT; i++) {
+	for (int i = 0; i < (int) VIDEOMENU_43MODE_OPTION_COUNT; i++) {
 		if (VIDEOMENU_43MODE_OPTIONS[i].key == g_settings.video_43mode) {
 			curmode = i;
 			break;
 		}
 	}
 	curmode++;
-	if (curmode >= VIDEOMENU_43MODE_OPTION_COUNT)
+	if (curmode >= (int) VIDEOMENU_43MODE_OPTION_COUNT)
 		curmode = 0;
 
 	text =  VIDEOMENU_43MODE_OPTIONS[curmode].value;
