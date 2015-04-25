@@ -916,12 +916,12 @@ bool CMoviePlayerGui::PlayFileStart(void)
 		duration = p_movie_info->length * 60 * 1000;
 		int percent = CZapit::getInstance()->GetPidVolume(p_movie_info->epgId, currentapid, currentac3 == 1);
 		CZapit::getInstance()->SetVolumePercent(percent);
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 		CScreenSetup cSS;
 		cSS.showBorder(p_movie_info->epgId);
 #endif
 	} else {
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 		CScreenSetup cSS;
 		cSS.showBorder(0);
 #endif
@@ -1243,7 +1243,7 @@ void CMoviePlayerGui::PlayFileLoop(void)
 			if (timeshift == TSHIFT_MODE_OFF)
 				callInfoViewer();
 		} else if (msg == (neutrino_msg_t) g_settings.mpkey_bookmark) {
-			handleMovieBrowser((neutrino_msg_t) g_settings.mpkey_bookmark, position);
+				handleMovieBrowser((neutrino_msg_t) g_settings.mpkey_bookmark, position);
 			update_lcd = true;
 #if 0
 			clearSubtitle();
@@ -1613,9 +1613,11 @@ void CMoviePlayerGui::addAudioFormat(int count, std::string &apidtitle, bool& en
 void CMoviePlayerGui::getCurrentAudioName( bool file_player, std::string &audioname)
 {
 	numpida = REC_MAX_APIDS;
-	playback->FindAllPids(apids, ac3flags, &numpida, language);
+	if (file_player && !numpida) {
+		playback->FindAllPids(apids, ac3flags, &numpida, language);
 	if (numpida && !currentapid)
 		currentapid = apids[0];
+	}
 	for (unsigned int count = 0; count < numpida; count++)
 		if(currentapid == apids[count]){
 			if (getAudioName(apids[count], audioname))
