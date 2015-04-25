@@ -260,7 +260,7 @@ CyExplorer.prototype = {
 			}
 		}
 		else
-			alert("nothing to paste");
+			alert("{=L:nothingtopaste=}");
 	}	
 	
 };
@@ -323,7 +323,7 @@ function show_prop(){
 //		$$('.detail_title','.detail_content').invoke('show');
 	}
 	else {
-		$('item').update("nothing selected");
+		$('item').update("{=L:nothingselected=}");
 //		$('prop','prop_toolbar').invoke('hide');
 		$('prop_toolbar').hide();
 		$('details').hide();
@@ -546,7 +546,7 @@ function do_paste(){
 function do_download(){
 	var res = loadSyncURL("/y/cgi?execute=script:Y_NAS%20nhttpd_can_sendall");
 	if(res=="")
-		alert("Um aller Dateitypen senden zu können, muss unter Settings->Webserver die Option >alle Dateiendungen erlauben< aktiviert werden!");
+		alert("{=L:alertinordertosendallfiletypesyouhavetoselectandenableundersettingswebserverallowallfileextensions=}");
 	else
 		window.open(explorer.build_fname());
 }
@@ -554,10 +554,10 @@ function do_edit(){
 	if($F('ftype') != "d")
 		window.open("/Y_Filemgr_Edit.yhtm?file="+explorer.build_fname(),"edit", "width=800,height=600,resizable=yes");
 	else
-		alert("you can not edit a directory");
+		alert("{=L:alertyoucannoteditadirectory=}");
 }
 function ni() {
-	alert("not implemented");
+	alert("{=L:alertnotimplemented=}");
 }
 //]]>
 </script>
@@ -574,31 +574,31 @@ function ni() {
 		<td width="60%" class="box">
 			<table class="toolbar" cellspacing="1" cellpadding="1">
 			<tr>
-				<td title="go to top dir"><a href='javascript:do_dirview("/")'><img src="/images/home.png"/></a></td>
-				<td title="go one dir up"><a href='javascript:do_go_up_dir()'><img src="/images/dir_up.png"/></a></td>
-				<td title="refresh"><a href='javascript:refresh_dirview()'><img src="/images/reload.png"/></a></td>
-				<td title="add folder here"><a href='javascript:add_folder_dialog()'><img src="/images/folder_add.png"/></a></td>
-				<td title="upload"><a href='javascript:upload_dialog()'><img src="/images/upload.png"/></a></td>
-				<td title="paste item"><a href="javascript:do_paste()"><img src="/images/paste.gif"/></a></td>
+				<td title="{=L:gototopdir=}"><a href='javascript:do_dirview("/")'><img src="/images/home.png"/></a></td>
+				<td title="{=L:goonedirup=}"><a href='javascript:do_go_up_dir()'><img src="/images/dir_up.png"/></a></td>
+				<td title="{=L:refresh=}"><a href='javascript:refresh_dirview()'><img src="/images/reload.png"/></a></td>
+				<td title="{=L:addfolderhere=}"><a href='javascript:add_folder_dialog()'><img src="/images/folder_add.png"/></a></td>
+				<td title="{=L:uploadc=}"><a href='javascript:upload_dialog()'><img src="/images/upload.png"/></a></td>
+				<td title="{=L:pasteitem=}"><a href="javascript:do_paste()"><img src="/images/paste.gif"/></a></td>
 			</tr>
 			</table>
 		</td>
 		<td class="box">
 			<table id="prop_toolbar" class="toolbar" cellspacing="1" cellpadding="1" style="display:none">
 			<tr>
-				<td title="delete item"><a href="javascript:do_delete()"><img src="/images/cross.png"/></a></td>
-				<td title="copy item"><a href="javascript:do_copy()"><img src="/images/copy.gif"/></a></td>
-				<td title="cut item"><a href="javascript:do_cut()"><img src="/images/cut.png"/></a></td>
-				<td title="download item"><a href="javascript:do_download()"><img src="/images/download.png"/></a></td>
-				<td title="Edit item"><a href="javascript:do_edit()"><img src="/images/page_edit.png"/></a></td>
+				<td title="{=L:deleteitem=}"><a href="javascript:do_delete()"><img src="/images/cross.png"/></a></td>
+				<td title="{=L:copyitem=}"><a href="javascript:do_copy()"><img src="/images/copy.gif"/></a></td>
+				<td title="{=L:cutitem=}"><a href="javascript:do_cut()"><img src="/images/cut.png"/></a></td>
+				<td title="{=L:downloaditem=}"><a href="javascript:do_download()"><img src="/images/download.png"/></a></td>
+				<td title="{=L:edititem=}"><a href="javascript:do_edit()"><img src="/images/page_edit.png"/></a></td>
 			</tr>
 			</table>
 		</td>
 	</tr>
 	<!-- path and item -->
 	<tr>
-		<td class="box" title="path"><div id="path"></div></td>
-		<td class="box" title="selected item"><div id="item" style="overflow:hidden"></div></td>
+		<td class="box" title="{=L:path=}"><div id="path"></div></td>
+		<td class="box" title="{=L:selecteditem=}"><div id="item" style="overflow:hidden"></div></td>
 	</tr>
 	<!-- filelist and props -->
 	<tr>
@@ -621,40 +621,40 @@ function ni() {
 				<div class="detail_title">File properties</div>
 				<div class="detail_content" id="fprop">
 					<table cellspacing="0" cellpadding="1" border="0">
-					<tr><td>Date:</td><td colspan="3"><div id="fdate"></div></td></tr>
-					<tr><td>Size:</td><td colspan="3"><div id="fsize"></div></td></tr>
-					<tr><td>User:</td><td colspan="3"><div id="fuser"></div></td></tr>
-					<tr><td>Group:</td><td colspan="3"><div id="fgroup"></div></td></tr>
+					<tr><td>{=L:date=}:</td><td colspan="3"><div id="fdate"></div></td></tr>
+					<tr><td>{=L:size=}:</td><td colspan="3"><div id="fsize"></div></td></tr>
+					<tr><td>{=L:user=}:</td><td colspan="3"><div id="fuser"></div></td></tr>
+					<tr><td>{=L:group=}:</td><td colspan="3"><div id="fgroup"></div></td></tr>
 					</table>
 				</div>
-				<div class="detail_title">File permissions</div>
+				<div class="detail_title">{=L:filepermissions=}</div>
 				<div class="detail_content">
 					<!-- permissions -->
 					<form method="" name="edit" action="" >
 					<input type="hidden" id="ftype" name="ftype" value=""/>
 					<table cellspacing="0" cellpadding="1" border="0">
-					<tr><td>Permission</td><td>read</td><td>write</td><td>exe</td></tr>
-					<tr><td>Owner:</td>
+					<tr><td>{=L:permission=}</td><td>{=L:read=}</td><td>{=L:write=}</td><td>exe</td></tr>
+					<tr><td>{=L:owner=}:</td>
 						<td><input type="checkbox" name="ur" value="" onclick="calc_chmod()"/></td>
 						<td><input type="checkbox" name="uw" value="" onclick="calc_chmod()"/></td>
 						<td><input type="checkbox" name="ux" value="" onclick="calc_chmod()"/></td>
 					</tr>
-					<tr><td>Group:</td>
+					<tr><td>{=L:group=}:</td>
 						<td><input type="checkbox" name="gr" value="" onclick="calc_chmod()"/></td>
 						<td><input type="checkbox" name="gw" value="" onclick="calc_chmod()"/></td>
 						<td><input type="checkbox" name="gx" value="" onclick="calc_chmod()"/></td>
 					</tr>
-					<tr><td>Others:</td>
+					<tr><td>{=L:others=}:</td>
 						<td><input type="checkbox" name="or" value="" onclick="calc_chmod()"/></td>
 						<td><input type="checkbox" name="ow" value="" onclick="calc_chmod()"/></td>
 						<td><input type="checkbox" name="ox" value="" onclick="calc_chmod()"/></td>
 					</tr>
 					<tr><td>chmod:</td><td colspan="3"><input type="text" id="chmod" name="chmod" value="" size="3"/>
 						<input type="checkbox" name="rec" value="">recursiv
-						<span class="button" title="change permissions" onclick="do_chmod()"><img src="/images/chmod.png"></span>
+						<span class="button" title="{=L:changepermissions=}" onclick="do_chmod()"><img src="/images/chmod.png"></span>
 					</td></tr>
-					<tr><td>Item:</td><td colspan="3"><input type="text" size="20" id="fitem" name="fitem" />
-						<span class="button" title="rename"><a href='javascript:do_rename()'><img src="/images/rename.gif"/></a></span>
+					<tr><td>{=L:item=}:</td><td colspan="3"><input type="text" size="20" id="fitem" name="fitem" />
+						<span class="button" title="{=L:rename=}"><a href='javascript:do_rename()'><img src="/images/rename.gif"/></a></span>
 					</td></tr>
 					<tr><td colspan="4" align="right">
 						&nbsp;
@@ -673,12 +673,12 @@ function ni() {
 				<form name="add_folder" accept-charset="UTF-8" action="">
 				<table class="diag" cellspacing="0" cellpadding="1" border="0">
 				<tr><td>
-					Add folder:<br/>
+					{=L:addfolder=}<br/>
 					<input type="text" size="30" id="folder" name="folder" />
 				</td></tr>
 				<tr><td align="right">
-					<input type="button" value="save" onclick="do_add_folder()" />
-					<input type="button" value="cancel" onclick="show_prop()" />
+					<input type="button" value="{=L:save=}" onclick="do_add_folder()" />
+					<input type="button" value="{=L:cancel=}" onclick="show_prop()" />
 				</td></tr>
 				</table>
 				</form>
@@ -687,7 +687,7 @@ function ni() {
 			<div id="upload_diag" style="display:none">
 				<form method="post" name="upload" enctype="multipart/form-data" action="/y/cgi">
 					<table class="diag" cellspacing="0" cellpadding="1" border="0">
-					<tr><td>Upload Filename:</td></tr>
+					<tr><td>{=L:uploadfilename=}</td></tr>
 					<tr><td><input type="file" name="file" size="20"/></td></tr>
 					<tr><td align="right">
 						<input type="hidden" name="dummy" value="/"/>
@@ -695,8 +695,8 @@ function ni() {
 						<input type="hidden" name="tmpl" value="/Y_Filemgr.yhtm"/>
 						<input type="hidden" name="execute" value=""/>
 			
-						<input type="button" value="upload" name="su" onclick="do_upload()"/>
-						<input type="button" value="cancel" onclick="show_prop();" />
+						<input type="button" value="{=L:uploadc=}" name="su" onclick="do_upload()"/>
+						<input type="button" value="{=L:cancel=}" onclick="show_prop();" />
 					</td></tr>
 					</table>
 				</form>
@@ -710,8 +710,8 @@ function ni() {
 		<td colspan="2" class="box">
 			<table border="0" cellspacing="1" cellpadding="1" width="100%">
 			<tr>
-				<td title="work indicator" width="20px"><div id="work" style="display:none"><img src="/images/work.gif"/></div></td>
-				<td title="statusline"><div id="msg">message in statusline</div></td>
+				<td title="{=L:workindicator=}" width="20px"><div id="work" style="display:none"><img src="/images/work.gif"/></div></td>
+				<td title="{=L:statusline=}"><div id="msg">{=L:messageinstatusline=}</div></td>
 			</tr>
 			</table>
 		</td>

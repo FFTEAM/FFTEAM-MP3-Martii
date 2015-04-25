@@ -24,21 +24,21 @@ function do_submit()
 	<form name="f" action="">
 		<table border="0">
 			<tr>
-				<td>Server</td>
-				<td><input type="text" name="server" size="20" value="{=ini-get:/var/tuxbox/config/vnc.conf;server=}" title="enter IP (xxx.xxx.xxx.xxx)"/></td>
+				<td>{=L:server=}</td>
+				<td><input type="text" name="server" size="20" value="{=ini-get:/var/tuxbox/config/vnc.conf;server=}" title="{=L:enterip=}"/></td>
 			</tr>
 			<tr>
-				<td>Port</td>
+				<td>{=L:port=}</td>
 				<td><input type="text" name="port" size="5" value="{=ini-get:/var/tuxbox/config/vnc.conf;port=}"/></td>
 			</tr>
 			<tr>
-				<td>Passwort</td>
+				<td>{=L:password=}</td>
 				<td><input type="password" name="password" size="20" value="{=ini-get:/var/tuxbox/config/vnc.conf;passwd=}"/></td>
 			</tr>
 			<tr>
-				<td>Skalierung</td>
+				<td>{=L:scale=}</td>
 				<td>
-				<select name="scale" title="enter scale for Screen">
+				<select name="scale" title="{=L:enterscaleforscreen=}">
 				<option value="1">1</option>
 				<option value="2">2</option>
 				<option value="3">3</option>
@@ -50,7 +50,7 @@ function do_submit()
 		<br/>
 		<input type="hidden" name="tmpl" value="Y_Settings_nhttpd.yhtm"/>
 		<input type="hidden" name="execute" value="include-block:Y_Blocks.txt;vnc_save_settings;nix"/>
-		<button type="button" ytype="save" title="submit and save values" onclick="do_submit()">Speichern</button>
+		<button type="button" ytype="save" title="{=L:submitsavevalues=}" onclick="do_submit()">{=L:save=}</button>
 	</form>
 	</div>
 </div>

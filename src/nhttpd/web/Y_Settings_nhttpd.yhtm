@@ -9,8 +9,6 @@ function form_init()
 	obj_set_radio_value('threading', "{=ini-get:/var/tuxbox/config/nhttpd.conf;webserver.threading;false=}");
 	obj_set_radio_value('mod_sendfile_sendAll', "{=ini-get:/var/tuxbox/config/nhttpd.conf;mod_sendfile.sendAll;false=}");
 	obj_set_radio_value('Tuxbox_DisplayLogos', "{=ini-get:/var/tuxbox/config/nhttpd.conf;Tuxbox.DisplayLogos;true=}"); // MARTII
-
-	do_check_input_LogosURL()
 }
 function do_submit()
 {
@@ -24,13 +22,6 @@ function do_submit()
 		yhttpd_cache_clear("");
 		document.f.submit();
 	}
-}
-function do_check_input_LogosURL()
-{
-	if(document.getElementById('Tuxbox_DisplayLogos').checked == true)
-		document.f.Tuxbox_LogosURL.readOnly = false;
-	else
-		document.f.Tuxbox_LogosURL.readOnly = true;
 }
 //]]>
 </script>
@@ -93,7 +84,7 @@ function do_check_input_LogosURL()
 			<tr>
 				<td>{=L:set.nhttpd.hosted_folder=}</td>
 				<td>
-					<input type="text" name="hosted_directory" size="20" value="{=ini-get:/var/tuxbox/config/nhttpd.conf;WebsiteMain.hosted_directory~cache=}" title="Root of hosted Web. Enter mount directory."/>&nbsp;{=L:set.nhttpd.active_after_boot=}
+					<input type="text" name="hosted_directory" size="20" value="{=ini-get:/var/tuxbox/config/nhttpd.conf;WebsiteMain.hosted_directory~cache=}" title="{=L:rootofhostedwebentermountdirectory=}"/>&nbsp;{=L:set.nhttpd.active_after_boot=}
 				</td>
 			</tr>
 			<tr>
@@ -107,6 +98,7 @@ function do_check_input_LogosURL()
 					<input type="radio" name="mod_sendfile_sendAll" value="true" />{=L:on=}
 				</td>
 			</tr>
+<!-- #ifdef MARTII -->
 			<tr>
 				<td>{=L:set.nhttpd.pid_separator=}</td>
 				<td colspan="3">
@@ -116,17 +108,19 @@ function do_check_input_LogosURL()
 					</select></td>
 				</td>
 			</tr>
+<!-- #endif -->
 			<tr><td colspan="2" class="y_form_header">{=L:logos=}</td></tr>
 			<tr>
+<!-- #ifdef MARTII -->
 				<td>{=L:set.nhttpd.display_logos=}</td>
 				<td>
-					<input type="radio" name="Tuxbox_DisplayLogos" value="false" onClick="do_check_input_LogosURL()" />{=L:off=}&nbsp;
-					<input type="radio" name="Tuxbox_DisplayLogos" value="true" onClick="do_check_input_LogosURL()" id="Tuxbox_DisplayLogos" />{=L:on=}
+					<input type="radio" name="Tuxbox_DisplayLogos" value="false" />{=L:off=}&nbsp;
+					<input type="radio" name="Tuxbox_DisplayLogos" value="true" />{=L:on=}
 				</td>
-			</tr>
-			<tr>
+<!-- #else
 				<td>{=L:set.nhttpd.url_of_logos=}</td>
 				<td><input type="text" name="Tuxbox_LogosURL" size="60" value="{=ini-get:/var/tuxbox/config/nhttpd.conf;Tuxbox.LogosURL~cache=}" title="{=L:set.nhttpd.url_of_logos_desc=}"/></td>
+     #endif -->
 			</tr>
 			<tr><td colspan="2" class="y_form_header">{=L:set.nhttpd.server=}</td></tr>
 			{=if-not-equal:{=global-var-get:boxtype=}~coolstream~

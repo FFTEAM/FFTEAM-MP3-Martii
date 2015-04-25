@@ -50,17 +50,17 @@ function do_clearshot2(){
 	<div class="work_box_head"><div class="work_box_head_h2">
 	{=var-set:help_url=Help-BoxControl-LCD_Screenshot=}{=var-set:menu=LCD Screenshot=}{=include-block:Y_Blocks.txt;work_menu=}</div></div>
 	<div class="work_box_body">
-		<button name="lcshot" ytype="shot" onclick="do_lcshot()">LCD-Shot</button>
-		<button name="clearshot" ytype="clearshot" onclick="do_clearshot()">Delete Shot</button>
+		<button name="lcshot" ytype="shot" onclick="do_lcshot()">{=L:lcdshot=}</button>
+		<button name="clearshot" ytype="clearshot" onclick="do_clearshot()">{=L:dellcdshot=}</button>
 	  	&nbsp;Filename:<input value="lcd" id="file" size="16" type="text" />.png
 		<br />
 	<form name="f" class="y_form" action="">
     <table width="100%" border="0" cellpadding="2" cellspacing="0">
         <tr>
-          <td colspan="3" class="y_form_header">Optionen</td>
+          <td colspan="3" class="y_form_header">{=L:optionen=}</td>
       </tr>
         <tr>
-          <td width="30%">Displayfarbe</td>
+          <td width="30%">{=L:displaycolor=}</td>
           <td width="20%">
 				<input type="text" id="colorBox" size="7" readonly="readonly" />
 			</td>
@@ -94,8 +94,8 @@ document.write('</tr>\n');
           </div></td>
         </tr>
         <tr>
-          <td>Zoommodus</td>
-          <td><select name="zooming" title="zoomfactor">
+          <td>{=L:zoommode=}</td>
+          <td><select name="zooming" title="{=L:zoomfactor=}">
             <option value="1">100%</option>
             <option value="2">200%</option>
             <option value="3">300%</option>
@@ -103,17 +103,17 @@ document.write('</tr>\n');
           </select></td>
         </tr>
         <tr>
-          <td>Dateiausgabe</td>
+          <td>{=L:dataoutput=}</td>
           <td><input name="compress" type="checkbox" checked="checked" />
-            komprimiert</td>
+            {=L:compressed=}</td>
         </tr>
         <tr>
-          <td>Farbausgabe</td>
+          <td>{=L:coloroutput=}</td>
           <td><input name="grayscale" type="checkbox" />
-            Grauskalenbild</td>
+            {=L:grayscaleimage=}</td>
         </tr>
 		<tr>
-          <td colspan="3" class="y_form_header">Ausgabe</td>
+          <td colspan="3" class="y_form_header">{=L:output=}</td>
 		</tr>
 		<tr>
 		  <td colspan="3">&nbsp;</td>

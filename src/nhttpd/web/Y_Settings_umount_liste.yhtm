@@ -28,8 +28,8 @@ function do_unmount()
 	<form action="/y/cgi" name="f" id="f">
 		{=func:umount_get_list=}
 		<input type="hidden" name="tmpl" value="/Y_Settings_umount_liste.yhtm"/>
-		<input type="button" value="Unmount" title="unmount selected directory" name="B1" onClick='do_unmount()'/>
-		<input type="button" value="Mount list" title="view mount list" name="B1" onClick='window.document.location.href="/Y_Settings_mount_liste.yhtm"'/>
+		<input type="button" value="Unmount" title="{=L:unmountselecteddirectory=}" name="B1" onClick='do_unmount()'/>
+		<input type="button" value="Mount list" title="{=L:viewmountlist=}" name="B1" onClick='window.document.location.href="/Y_Settings_mount_liste.yhtm"'/>
 		<input type="hidden" name="execute" value=""/>
 	</form>
 	</div>

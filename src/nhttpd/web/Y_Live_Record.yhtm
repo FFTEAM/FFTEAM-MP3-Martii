@@ -160,14 +160,14 @@ function doRecord()
 		</tr>
 		<tr>
 			<td colspan="4">
-				<input type="checkbox" id="tdisplay" value="1" title="Display on while transcoding" checked="checked"/>{=L:live.rec.display_on=}&nbsp;
-				<input type="checkbox" id="transon" value="1" title="use transcoding" onclick="on_transon_change()"/>{=L:live.rec.transcoding_on=}
+				<input type="checkbox" id="tdisplay" value="1" title="{=L:displayonwhiletranscoding=}" checked="checked"/>{=L:live.rec.display_on=}&nbsp;
+				<input type="checkbox" id="transon" value="1" title="{=L:usetranscoding=}" onclick="on_transon_change()"/>{=L:live.rec.transcoding_on=}
 			</td>
 		</tr>
 		<tr>
 			<td colspan="4">
 			<br/>
-				<button class="y_live_button" type="button" value="Record" title="record stream to file" onclick="doRecord()">
+				<button class="y_live_button" type="button" value="Record" title="{=L:recordstreamtofile=}" onclick="doRecord()">
 					<img src="/images/record.png"/>&nbsp;<span id="record">{=L:live.rec.record=}</span></button>
 			</td>
 		</tr>
@@ -177,12 +177,12 @@ function doRecord()
 			<td colspan="3">
 				<select id="profile" class="y_live_button" onchange="on_profile_change()">
 	{=if-equal:{=mode=}~tv~
-				<option value="ipod" selected="selected">iPod Video</option>
+				<option value="ipod" selected="selected">{=L:ipodvideo=}</option>
 				<option value="divx3">DivX</option>
 	=}
-				<option value="custom">custom</option>
-				<option value="ipoda">iPod Audio</option>
-				<option value="mp3">mp3 Audio</option>
+				<option value="custom">{=L:custom=}</option>
+				<option value="ipoda">{=L:ipodaudio=}</option>
+				<option value="mp3">{=L:mp3audio=}</option>
 				</select>
 			</td>
 		</tr>

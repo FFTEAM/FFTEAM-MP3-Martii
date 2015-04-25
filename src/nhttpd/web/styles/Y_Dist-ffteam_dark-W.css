@@ -9,8 +9,42 @@ background-color: #323232;
 color: #FFF;
 }
 
+.diag {
+background-color: #262424 !important;
+}
+.detail_title,.detail_title_active {
+background-color: #474747 !important;
+}
+
 button, input, select, form, td,.y_form_header {
 color: #FFF;
+}
+
+.ep_bouquet_name, .atimer {
+    background: none repeat scroll 0% 0% #454545 !important;
+}
+.ep_bouquet_item:hover {
+    background-color: #595959 !important;
+}
+
+#epglist th {
+text-align: left !important;
+}
+
+#epg_info {
+background-color: #565656 !important;
+}
+
+.y_wait_box {
+left: 400px !important;
+}
+
+.y_wait_box_body {
+background-color: #5D5D5D !important;
+}
+
+.y_form_section, .y_live_button {
+color: #F60 !important;
 }
 
 .y_menu_prim_box_body,.y_menu_sec_section {

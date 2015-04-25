@@ -29,7 +29,7 @@ function standby(_standby){
 	<div class="work_box_body">
 	<form action="">
 		<table class="y_invisible_table" cellpadding="5" width="100%">
-		<tr><td class="y_form_header">{=L:bc.control.box=}</td><td class="y_form_header">{=L:bc.control.standby_mode=}</td></tr>
+		<tr><td class="y_form_header">{=L:bc.control.box=}</td><td class="y_form_header">{=L:bc.control.standby_mode=}</td><td class="y_form_header">{=L:bc.control.rc_mode=}</td></tr>
 		<tr>
 			<td>
 			<input type="button" value="{=L:bc.control.reboot=}" onclick='goUrl("/control/exec?Y_Tools&amp;yreboot");'/>
@@ -50,43 +50,43 @@ function standby(_standby){
         <tr><td class="y_form_header">camdcontrol</td><td class="y_form_header">gbox</td><td class="y_form_header">mgcamd</td></tr>
         <tr>
             <td>
-            <input type="button" value="start" title="start" onclick='goUrl("/control/exec?Y_Tools&amp;camdstart");'/>
-            <input type="button" value="stop" title="stop" onclick='goUrl("/control/exec?Y_Tools&amp;camdstop");'/>
-            <input type="button" value="reset" title="reset" onclick='goUrl("/control/exec?Y_Tools&amp;camdreset");'/>
-            <input type="button" value="Status" title="Status Emu/Server" onclick='goUrl("/control/exec?Y_Tools&amp;Status");'/>
+            <input type="button" value="{=L:on=}" title="" onclick='goUrl("/control/exec?Y_Tools&amp;camdstart");'/>
+            <input type="button" value="{=L:off=}" title="" onclick='goUrl("/control/exec?Y_Tools&amp;camdstop");'/>
+            <input type="button" value="{=L:reset=}" title="" onclick='goUrl("/control/exec?Y_Tools&amp;camdreset");'/>
+            <input type="button" value="{=L:status=}" title="" onclick='goUrl("/control/exec?Y_Tools&amp;Status");'/>
             </td>
             <td>
-            <input type="button" value="start" title="start" onclick='goUrl("/control/exec?Y_Tools&amp;gboxstart");'/>
-            <input type="button" value="stop" title="stop" onclick='goUrl("/control/exec?Y_Tools&amp;gboxstop");'/>
-            <input type="button" value="reset" title="reset" onclick='goUrl("/control/exec?Y_Tools&amp;gboxreset");'/>
-            <input type="button" value="ECM" title="show ecm info" onclick='goUrl("/control/exec?Y_Tools&amp;mgecm");'/>
-            <input type="button" value="Karten" title="Anzahl Karten" onclick='goUrl("/control/exec?Y_Tools&amp;Karten");'/>
+            <input type="button" value="{=L:on=}" title="" onclick='goUrl("/control/exec?Y_Tools&amp;gboxstart");'/>
+            <input type="button" value="{=L:off=}" title="" onclick='goUrl("/control/exec?Y_Tools&amp;gboxstop");'/>
+            <input type="button" value="{=L:reset=}" title="" onclick='goUrl("/control/exec?Y_Tools&amp;gboxreset");'/>
+            <input type="button" value="ECM" title="" onclick='goUrl("/control/exec?Y_Tools&amp;mgecm");'/>
+            <input type="button" value="{=L:cards=}" title="" onclick='goUrl("/control/exec?Y_Tools&amp;Karten");'/>
             </td>
             <td>
-            <input type="button" value="start" title="start" onclick='goUrl("/control/exec?Y_Tools&amp;mgcamdstart");'/>
-            <input type="button" value="stop" title="stop" onclick='goUrl("/control/exec?Y_Tools&amp;mgcamdstop");'/>
-            <input type="button" value="reset" title="reset" onclick='goUrl("/control/exec?Y_Tools&amp;mgcamdreset");'/>
-            <input type="button" value="ECM" title="show ecm info" onclick='goUrl("/control/exec?Y_Tools&amp;mgecm");'/>
-            <input type="button" value="Karten" title="Anzahl Karten" onclick='goUrl("/control/exec?Y_Tools&amp;Karten");'/>
+            <input type="button" value="{=L:on=}" title="" onclick='goUrl("/control/exec?Y_Tools&amp;mgcamdstart");'/>
+            <input type="button" value="{=L:off=}" title="" onclick='goUrl("/control/exec?Y_Tools&amp;mgcamdstop");'/>
+            <input type="button" value="{=L:reset=}" title="" onclick='goUrl("/control/exec?Y_Tools&amp;mgcamdreset");'/>
+            <input type="button" value="ECM" title="" onclick='goUrl("/control/exec?Y_Tools&amp;mgecm");'/>
+            <input type="button" value="{=L:cards=}" title="" onclick='goUrl("/control/exec?Y_Tools&amp;Karten");'/>
             </td>
         </tr>
         <tr><td class="y_form_header">cardservercontrol</td><td class="y_form_header">oscam</td><td class="y_form_header">newcs</td></tr>
         <tr>
             <td>
-            <input type="button" value="start" title="start" onclick='goUrl("/control/exec?Y_Tools&amp;cardserverstart");'/>
-            <input type="button" value="stop" title="stop" onclick='goUrl("/control/exec?Y_Tools&amp;cardserverstop");'/>
-            <input type="button" value="reset" title="reset" onclick='goUrl("/control/exec?Y_Tools&amp;cardserverreset");'/>
-            <input type="button" value="Status" title="Status Emu/Server" onclick='goUrl("/control/exec?Y_Tools&amp;Status");'/>
+            <input type="button" value="{=L:on=}" title="" onclick='goUrl("/control/exec?Y_Tools&amp;cardserverstart");'/>
+            <input type="button" value="{=L:off=}" title="" onclick='goUrl("/control/exec?Y_Tools&amp;cardserverstop");'/>
+            <input type="button" value="{=L:reset=}" title="" onclick='goUrl("/control/exec?Y_Tools&amp;cardserverreset");'/>
+            <input type="button" value="{=L:status=}" title="" onclick='goUrl("/control/exec?Y_Tools&amp;Status");'/>
             </td>
             <td>
-            <input type="button" value="start" title="start" onclick='goUrl("/control/exec?Y_Tools&amp;oscamstart");'/>
-            <input type="button" value="stop" title="stop" onclick='goUrl("/control/exec?Y_Tools&amp;oscamstop");'/>
-            <input type="button" value="reset" title="reset" onclick='goUrl("/control/exec?Y_Tools&amp;oscamreset");'/>
+            <input type="button" value="{=L:on=}" title="" onclick='goUrl("/control/exec?Y_Tools&amp;oscamstart");'/>
+            <input type="button" value="{=L:off=}" title="" onclick='goUrl("/control/exec?Y_Tools&amp;oscamstop");'/>
+            <input type="button" value="{=L:reset=}" title="" onclick='goUrl("/control/exec?Y_Tools&amp;oscamreset");'/>
             </td>
             <td>
-            <input type="button" value="start" title="start" onclick='goUrl("/control/exec?Y_Tools&amp;newcsstart");'/>
-            <input type="button" value="stop" title="stop" onclick='goUrl("/control/exec?Y_Tools&amp;newcsstop");'/>
-            <input type="button" value="reset" title="reset" onclick='goUrl("/control/exec?Y_Tools&amp;newcsreset");'/>
+            <input type="button" value="{=L:on=}" title="" onclick='goUrl("/control/exec?Y_Tools&amp;newcsstart");'/>
+            <input type="button" value="{=L:off=}" title="" onclick='goUrl("/control/exec?Y_Tools&amp;newcsstop");'/>
+            <input type="button" value="{=L:reset=}" title="" onclick='goUrl("/control/exec?Y_Tools&amp;newcsreset");'/>
             </td>
         </tr>
 		<tr><td class="y_form_header">{=L:bc.control.playback=}</td><td class="y_form_header">{=L:bc.control.recording_mode=}</td></tr>

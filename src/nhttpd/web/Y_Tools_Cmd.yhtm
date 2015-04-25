@@ -51,14 +51,14 @@ function doUpload()
 		{=var-set:help_url=Help-Tools-Command_Shell=}{=var-set:menu={=L:tools.command_shell=}=}{=include-block:Y_Blocks.txt;work_menu=}</div></div>
 	<div class="work_box_body">
 	<form name="co" action="">
-		<textarea name="cmds" class="extbox" cols="80" rows="18"  title="shell output window" style="display: block;background : white; font : 'Courier New','medium  monospace'; color : #436976;"></textarea>
+		<textarea name="cmds" class="extbox" cols="80" rows="18"  title="{=L:shelloutputwindow=}" style="display: block;background : white; font : 'Courier New','medium  monospace'; color : #436976;"></textarea>
 	</form>
 
 	<form name="f" target="tmp" onsubmit="do_submit();return false;" action="">
 		<table>
 		<tr>
 			<td><input type="button" name="clear" value="{=L:clear=}" onclick="do_clear()"/></td>
-			<td><input type="checkbox" name="appendx" value="1" title="append output (only IE)"/>&nbsp;{=L:tools.cmd_shell.output_desc=}
+			<td><input type="checkbox" name="appendx" value="1" title=""/>&nbsp;{=L:tools.cmd_shell.output_desc=}
 			<!--<input type="button" value="Upload" title="upload a file to current directory" onClick="doUpload()">-->
 			</td>
 		</tr><tr>
@@ -74,8 +74,8 @@ function doUpload()
 	</div>
 </div>
 
-<iframe height="0" width="0" scrolling="no" align="left" frameborder="0" name="out" id="out">Your Browser does not support IFrames.</iframe>
-<iframe height="0" width="0" scrolling="no" align="left" frameborder="0" name="tmp" id="tmp">Your Browser does not support IFrames.</iframe>
+<iframe height="0" width="0" scrolling="no" align="left" frameborder="0" name="out" id="out">{=L:yourbrowserdoesnotsupportiframes=}</iframe>
+<iframe height="0" width="0" scrolling="no" align="left" frameborder="0" name="tmp" id="tmp">{=L:yourbrowserdoesnotsupportiframes=}</iframe>
 
 <script language="JavaScript" type="text/javascript" >
 //<![CDATA[

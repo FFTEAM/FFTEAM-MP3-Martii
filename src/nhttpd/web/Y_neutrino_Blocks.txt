@@ -208,9 +208,9 @@ start-block~neutrino_record_save_settings
 {=ini-set:/var/tuxbox/config/neutrino.conf;auto_delete;{=auto_delete=}~cache=}
 {=ini-set:/var/tuxbox/config/neutrino.conf;temp_timeshift;{=temp_timeshift=}~cache=}
 {=ini-set:/var/tuxbox/config/neutrino.conf;recording_audio_pids_default;{=recording_audio_pids_default=}~save=}
-{=ini-set:/var/tuxbox/config/timerd.conf;EXTRA_TIME_START;{=EXTRA_TIME_START=}~open=}
-{=ini-set:/var/tuxbox/config/timerd.conf;EXTRA_TIME_END;{=EXTRA_TIME_END=}~cache=}
-{=ini-set:/var/tuxbox/config/timerd.conf;ZAPTO_EXTRA_TIME_START;{=ZAPTO_EXTRA_TIME_START=}~save=}
+{=ini-set:/var/tuxbox/config/timerd.conf;EXTRA_TIME_START;{=EXTRA_TIME_START=}=}
+{=ini-set:/var/tuxbox/config/timerd.conf;EXTRA_TIME_END;{=EXTRA_TIME_END=}=}
+{=ini-set:/var/tuxbox/config/timerd.conf;ZAPTO_EXTRA_TIME_START;{=ZAPTO_EXTRA_TIME_START=}=}
 end-block~neutrino_record_save_settings
 
 
@@ -271,7 +271,7 @@ start-block~neutrino_form-data_parental
 			<tr>
 				<td width="35%">{=L:set.parental.activate=}</td>
 				<td>
-					<select name="parentallock_prompt" title="parental type">
+					<select name="parentallock_prompt" title="{=L:parentaltype=}">
 					<option value="0">{=L:set.parental.type.never=}</option>
 					<option value="2">{=L:set.parental.type.bouquet=}</option>
 					<option value="3">{=L:set.parental.type.preset=}</option>
@@ -279,7 +279,7 @@ start-block~neutrino_form-data_parental
 				</td>
 			</tr>
 			<tr>
-				<td title="minimal age">{=L:set.parental.minimum_age=}</td>
+				<td>{=L:set.parental.minimum_age=}</td>
 				<td>
 					<select name="parentallock_lockage">
 					<option value="12">12</option>
@@ -318,7 +318,7 @@ function form_init()
 function do_submit()
 {
 	if(document.f.parentallock_pincode.value.length < 1)
-		alert("Jugendschutz-PIN muss 1-4 stellig sein");
+		alert("{=L:alertparentalcontrolpinmustbe4digits=}");
 	else{
 		show_waitbox(true);
 		document.f.submit();
@@ -474,57 +474,57 @@ end-block~neutrino_epg_save_settings
 start-block~neutrino_form-data_diverse
 <div class="work_box">
 	<div class="work_box_head"><div class="work_box_head_h2">
-	{=var-set:help_url=Help-Settings-Diverse=}{=var-set:menu=Diverse Einstellungen=}{=include-block:Y_Blocks.txt;work_menu=}</div></div>
+	{=var-set:help_url=Help-Settings-Diverse=}{=var-set:menu={=L:varioussettings=}=}{=include-block:Y_Blocks.txt;work_menu=}</div></div>
 	<div class="work_box_body">
 	<form name="f" action="/y/cgi" class="y_form">
 		<table cellspacing="0" border="0" cellpadding="2" width="100%">
 			<tr>
-				<td colspan="2" width="35%" class="y_form_header">Allgemein</td>
+				<td colspan="2" width="35%" class="y_form_header">{=L:general=}</td>
 			</tr>
 			<tr>
-				<td>Startmodus</td>
+				<td>{=L:startmode=}</td>
 				<td>
-					<select name="startmode" title="select startmodus">
-					<option value="0" selected="selected">Letzter Modus</option>
-					<option value="1">TV-Modus</option>
-					<option value="2">Radio-Modus</option>
-					<option value="3">Scart-Eingang</option>
-					<option value="4">Audioplayer</option>
-					<option value="5">Internetradio</option>
-					<option value="6">Esound Soundserver</option>
-					<option value="7">Standby</option>
+					<select name="startmode" title="{=L:selectstartmodus=}">
+					<option value="0" selected="selected">{=L:lastmode=}</option>
+					<option value="1">{=L:tvmode=}</option>
+					<option value="2">{=L:radiomode=}</option>
+					<option value="3">{=L:scartinput=}</option>
+					<option value="4">{=L:audioplayer=}</option>
+					<option value="5">{=L:internetradio=}</option>
+					<option value="6">{=L:esoundsoundserver=}</option>
+					<option value="7">{=L:standby=}</option>
 					</select>
 				</td>
 			</tr>
-			<tr title="Shutdown: off/on">
-				<td>Standbymodus</td>
+			<tr>
+				<td>{=L:standby=}</td>
 				<td>
 					<input type="radio" name="shutdown_real" value="true"/>{=L:off=}&nbsp;
 					<input type="radio" name="shutdown_real" value="false"/>{=L:on=}
 				</td>
 			</tr>
-			<tr title="Save power: off/on">
-				<td>Standby Stromsparmodus (exp.)</td>
+			<tr>
+				<td>{=L:standbypowersavingmode=}</td>
 				<td>
 					<input type="radio" name="standby_save_power" value="false"/>{=L:off=}&nbsp;
 					<input type="radio" name="standby_save_power" value="true"/>{=L:on=}
 				</td>
 			</tr>
 			<tr>
-				<td>Komplett ausschalten nach</td>
-				<td><input type="text" name="shutdown_count" size="3" value="{=ini-get:/var/tuxbox/config/neutrino.conf;shutdown_count;0~open=}" title="shutdown after x sec"/>&nbsp;Min.</td>
+				<td>{=L:shutdowncompletelyafter=}</td>
+				<td><input type="text" name="shutdown_count" size="3" value="{=ini-get:/var/tuxbox/config/neutrino.conf;shutdown_count;0~open=}" title=""/>&nbsp;Min.</td>
 			</tr>
-			<tr title="shutdown delay: off/on">
-				<td>Verz&ouml;gerter Shutdown</td>
+			<tr>
+				<td>{=L:shutdowndelay=}</td>
 				<td>
 					<input type="radio" name="shutdown_real_rcdelay" value="false"/>{=L:off=}&nbsp;
 					<input type="radio" name="shutdown_real_rcdelay" value="true"/>{=L:on=}
 				</td>
 			</tr>
 			<tr>
-				<td>Standby aus mit</td>
+				<td>{=L:standbyoffwith=}</td>
 				<td>
-					<select name="standby_off_with" title="select button">
+					<select name="standby_off_with" title="{=L:selectabutton=}">
 					<option value="0" selected="selected">Power</option>
 					<option value="1">Power, OK</option>
 					<option value="2">Power, Home</option>
@@ -532,163 +532,163 @@ start-block~neutrino_form-data_diverse
 					</select>
 				</td>
 			</tr>
-			<tr title="tuxtxt cache: off/on">
-				<td>Videotext zwischenspeichern</td>
+			<tr>
+				<td>{=L:temporarilystorevideotex=}</td>
 				<td>
 					<input type="radio" name="tuxtxt_cache" value="false"/>{=L:off=}&nbsp;
 					<input type="radio" name="tuxtxt_cache" value="true"/>{=L:on=}
 				</td>
 			</tr>
 			<tr>
-				<td colspan="2" width="35%" class="y_form_header">OSD-Extras</td>
+				<td colspan="2" width="35%" class="y_form_header">{=L:osdxtras=}</td>
 			</tr>
 			<tr>
-				<td>Lautstärkeanzeige</td>
+				<td>{=L:volumelevelindicator=}</td>
 				<td>
-					<select name="volumebar_disp_pos" title="select volumebar position">
-					<option value="0" selected="selected">oben rechts</option>
-					<option value="1">oben links</option>
-					<option value="2">unten links</option>
-					<option value="3">unten rechts</option>
-					<option value="4">unten Mitte</option>
-					<option value="5">erh&ouml;hte Mitte</option>
-					<option value="6">aus</option>
+					<select name="volumebar_disp_pos" title="{=L:selectvolumebarposition=}">
+					<option value="0" selected="selected">{=L:topright=}</option>
+					<option value="1">{=L:topleft=}</option>
+					<option value="2">{=L:bottomleft=}</option>
+					<option value="3">{=L:bottomright=}</option>
+					<option value="4">{=L:bottomcenter=}</option>
+					<option value="5">{=L:elevatedcenter=}</option>
+					<option value="6">{=L:off=}</option>
 					</select>
 				</td>
 			</tr>
-			<tr title="Mute Icon: on/off">
-				<td>Mute Icon bei Lautstärke 0</td>
+			<tr>
+				<td>{=L:muteiconatvolumelevel0=}</td>
 				<td>
 					<input type="radio" name="show_mute_icon" value="0"/>{=L:off=}&nbsp;
 					<input type="radio" name="show_mute_icon" value="1"/>{=L:on=}&nbsp;
-					<input type="radio" name="show_mute_icon" value="2"/>nicht bei AC3
+					<input type="radio" name="show_mute_icon" value="2"/>{=L:notforac3=}
 				</td>
 			</tr>
 			<tr>
-				<td colspan="2" width="35%" class="y_form_header">Infobar</td>
+				<td colspan="2" width="35%" class="y_form_header">{=L:infobar=}</td>
 			</tr>
-			<tr title="infobar sat display: off/on">
-				<td>Satellitenanzeige</td>
+			<tr>
+				<td>{=L:satellitedisplayinfobar=}</td>
 				<td>
 					<input type="radio" name="infobar_sat_display" value="false"/>{=L:off=}&nbsp;
 					<input type="radio" name="infobar_sat_display" value="true"/>{=L:on=}
 				</td>
 			</tr>
 			<tr>
-				<td>Unterkanalanzeige</td>
+				<td>{=L:subchanneldisplay=}</td>
 				<td>
-					<select name="infobar_subchan_disp_pos" title="subchannel display position">
-					<option value="0" selected="selected">oben rechts</option>
-					<option value="1">oben links</option>
-					<option value="2">unten links</option>
-					<option value="3">unten rechts</option>
-					<option value="4">in Infobar</option>
+					<select name="infobar_subchan_disp_pos" title="{=L:subchanneldisplayposition=}">
+					<option value="0" selected="selected">{=L:topright=}</option>
+					<option value="1">{=L:topleft=}</option>
+					<option value="2">{=L:bottomleft=}</option>
+					<option value="3">{=L:bottomright=}</option>
+					<option value="4">{=L:intheinfobar=}</option>
 					</select>
 				</td>
 			</tr>
-			<tr title="virtual zap: off/on">
-				<td>Virtual Zap</td>
+			<tr>
+				<td>{=L:virtualzap=}</td>
 				<td>
 					<input type="radio" name="virtual_zap_mode" value="false"/>{=L:off=}&nbsp;
 					<input type="radio" name="virtual_zap_mode" value="true"/>{=L:on=}
 				</td>
 			</tr>
 			<tr>
-				<td>Info bei EPG &Auml;nderung</td>
+				<td>{=L:infoatepgchange=}</td>
 				<td>
-					<select name="infobar_show" title="infobar show type">
-					<option value="0" selected="selected">Aus</option>
-					<option value="1">Popup</option>
-					<option value="2">Infobar einblenden</option>
+					<select name="infobar_show" title="{=L:infobarshowtype=}">
+					<option value="0" selected="selected">{=L:off=}</option>
+					<option value="1">{=L:popup=}</option>
+					<option value="2">{=L:showinfobar=}</option>
 					</select>
 				</td>
 			</tr>
-			<tr title="radiotext: off/on">
-				<td>Radiotext</td>
+			<tr>
+				<td>{=L:radiotext=}</td>
 				<td>
 					<input type="radio" name="radiotext" value="false"/>{=L:off=}&nbsp;
 					<input type="radio" name="radiotext" value="true"/>{=L:on=}
 				</td>
 			</tr>
 			<tr>
-				<td colspan="2" width="35%" class="y_form_header">Kanalliste</td>
+				<td colspan="2" width="35%" class="y_form_header">{=L:channellist=}</td>
 			</tr>			
-			<tr title="programtext position: left/right">
-				<td>Ausrichtung Programmtext</td>
+			<tr>
+				<td>{=L:programtextposition=}</td>
 				<td>
-					<input type="radio" name="epgtext_align_right" value="false"/>links&nbsp;
-					<input type="radio" name="epgtext_align_right" value="true"/>rechts
+					<input type="radio" name="epgtext_align_right" value="false"/>{=L:left=}&nbsp;
+					<input type="radio" name="epgtext_align_right" value="true"/>{=L:right=}
 				</td>
 			</tr>
-			<tr title="extended channellist: on/off">
-				<td>erweiterte Kanalliste</td>
+			<tr>
+				<td>{=L:extendedchannellist=}</td>
 				<td>
 					<input type="radio" name="channellist_extended" value="false"/>{=L:off=}&nbsp;
 					<input type="radio" name="channellist_extended" value="true"/>{=L:on=}
 				</td>
 			</tr>
 			<tr>
-				<td colspan="2" width="35%" class="y_form_header">Zapit (Hinweis: pzapit -kill vorm Speichern ausf&uuml;hren)</td>
+				<td colspan="2" width="35%" class="y_form_header">{=L:zapitnotetorunpzapitkillbeforesave=}</td>
 			</tr>
-				<tr title="save last channel: on/off">
-				<td>letzten Kanal speichern</td>
+				<tr>
+				<td>{=L:savelastchannel=}</td>
 				<td>
 					<input type="radio" onchange="change_lastchannel()" name="save_lastchannel" value="false"/>{=L:off=}&nbsp;
 					<input type="radio" onchange="change_lastchannel()" name="save_lastchannel" value="true"/>{=L:on=}
 				</td>
 			</tr>
 			<tr>
-				<td>TV-Startkanal</td>
-				<td><input type="text" name="startchannel_tv" size="4" value="{=ini-get:/var/tuxbox/config/zapit/zapit.conf;startChannelTV;0~open=}" title="tv-startchannel"/></td>
+				<td>{=L:tvstartchannel=}</td>
+				<td><input type="text" name="startchannel_tv" size="4" value="{=ini-get:/var/tuxbox/config/zapit/zapit.conf;startChannelTV;0~open=}" title="{=L:enterchannelnumber=}"/></td>
 			</tr>
 			<tr>
-				<td>Radio-Startkanal</td>
-				<td><input type="text" name="startchannel_radio" size="4" value="{=ini-get:/var/tuxbox/config/zapit/zapit.conf;startChannelRadio;0~cache=}" title="radio-startchannel"/></td>
+				<td>{=L:radiostartchannel=}</td>
+				<td><input type="text" name="startchannel_radio" size="4" value="{=ini-get:/var/tuxbox/config/zapit/zapit.conf;startChannelRadio;0~cache=}" title="{=L:enterchannelnumber=}"/></td>
 			</tr>
-			<tr title="save audio-PIDs: on/off">
-				<td>Audio-PIDs speichern</td>
+			<tr>
+				<td>{=L:saveaudiopids=}</td>
 				<td>
 					<input type="radio" name="save_audio_pids" value="false"/>{=L:off=}&nbsp;
 					<input type="radio" name="save_audio_pids" value="true"/>{=L:on=}
 				</td>
 			</tr>
-			<tr title="bouquet others: on/off">
-				<td>Bouquet Andere</td>
+			<tr>
+				<td>{=L:othersbouquet=}</td>
 				<td>
 					<input type="radio" name="bouquet_others" value="false"/>{=L:off=}&nbsp;
 					<input type="radio" name="bouquet_others" value="true"/>{=L:on=}
 				</td>
 			</tr>
 			<tr>
-				<td colspan="2" width="35%" class="y_form_header">Fernbedienung</td>
+				<td colspan="2" width="35%" class="y_form_header">{=L:remotecontrol=}</td>
 			</tr>
 			<tr>
-				<td>Anfangsverz&ouml;gerung</td>
-				<td><input type="text" name="repeat_blocker" size="3" maxlength="3" value="{=ini-get:/var/tuxbox/config/neutrino.conf;repeat_blocker~open=}" title="start delay"/></td>
+				<td>{=L:initialdelaytime=}</td>
+				<td><input type="text" name="repeat_blocker" size="3" maxlength="3" value="{=ini-get:/var/tuxbox/config/neutrino.conf;repeat_blocker~open=}" title="{=L:milliseconds=}"/></td>
 			</tr>
 			<tr>
-				<td>Wiederholungsverz&ouml;gerung</td>
-				<td><input type="text" name="repeat_genericblocker" size="3" maxlength="3" value="{=ini-get:/var/tuxbox/config/neutrino.conf;repeat_genericblocker~cache=}" title="repeat delay"/></td>
+				<td>{=L:repeatdelay=}</td>
+				<td><input type="text" name="repeat_genericblocker" size="3" maxlength="3" value="{=ini-get:/var/tuxbox/config/neutrino.conf;repeat_genericblocker~cache=}" title="{=L:milliseconds=}"/></td>
 			</tr>
 			<tr>
-				<td colspan="2" width="35%" class="y_form_header">Filebrowser</td>
+				<td colspan="2" width="35%" class="y_form_header">{=L:filebrowser=}</td>
 			</tr>
-			<tr title="filesystem type">
-				<td>Dateisystem</td>
+			<tr>
+				<td>{=L:filesystem=}</td>
 				<td>
 					<input type="radio" name="filesystem_is_utf8" value="false"/>ISO-8859-1&nbsp;
 					<input type="radio" name="filesystem_is_utf8" value="true"/>UTF-8
 				</td>
 			</tr>
-			<tr title="show filesystem rights: off/on">
-				<td>Dateirechte anzeigen</td>
+			<tr>
+				<td>{=L:showfilesystemrights=}</td>
 				<td>
 					<input type="radio" name="filebrowser_showrights" value="0"/>{=L:off=}&nbsp;
 					<input type="radio" name="filebrowser_showrights" value="1"/>{=L:on=}
 				</td>
 			</tr>
-			<tr title="start directory is absolute: off/on">
-				<td>Startverzeichnis absolut</td>
+			<tr>
+				<td>{=L:startdirectoryisabsolute=}</td>
 				<td>
 					<input type="radio" name="filebrowser_denydirectoryleave" value="false"/>{=L:off=}&nbsp;
 					<input type="radio" name="filebrowser_denydirectoryleave" value="true"/>{=L:on=}
@@ -793,95 +793,95 @@ end-block~neutrino_diverse_save_settings
 start-block~neutrino_form-data_bootoptions
 <div class="work_box">
 	<div class="work_box_head"><div class="work_box_head_h2">
-	{=var-set:help_url=Help-Settings-Bootoptionen=}{=var-set:menu=Treiber- und Bootoptionen=}{=include-block:Y_Blocks.txt;work_menu=}</div></div>
+	{=var-set:help_url=Help-Settings-Bootoptionen=}{=var-set:menu={=L:driverandbootoptions=}=}{=include-block:Y_Blocks.txt;work_menu=}</div></div>
 	<div class="work_box_body">
 	<form name="f" class="y_form" action="/y/cgi">
 		<table cellspacing="0" border="0" cellpadding="2" width="100%">
-			<tr title="SPTS mode: off/on">
-				<td width="35%">SPTS-Mode Treiber laden</td>
+			<tr>
+				<td width="35%">{=L:loaddriverforsptsmode=}</td>
 				<td>
 					<input type="radio" name="misc_spts" value="false"/>{=L:off=}&nbsp;
 					<input type="radio" name="misc_spts" value="true"/>{=L:on=}
 				</td>
 			</tr>
-			<tr title="Bootinfo: off/on">
-				<td>Infos beim Booten anzeigen</td>
+			<tr>
+				<td>{=L:infoonboot=}</td>
 				<td>
 					<input type="radio" name="bootinfo" value="0"/>{=L:off=}&nbsp;
 					<input type="radio" name="bootinfo" value="1"/>{=L:on=}
 				</td>
 			</tr>
-			<tr title="HW Sections: off/on">
-				<td>HW-Sections verwenden</td>
+			<tr>
+				<td>{=L:usehwsections=}</td>
 				<td>
 					<input type="radio" name="hwsections" value="0"/>{=L:off=}&nbsp;
 					<input type="radio" name="hwsections" value="1"/>{=L:on=}
 				</td>
 			</tr>
-			<tr title="AVIA-Watchdog: off/on">
-				<td>AVIA-Watchdog aktivieren</td>
+			<tr>
+				<td>{=L:activateaviawatchdog=}</td>
 				<td>
 					<input type="radio" name="no_watchdog" value="0"/>{=L:off=}&nbsp;
 					<input type="radio" name="no_watchdog" value="1"/>{=L:on=}
 				</td>
 			</tr>
-			<tr title="eNX-Watchdog: off/on">
-				<td>eNX-Watchdog aktivieren</td>
+			<tr>
+				<td>{=L:activatenhxwatchdog=}</td>
 				<td>
 					<input type="radio" name="no_enxwatchdog" value="0"/>{=L:off=}&nbsp;
 					<input type="radio" name="no_enxwatchdog" value="1"/>{=L:on=}
 				</td>
 			</tr>
-			<tr title="philips rc patch: off/on">
-				<td>Philips/Sagem FB Workaround</td>
+			<tr>
+				<td>{=L:philipssagemrcpatch=}</td>
 				<td>
 					<input type="radio" name="philips_rc_patch" value="0"/>{=L:off=}&nbsp;
 					<input type="radio" name="philips_rc_patch" value="1"/>{=L:on=}
 				</td>
 			</tr>
-			<tr title="AVIA spts-fix: off/on">
-				<td>SPTS-Fix AVIA500</td>
+			<tr>
+				<td>{=L:avia500sptsfix=}</td>
 				<td>
 					<input type="radio" name="sptsfix" value="0"/>{=L:off=}&nbsp;
 					<input type="radio" name="sptsfix" value="1"/>{=L:on=}
 				</td>
 			</tr>
-			<tr title="RTC: off/on">
-				<td>Realtime Clock (RTC) aktivieren</td>
+			<tr>
+				<td>{=L:enablerealtimeclockrtc=}</td>
 				<td>
 					<input type="radio" name="rtc" value="0"/>{=L:off=}&nbsp;
 					<input type="radio" name="rtc" value="1"/>{=L:on=}
 				</td>
 			</tr>
-			<tr title="PMT Update: off/on">
-				<td>PMT Update verwenden</td>
+			<tr>
+				<td>{=L:usepmtupdate=}</td>
 				<td>
 					<input type="radio" name="no_pmt_update" value="0"/>{=L:off=}&nbsp;
 					<input type="radio" name="no_pmt_update" value="1"/>{=L:on=}
 				</td>
 			</tr>
 			<tr>
-				<td>EXPERT! Boot-Konsole</td>
+				<td>{=L:onlyexpertbootconsole=}</td>
 				<td>
-					<select name="console" title="expert boot-console">
+					<select name="console" title="{=L:expertbootconsole=}">
 					<option value="null" selected="selected">null</option>
 					<option value="ttyS0">seriell</option>
 					<option value="tty">framebuffer</option>
 					</select>
 				</td>
 			</tr>
-			<tr title="Fullduplex: off/on">
-				<td>FullDuplex Mode</td>
+			<tr>
+				<td>{=L:fullduplexmode=}</td>
 				<td>
 					<input type="radio" name="dbox_duplex" value="0"/>{=L:off=}&nbsp;
 					<input type="radio" name="dbox_duplex" value="1"/>{=L:on=}
 				</td>
 			</tr>
 			<tr>
-				<td colspan="2" width="35%" class="y_form_header">Diverses</td>
+				<td colspan="2" width="35%" class="y_form_header">{=L:miscellaneous=}</td>
 			</tr>
-			<tr title="Bootmenu: off/on">
-				<td>Bootmen&uuml; anzeigen</td>
+			<tr>
+				<td>{=L:showbootmenu=}</td>
 				<td>
 					<input type="radio" name="bootmenu" value="0"/>{=L:off=}&nbsp;
 					<input type="radio" name="bootmenu" value="1"/>{=L:on=}
@@ -893,7 +893,7 @@ start-block~neutrino_form-data_bootoptions
 		<input type="hidden" name="execute" value="include-block:Y_neutrino_Blocks.txt;neutrino_bootoptions_save_settings;nix"/>
 		<input type="hidden" name="form" value="{=form=}"/>
 		<button type="button" ytype="save" title="{=L:save_values_desc=}s" onclick="do_submit()">{=L:save=}</button>
-		&nbsp;<button type="button" ytype="refresh" onclick="dbox_reload_neutrino()">reload Neutrino</button>
+		&nbsp;<button type="button" ytype="refresh" onclick="dbox_reload_neutrino()">{=L:reloadneutrino=}</button>
 		&nbsp;<a href="javascript:top.top_main.prim_menu.nav('info', 'Y_Info_Help.yhtm');" class="inlink">{=L:help=}</a>
 	</form>
 	</div>
@@ -1130,121 +1130,121 @@ end-block~neutrino_audioplayer_save_settings
 start-block~neutrino_form-data_direct_recording
 <div class="work_box">
 	<div class="work_box_head"><div class="work_box_head_h2">
-	{=var-set:help_url=Help-Settings-Direktaufnahme=}{=var-set:menu=Direktaufnahme=}{=include-block:Y_Blocks.txt;work_menu=}</div></div>
+	{=var-set:help_url=Help-Settings-Direktaufnahme=}{=var-set:menu={=L:directrecording=}=}{=include-block:Y_Blocks.txt;work_menu=}</div></div>
 	<div class="work_box_body">
 	<form name="f" class="y_form" action="/y/cgi">
 		<table cellspacing="0" border="0" cellpadding="2" width="100%">
 			<tr>
-				<td colspan="2" class="y_form_header">Aufnahmeeinstellungen</td>
+				<td colspan="2" class="y_form_header">{=L:recordsettingshl=}</td>
 			</tr>
 			<tr>
-				<td width="35%">Max. Dateigr&ouml;&szlig;e (MB)</td>
-				<td><input type="text" name="recording_splitsize" size="5" maxlength="5" value="{=ini-get:/var/tuxbox/config/neutrino.conf;recording_splitsize;9999~open=}" title="Max filesize/splitsize"/></td>
+				<td width="35%">{=L:maxfilesizemb=}</td>
+				<td><input type="text" name="recording_splitsize" size="5" maxlength="5" value="{=ini-get:/var/tuxbox/config/neutrino.conf;recording_splitsize;9999~open=}" title=""/></td>
 			</tr>
 			<tr>
-				<td>Gr&ouml;&szlig;e Ringpuffer</td>
+				<td>{=L:sizeringbuffer=}</td>
 				<td>
-					<select name="ringbuffers" title="Max ringbuffers">
-					<option value="0" selected="selected">512 KB</option>
-					<option value="1">1 MB</option>
-					<option value="2">2 MB</option>
-					<option value="3">4 MB</option>
-					<option value="4">8 MB</option>
+					<select name="ringbuffers" title="">
+					<option value="0" selected="selected">512 {=L:kb=}</option>
+					<option value="1">1 {=L:mb=}</option>
+					<option value="2">2 {=L:mb=}</option>
+					<option value="3">4 {=L:mb=}</option>
+					<option value="4">8 {=L:mb=}</option>
 					</select>
 				</td>
 			</tr>
-			<tr title="Sync write (O_SYNC): off/on">
-				<td>Synchrones Schreiben (O_SYNC)</td>
+			<tr>
+				<td>{=L:syncwriteosync=}</td>
 				<td>
 					<input type="radio" name="recordingmenu_use_o_sync" value="false"/>{=L:off=}&nbsp;
 					<input type="radio" name="recordingmenu_use_o_sync" value="true"/>{=L:on=}
 				</td>
 			</tr>
-			<tr title="Sync write (fdatasync): off/on">
-				<td>Synchrones Schreiben (fdatasync)</td>
+			<tr>
+				<td>{=L:syncwritefdatasync=}</td>
 				<td>
 					<input type="radio" name="recordingmenu_use_fdatasync" value="false"/>{=L:off=}&nbsp;
 					<input type="radio" name="recordingmenu_use_fdatasync" value="true"/>{=L:on=}
 				</td>
 			</tr>
-			<tr title="record videotext: off/on">
-				<td>Videotext aufzeichnen</td>
+			<tr>
+				<td>{=L:recordvideotext=}</td>
 				<td>
 					<input type="radio" name="recordingmenu_stream_vtxt_pid" value="false"/>{=L:off=}&nbsp;
 					<input type="radio" name="recordingmenu_stream_vtxt_pid" value="true"/>{=L:on=}
 				</td>
 			</tr>
-			<tr title="record PMT: off/on">
-				<td>Untertitel aufzeichnen</td>
+			<tr>
+				<td>{=L:recordpmt=}</td>
 				<td>
 					<input type="radio" name="recordingmenu_stream_subtitle_pid" value="false"/>{=L:off=}&nbsp;
 					<input type="radio" name="recordingmenu_stream_subtitle_pid" value="true"/>{=L:on=}
 				</td>
 			</tr>
-			<tr title="Choose directory on record: off/on">
-				<td>Bei Sofortaufn. Verzeichnisauswahl</td>
+			<tr>
+				<td>{=L:choosedirectoryonrecord=}</td>
 				<td>
 					<input type="radio" name="recording_choose_direct_rec_dir" value="0"/>{=L:off=}&nbsp;
 					<input type="radio" name="recording_choose_direct_rec_dir" value="1"/>{=L:on=}
 				</td>
 			</tr>
-			<tr title="EPG in filename: off/on">
-				<td>lange Dateinamen (mit EPG-Daten)</td>
+			<tr>
+				<td>{=L:epginfilename=}</td>
 				<td>
 					<input type="radio" name="recording_epg_for_filename" value="false"/>{=L:off=}&nbsp;
 					<input type="radio" name="recording_epg_for_filename" value="true"/>{=L:on=}
 				</td>
 			</tr>
 			<tr>
-				<td>Vorlage f&uuml;r Dateinamen</td>
-				<td><input type="text" name="recording_filename_template_0" size="16" value="{=ini-get:/var/tuxbox/config/neutrino.conf;recording_filename_template_0;%C_%I_%d_%t~cache=}" title="filename template %C=channel %T=title %I=info %d=date %t=time"/></td>
+				<td>{=L:filenametemplate=}</td>
+				<td><input type="text" name="recording_filename_template_0" size="16" value="{=ini-get:/var/tuxbox/config/neutrino.conf;recording_filename_template_0;%C_%I_%d_%t~cache=}" title="%C=channel %T=title %I=info %d=date %t=time"/></td>
 			</tr>
 			<tr>
-				<td>Verzeichnisrechte</td>
-				<td><input type="text" name="recording_dir_permissions_0" size="3" maxlength="3" value="{=ini-get:/var/tuxbox/config/neutrino.conf;recording_dir_permissions_0;755~cache=}" title="directory permissions (UNIX octals)"/></td>
+				<td>{=L:directorypermissions=}</td>
+				<td><input type="text" name="recording_dir_permissions_0" size="3" maxlength="3" value="{=ini-get:/var/tuxbox/config/neutrino.conf;recording_dir_permissions_0;755~cache=}" title="UNIX octals"/></td>
 			</tr>
 			<tr>
-				<td colspan="2" class="y_form_header">Aufnahmeverzeichnisse</td>
+				<td colspan="2" class="y_form_header">{=L:recordingdirectories=}</td>
 			</tr>
 			<tr>
-				<td>Aufnahmeverzeichnis 0</td>
-				<td><input type="text" name="recording_dir_0" size="40" value="{=ini-get:/var/tuxbox/config/neutrino.conf;recording_dir_0;~cache=}" title="recording directory"/></td>
+				<td>{=L:recordingdirectory=} 0</td>
+				<td><input type="text" name="recording_dir_0" size="40" value="{=ini-get:/var/tuxbox/config/neutrino.conf;recording_dir_0;~cache=}" title=""/></td>
 			</tr>
 			<tr>
-				<td>Aufnahmeverzeichnis 1</td>
-				<td><input type="text" name="recording_dir_1" size="40" value="{=ini-get:/var/tuxbox/config/neutrino.conf;recording_dir_1;~cache=}" title="recording directory"/></td>
+				<td>{=L:recordingdirectory=} 1</td>
+				<td><input type="text" name="recording_dir_1" size="40" value="{=ini-get:/var/tuxbox/config/neutrino.conf;recording_dir_1;~cache=}" title=""/></td>
 			</tr>
 			<tr>
-				<td>Aufnahmeverzeichnis 2</td>
-				<td><input type="text" name="recording_dir_2" size="40" value="{=ini-get:/var/tuxbox/config/neutrino.conf;recording_dir_2;~cache=}" title="recording directory"/></td>
+				<td>{=L:recordingdirectory=} 2</td>
+				<td><input type="text" name="recording_dir_2" size="40" value="{=ini-get:/var/tuxbox/config/neutrino.conf;recording_dir_2;~cache=}" title=""/></td>
 			</tr>
 			<tr>
-				<td>Aufnahmeverzeichnis 3</td>
-				<td><input type="text" name="recording_dir_3" size="40" value="{=ini-get:/var/tuxbox/config/neutrino.conf;recording_dir_3;~cache=}" title="recording directory"/></td>
+				<td>{=L:recordingdirectory=} 3</td>
+				<td><input type="text" name="recording_dir_3" size="40" value="{=ini-get:/var/tuxbox/config/neutrino.conf;recording_dir_3;~cache=}" title=""/></td>
 			</tr>
 			<tr>
-				<td>Aufnahmeverzeichnis 4</td>
-				<td><input type="text" name="recording_dir_4" size="40" value="{=ini-get:/var/tuxbox/config/neutrino.conf;recording_dir_4;~cache=}" title="recording directory"/></td>
+				<td>{=L:recordingdirectory=} 4</td>
+				<td><input type="text" name="recording_dir_4" size="40" value="{=ini-get:/var/tuxbox/config/neutrino.conf;recording_dir_4;~cache=}" title=""/></td>
 			</tr>
 			<tr>
-				<td>Aufnahmeverzeichnis 5</td>
-				<td><input type="text" name="recording_dir_5" size="40" value="{=ini-get:/var/tuxbox/config/neutrino.conf;recording_dir_5;~cache=}" title="recording directory"/></td>
+				<td>{=L:recordingdirectory=} 5</td>
+				<td><input type="text" name="recording_dir_5" size="40" value="{=ini-get:/var/tuxbox/config/neutrino.conf;recording_dir_5;~cache=}" title=""/></td>
 			</tr>
 			<tr>
-				<td>Aufnahmeverzeichnis 6</td>
-				<td><input type="text" name="recording_dir_6" size="40" value="{=ini-get:/var/tuxbox/config/neutrino.conf;recording_dir_6;~cache=}" title="recording directory"/></td>
+				<td>{=L:recordingdirectory=} 6</td>
+				<td><input type="text" name="recording_dir_6" size="40" value="{=ini-get:/var/tuxbox/config/neutrino.conf;recording_dir_6;~cache=}" title=""/></td>
 			</tr>
 			<tr>
-				<td>Aufnahmeverzeichnis 7</td>
-				<td><input type="text" name="recording_dir_7" size="40" value="{=ini-get:/var/tuxbox/config/neutrino.conf;recording_dir_7;~cache=}" title="recording directory"/></td>
+				<td>{=L:recordingdirectory=} 7</td>
+				<td><input type="text" name="recording_dir_7" size="40" value="{=ini-get:/var/tuxbox/config/neutrino.conf;recording_dir_7;~cache=}" title=""/></td>
 			</tr>
 			<tr>
-				<td>Aufnahmeverzeichnis 8</td>
-				<td><input type="text" name="recording_dir_8" size="40" value="{=ini-get:/var/tuxbox/config/neutrino.conf;recording_dir_8;~cache=}" title="recording directory"/></td>
+				<td>{=L:recordingdirectory=} 8</td>
+				<td><input type="text" name="recording_dir_8" size="40" value="{=ini-get:/var/tuxbox/config/neutrino.conf;recording_dir_8;~cache=}" title=""/></td>
 			</tr>
 			<tr>
-				<td>Aufnahmeverzeichnis 9</td>
-				<td><input type="text" name="recording_dir_9" size="40" value="{=ini-get:/var/tuxbox/config/neutrino.conf;recording_dir_9;~cache=}" title="recording directory"/></td>
+				<td>{=L:recordingdirectory=} 9</td>
+				<td><input type="text" name="recording_dir_9" size="40" value="{=ini-get:/var/tuxbox/config/neutrino.conf;recording_dir_9;~cache=}" title=""/></td>
 			</tr>
 
 		</table>
@@ -1305,52 +1305,6 @@ start-block~neutrino_direct_recording_save_settings
 {=ini-set:/var/tuxbox/config/neutrino.conf;recording_dir_9;{=recording_dir_9=}~cache=}
 {=ini-set:/var/tuxbox/config/neutrino.conf;recording_dir_permissions_0;{=recording_dir_permissions_0=}~save=}
 end-block~neutrino_direct_recording_save_settings
-
-# ------- Neutrino form-data: esound -------------------------------
-start-block~neutrino_form-data_esound
-<div class="work_box">
-	<div class="work_box_head"><div class="work_box_head_h2">
-	{=var-set:help_url=Help-Settings-Esound_Soundserver=}{=var-set:menu=Esound Soundserver=}{=include-block:Y_Blocks.txt;work_menu=}</div></div>
-	<div class="work_box_body">
-	<form name="f" action="/y/cgi">
-		<table cellspacing="0" border="0" cellpadding="2" width="100%">
-			<tr>
-				<td width="35%">Esound Port</td>
-				<td><input type="text" name="esound_port" size="5" maxlength="5" value="{=ini-get:/var/tuxbox/config/neutrino.conf;esound_port~open=}" title="esound port"/>&nbsp;default: 16001</td>
-			</tr>
-		</table>
-		<br/>
-		<input type="hidden" name="tmpl" value="Y_Settings_neutrino_forms.yhtm"/>
-		<input type="hidden" name="execute" value="include-block:Y_neutrino_Blocks.txt;neutrino_esound_save_settings;nix"/>
-		<input type="hidden" name="form" value="{=form=}"/>
-		<button type="button" ytype="save" title="{=L:save_values_desc=}s" onclick="do_submit()">{=L:save=}</button>
-		&nbsp;<button type="button" ytype="refresh" onclick="dbox_reload_neutrino()">reload Neutrino</button>
-		&nbsp;<a href="javascript:top.top_main.prim_menu.nav('info', 'Y_Info_Help.yhtm');" class="inlink">{=L:help=}</a>
-	</form>
-	</div>
-</div>
-
-<script type="text/javascript">
-//<![CDATA[
-function form_init()
-{
-}
-
-function do_submit()
-{
-	show_waitbox(true);
-	document.f.submit();
-}
-form_init();
-//]]>
-</script>
-end-block~neutrino_form-data_esound
-
-# ------- yWeb save Settings
-start-block~neutrino_esound_save_settings
-{=ini-set:/var/tuxbox/config/neutrino.conf;esound_port;{=esound_port=}=}
-
-end-block~neutrino_esound_save_settings
 
 # ------- list possible directorys for records
 start-block~neutrino_list_record_dirs

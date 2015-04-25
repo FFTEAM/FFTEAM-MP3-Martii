@@ -29,11 +29,11 @@
 	<td>%s</td>
 	<td>
 		<a href="/fb/timer.dbox2?action=remove&amp;id=%d">
-		<img src="/images/remove.png" alt="Timer l&ouml;schen"/></a>
+		<img src="/images/remove.png" alt="{=L:deletetimer=}"/></a>
 	</td>
 	<td>
 		<a href="/Y_Timer_Edit.yhtm?typ=modify&amp;tid=%d">
-		<img src="/images/modify.png" alt="Timer &auml;ndern"/></a>
+		<img src="/images/modify.png" alt="{=L:modifytimer=}"/></a>
 	</td>
 </tr>
 =}
@@ -43,11 +43,11 @@
 	<td colspan="6"><img src="/images/blank.gif" width="1" height="1"/></td>
 	<td>
 		<a href="/Y_Timer_Edit.yhtm?typ=new">
-		<img src="/images/new.png" alt="neuer Timer"/></a>
+		<img src="/images/new.png" alt="{=L:newtimer=}"/></a>
 	</td>
 	<td>
 		<a href="javascript:location.reload()">
-		<img src="/images/reload.png" alt="Aktualisieren"/></a>
+		<img src="/images/reload.png" alt="{=L:update=}"/></a>
 	</td>
 </tr>
 </table>

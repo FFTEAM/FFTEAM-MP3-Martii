@@ -28,57 +28,57 @@ function do_submit()
 		<input type="hidden" name="nr" value="{=R1=}"/>
 		<table border="0" class="y_form_table">
 			<tr>
-				<td>Typ</td>
+				<td>{=L:typ=}</td>
 				<td>
 					<input type="radio" name="type" value="0"/>NFS&nbsp;
 					<input type="radio" name="type" value="1"/>CIFS&nbsp;
 				</td>
 			</tr>
 			<tr>
-				<td>IP</td>
+				<td>{=L:ip=}</td>
 				<td><input type="text" name="ip" size="20" value="{=ini-get:/var/tuxbox/config/neutrino.conf;network_nfs_ip_{=R1=}=}"/></td>
 			</tr>
 			<tr>
-				<td>Verzeichnis</td>
-				<td><input type="text" name="dir" size="30" value="{=ini-get:/var/tuxbox/config/neutrino.conf;network_nfs_dir_{=R1=}=}" title="remote directory. For CIFS do not use a leading slash."/></td>
+				<td>{=L:directory=}</td>
+				<td><input type="text" name="dir" size="30" value="{=ini-get:/var/tuxbox/config/neutrino.conf;network_nfs_dir_{=R1=}=}" title="{=L:remotedirectory=}"/></td>
 			</tr>
 			<tr>
-				<td>Lokales Verzeichnis</td>
-				<td><input type="text" name="localdir" size="30" value="{=ini-get:/var/tuxbox/config/neutrino.conf;network_nfs_local_dir_{=R1=}=}" title="local directory to by mounted"/></td>
+				<td>{=L:localdirec=}</td>
+				<td><input type="text" name="localdir" size="30" value="{=ini-get:/var/tuxbox/config/neutrino.conf;network_nfs_local_dir_{=R1=}=}" title="{=L:localdirecmount=}"/></td>
 			</tr>
 			<tr>
-				<td>MAC</td>
+				<td>{=L:mac=}</td>
 				<td><input type="text" name="mac" size="30" value="{=ini-get:/var/tuxbox/config/neutrino.conf;network_nfs_mac_{=R1=}=}"/></td>
 			</tr>
 			<tr>
-				<td>Optionen 1</td>
-				<td><input type="text" name="opt1" size="30" value="{=ini-get:/var/tuxbox/config/neutrino.conf;network_nfs_mount_options1_{=R1=}=}" title="mount options 1"/></td>
+				<td>{=L:optionen1=}</td>
+				<td><input type="text" name="opt1" size="30" value="{=ini-get:/var/tuxbox/config/neutrino.conf;network_nfs_mount_options1_{=R1=}=}" title="{=L:moptionen1=}"/></td>
 			</tr>
 			<tr>
-				<td>Optionen 2</td>
-				<td><input type="text" name="opt2" size="30" value="{=ini-get:/var/tuxbox/config/neutrino.conf;network_nfs_mount_options2_{=R1=}=}" title="mount options 2"/></td>
+				<td>{=L:optionen2=}</td>
+				<td><input type="text" name="opt2" size="30" value="{=ini-get:/var/tuxbox/config/neutrino.conf;network_nfs_mount_options2_{=R1=}=}" title="{=L:moptionen2=}"/></td>
 			</tr>
 			<tr>
-				<td>Automount</td>
+				<td>{=L:automount=}</td>
 				<td>
-					<INPUT type="radio" name="automount" value="0" title="off"/>AUS&nbsp;
-					<INPUT type="radio" name="automount" value="1" title="on"/>AN
+					<INPUT type="radio" name="automount" value="0" title="{=L:off=}"/>{=L:off=}&nbsp;
+					<INPUT type="radio" name="automount" value="1" title="{=L:on=}"/>{=L:on=}
 				</td>
 			</tr>
 			<tr>
-				<td>Benutzername</td>
-				<td><input type="text" name="username" size="30" value="{=ini-get:/var/tuxbox/config/neutrino.conf;network_nfs_username_{=R1=}=}" title="username"/></td>
+				<td>{=L:username=}</td>
+				<td><input type="text" name="username" size="30" value="{=ini-get:/var/tuxbox/config/neutrino.conf;network_nfs_username_{=R1=}=}" title="{=L:username=}"/></td>
 			</tr>
 			<tr>
-				<td>Passwort</td>
-				<td><input type="password" name="password" size="30" value="{=ini-get:/var/tuxbox/config/neutrino.conf;network_nfs_password_{=R1=}=}" title="password"/></td>
+				<td>{=L:password=}</td>
+				<td><input type="password" name="password" size="30" value="{=ini-get:/var/tuxbox/config/neutrino.conf;network_nfs_password_{=R1=}=}" title="{=L:password=}"/></td>
 			</tr>
 		</table>
 		<br/>
 		<input type="hidden" name="tmpl" value="Y_Settings_mount_liste.yhtm"/>
 		<input type="hidden" name="execute" value="func:mount-set-values"/>
-		<button type="button" ytype="save" title="submit and save values" onClick="do_submit()">Speichern</button>
-		<button type="button" ytype="cancel" title="cancel" name="abort" onClick='window.document.location.href="/Y_Settings_mount_liste.yhtm"'>Abbrechen</button>
+		<button type="button" ytype="save" title="{=L:submitsavevalues=}" onClick="do_submit()">{=L:save=}</button>
+		<button type="button" ytype="cancel" title="{=L:cancel=}" name="abort" onClick='window.document.location.href="/Y_Settings_mount_liste.yhtm"'>{=L:cancel=}</button>
 	</form>
 	</div>
 </div>

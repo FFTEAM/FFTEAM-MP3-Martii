@@ -9,6 +9,6 @@ function do_onload()
 </script>
 </head>
 <body onload="do_onload()">
-refreshing...
+{=L:refreshing=}
 </body>
 </html>

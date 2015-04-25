@@ -42,8 +42,8 @@ function do_refresh_liveview()
 				<td><input type="text" name="vlc_record_path" size="17" value="{=ini-get:/var/tuxbox/config/Y-Web.conf;vlc_record_path=}"/></td>
 			</tr>
 <!---			<tr>
-				<td>VLC Aufnahmetyp</td>
-				<td><input type="text" name="vlc_record_mux_type" size="17" value="{=ini-get:/var/tuxbox/config/Y-Web.conf;vlc_record_mux_type=}" title="VLC record mux type"/></td>
+				<td>{=L:vlcrecordtype=}</td>
+				<td><input type="text" name="vlc_record_mux_type" size="17" value="{=ini-get:/var/tuxbox/config/Y-Web.conf;vlc_record_mux_type=}" title="{=L:vlcrecordmuxtype=}"/></td>
 			</tr>
 -->
 			</table>

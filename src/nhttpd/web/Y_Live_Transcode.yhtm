@@ -168,8 +168,8 @@ function doTranscode()
 		<tr>
 			<td colspan="3">
 			<br/>
-				<input type="checkbox" name="tdisplay" value="1" title="Display on while transcoding" checked="checked"/>{=L:live.rec.display_on=}
-				&nbsp;<button class="y_live_button" type="button" value="transcode" title="transcode stream" name="transcode" onclick="doTranscode()"><img src="/images/transcode.png"/>&nbsp;Transcode</button>
+				<input type="checkbox" name="tdisplay" value="1" title="{=L:displayonwhiletranscoding=}" checked="checked"/>{=L:live.rec.display_on=}
+				&nbsp;<button class="y_live_button" type="button" value="transcode" title="{=L:transcodestream=}" name="transcode" onclick="doTranscode()"><img src="/images/transcode.png"/>&nbsp;{=L:transcode=}</button>
 			</td>
 		</tr>
 		</table>

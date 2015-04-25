@@ -1,8 +1,425 @@
 #	yWeb language file (Englisch) by yjogol
-#	language version: 1.1
+#	language version: 1.2 edit by shanthi
 #	$Date$
 #	$Revision$
-=========== GENERAL / GLOBAL
+# =========== meine Anpassungen unsortiert
+start.head=yWeb&nbsp;start wizard
+recordsettingshl=Record settings
+send.zapit=Save
+alert.zapit=You have to select one...
+alertautomounts=Really want to delete mount?
+changeautomounts=Change
+adautomounts=Add
+delautomounts=Delete
+editmountsettings=Edit mount settings
+addnewmount=Add a new mount
+deletemount=Delete mount
+mountname=Mount name
+typmountname=Typ
+ipmountname=IP
+directoymountname=Directoy
+optionenmountname=Options
+gototopdir=Go to top diretory (root)
+goonedirup=Go one diretory up
+addfolderhere=Add folder here
+uploadc=Upload
+pasteitem=Paste item
+uploadfilename=Upload filename:
+nothingselected=Nothing is selected
+addfolder=Add folder:
+alertnothingtopaste=Nothing to paste
+deleteitem=Delete item
+copyitem=Copy item
+cutitem=Cut item
+downloaditem=Download item
+edititem=Edit item
+selecteditem=Selected item
+fileproperties=File properties
+size=Size
+group=Group
+filepermissions=File permissions
+owner=Owner
+others=Others
+chmod=chmod
+rename=Rename
+workindicator=Workindicator
+statusline=Statusline
+msgstatusline=Message in statusline
+notimplemented=Not implemented
+filemanagereditor=File Manager Editor
+copytext=Copy text
+cuttext=Cut text
+reload=Reload
+closewithoutsave=Close without save
+editor=Editor
+editmountsettings=Edit mount settings
+editmount=Change
+mountselecteddirectory=Mount selected directory
+mount=Mount
+viewunmountlist=View unmountlist
+typ=Typ
+ip=IP
+remotedirectory=Remote directory. For CIFS do not use a leading slash.
+localdirec=Local directory
+localdirecmount=Mount local directory mount
+mac=MAC
+optionen1=Option 1
+optionen2=Option 2
+moptionen1=Mount option 1
+moptionen2=Mount option 2
+automount=Automount
+username=Username
+password=Password
+submitsavevalues=Submit and save values
+uploadlogo=Upload the logo
+attention=Attention
+abootlogomust=The bootlogo must already exist in the target format!
+bootlogo=Bootlogo
+bootlogolcd=LCD-Bootlogo
+createimage=Create image
+partition=Partition
+generateimage=Generate image to download
+flash=Flash ...
+uploaddialog=Go to upload dialog
+note=Note
+rebootbeforeflash=Reboot before flashing!
+rebootbeforeflashe=Better you reboot you Box before you flashe!
+rebootbox=Really restart the box?
+downloadyimage=Download your image
+doimage=Do image
+downloadokdelimage=Download ok!Delete image in / tmp.
+ywebversionis=yWeb version is:
+ok=OK
+fail=fail
+webserver=webserver:
+versionis=Version is
+authenticationison=Authentication is running
+notice=Notice
+notsettostandardport=Not set to standard port
+actual=Actual:
+wait=please wait...
+collectinginfo=Collecting info
+programs=Programs:
+udpstreamtsnotinstall=UDP-stream TS is not installed.
+udpstreamingdisabled=UDP-streaming is disabled.
+udpstreamtsinstallat=UDP-streaming is install at:
+udpstreamingenabled=UDP-streaming is enabled.
+automountinstallat=Automount is install at::
+automountenabled=Automount is enabled.
+automountnotinstall=Automountne is not installed.
+automountdisabled=Automount is disabled.
+ether-wakeinstallat=Ether-wake est is install at:
+wakeonlanenabled=Wake on LAN is enabled.
+ether-wakenotinstall=Wake on LAN is not installed.
+wakeonlandisabled=Wake on LAN is disabled.
+wakeup=Wakeup
+fcpinstallat=FCP is install at:
+imageflashingenabled=Image flashing is enabled.
+fcpnotinstall=FCP is not installed.
+imageflashingdisabled=Imageflashing is disabled.
+dboxshotinstallat=dboxshot is install at:
+remoteosdenabled=Remote OSD is enabled.
+dboxshotnotinstall=dboxshot is not installed.
+remoteosddisabled=dboxshot is disabled.
+fbshotinstallat=FBshot is install at:
+osdscreenshotenabled=OSD-screenshot is enabled.
+fbshotnotinstall=FBshot is not installed.
+osdscreenshotdisabled=OSD-screenshot is disabled.
+settings=Settings
+managementip2setto=Management IP(2) set to:
+managementip1setto=Management IP(1) set to:
+youripis=Your IP is
+copyright=Copyright
+copyrighttxt=yWeb (this Web interface) is licensed under the terms of the Open Source GPL 2 license.
+copyrighttxt2=yWeb use icons from famfamfam.
+copyrighttxt3=which are licensed under Creative Common Attribution License 2.5
+important=Important
+importanttxt=Do not make YWEB accessible to untrusted networks!<br/> <br/> Otherwise someone else can access your Box.
+setaudiovideo=Setting audio / video
+video=Video
+videosignalart=Video Signal Art
+selectvideooutput=Select video output
+screensize=Screen size
+selectvideoformat=Select videoformat
+automatic=automatic
+backgroundimagesize=Background image size
+selectbackgroundformat=Select background format
+rgbsync=RGB sync
+selectvcroutput=Select VCR output
+vcrautoswitchonoff=VCR autoswitch
+scartinputautomatic=Scart input automatic
+no=No
+yes=Yes
+audio=Audio
+analogoutput=Analog output
+selectaudiomode=Select audiomode
+monoleft=Mono Left
+monoright=Mono Right
+audiochannelisselectableinmenu=Audio channel is selectable in menu:
+enableaudioselectwithleftright=Enable audio select with left/right:
+dolbydigitaldefault=Dolby Digital par default:
+volumecontrol=Volumecontrol
+selectvolumecontrol=Select volumecontrol
+volumestepsize=Volume stepsize:
+reloadneutrino=Reload Neutrino
+settingsarereadonly=(* Settings are read only)
+settingslcd=Settings LCD
+lcd=LCD
+power=Power
+inverselcd=Inverse
+dimmtimeout=Dimm timeout
+brightnessafterdimmtimeout=Brightness after dimm timeout
+contrastbrightness=Contrast / Brightness
+lcdcontrast063=Contrast 0 to 63
+contrast=Contrast
+lcdbrightnessnormal0255=Brightness (normal) 0 to 255
+brightness=Brightness
+lcdbrightnessstandby0255=Brightness (standby) 0 to 255
+lcdbrightnessstandby=Brightness standby
+usesetdefault=use default settings
+displaymodes=Displaymodes
+egpdisplay=EPG display
+selectvisualisationoflcd=Select visualisation of lcd
+standardcanal=Standard canal
+broadcast=Broadcast
+canalbroadcast=Canal broadcast
+canaldividinglinebroadcast=Canal / dividing line / Broadcast
+canalshortbroadcast=Canal (short) / Broadcast
+canalshortdividinglinebroadcast=Canal (short) / dividing line / Broadcast
+statusline=Statusline
+progressofthebroadcast=Progress of the Broadcast
+volumelevel=Volumelevel
+volumelevelprogress=Volumelevel progress
+volumelevelprogressaudio=Volumelevel / Progress / Audio
+keysremotecontrol=Keys Remotecontrol
+modechange=Mode change
+tvradiomode=Mode TV / Radio
+nokey=No key
+channellist=Channel list
+okbuttonfor=OK button for
+okbuttonfor2=OK button for...
+bouquetchannels=Bouquet channels
+bouquetlist=Bouquet list
+pagescrollup=Page scroll up
+pagescrolldown=Page scroll down
+closechannellist=Close channel list
+changesortorder=Change sort order
+keywordsearchinepg=Keyword search in EPG
+addrecordingtimer=Add recording timer
+addremidtimer=Add remid timer
+updateepg=Update EPG
+quickswitchover=Quick switch over
+channelup=Channel up
+channeldown=Channel down
+bouquetup=Bouquet up
+bouquetdown=Bouquet down
+subchannelup=Sub-channel up
+subchanneldown=Sub-channel down
+subchanneltoggle=Sub-channel toggle
+zaphistorybouquet=Zap history bouquet
+usedefault=Use default
+lastchannel=Last channel
+enterip=Enter IP (xxx.xxx.xxx.xxx)
+port=Port
+scale=Scale
+enterscaleforscreen=Enter scale for screen
+personalization=Personalization
+accesspersonalization=Access personalization
+requirespin=Requires PIN
+pincode=PIN-code
+coloredbuttons=Colored buttons
+bluebuttonfeatures=Blue button (features)
+enabled=Enabled
+disabled=Disabled
+redbuttonepginfo=Red button (EPG/Info)
+mainmenu=Mainmenu
+tvmode=TV-mode
+notvisible=Not visible
+visible=Visible
+pin=PIN
+radiomode=Radio-mode
+scartinput=Scart input
+games=Games
+audioplayer=Audioplayer
+internetradio=Internet radio
+movieplayer=Movieplayer
+pictureviewer=Pictureviewer
+upndbrowser=UPNP-Browser
+sleeptimer=Sleeptimer
+settingsmenuwithpin=Settings menu with PIN
+youthprotection=Youth-protection
+network=Network
+colorsthemesfont=Coulors / Themes / Font
+lcddisplay=LCD Display
+keysettings=Key sttings
+mediaplayback=Mediaplayer
+driverandbootoptions=Driver and boot options
+varioussettings=Various settings
+service=Service
+servicemenuwithpin=Service menu with PIN
+bouquetmanagement=Bouquet management
+channelsearch=Channelsearch
+reloadchannellists=Reload channel lists
+reloadplugins=Reload plugins
+rebootneutrino=Reboot Neutrino
+restartepg=Restart EPG
+transmitterepgstatistics=Transmitter / EPG statistics
+imageinformation=Image informations
+softwareupdate=Software update
+extentionlist=Extention list
+directrecording=Direct recording
+maxfilesizemb=Max. filesize (Mb)
+sizeringbuffer=Size Ringbuffer
+kb=Kb
+mb=Mb
+syncwriteosync=Sync-write (O_SYNC)
+syncwritefdatasync=Sync-write (fdatasync)
+recordvideotext=Record videotext
+recordpmt=Record PMT
+choosedirectoryonrecord=Choose directory on record
+epginfilename=EPG in filename
+filenametemplate=Filename template
+directorypermissions=Directory permissions
+recordingdirectories=Recording directories
+recordingdirectory=Recording directory
+parentaltype=Parental type
+alertparentalcontrolpinmustbe4digits=Parental control PIN must be 4 digits!
+inforequestisbeingprocessed=Info request is being processed!
+infopleasewait=please wait ...
+lcdshot=LCD-Shot
+dellcdshot=Delete LCD-Shot
+options=Options
+optionen=Options
+displaycolor=Display color
+zoommode=Zoom-mode
+zoomfactor=Zoom-factor
+dataoutput=Data output
+compressed=Compressed
+coloroutput=Color output
+grayscaleimage=Grayscale image
+output=Output
+imagewillbeflasheddonotinterrupt=Image will be flashed. Do not interrupt this action!
+erasing=Erasing
+writing=Writing
+verifying=Verifying
+switchondemomodeflashingwillbesimulated=Switch on demo mode. Flashing will be simulated!
+demomode=Demo-mode
+uploadandflash=Upload and flash
+imageflashen=Image flashing
+fcpisnotinstalled=FCP is not installed!
+yourbrowserdoesnotsupportiframes=Your browser does not support iframes!
+shelloutputwindow=Shell output window
+thispagecouldbeusedformanagementpurposesonly=This page could be used for management purposes only!
+gethelpfrom=Get help from:
+welcometo=Welcome to
+inquiryisworkedon=Inquiry is working on...
+yourbrowserdoesnotsupportiframesordoesnotshowtheminthepresentconfiguration=Your browser does not support iframes or does not show them in the present configuration!
+noipfortheslaveboxsetsettingpossibleundersettingsyweb=No IP for the slavebox! <br> Set setting possible under: Settings->yWeb.
+deletetimer=Delete timer
+modifytimer=Modify timer
+newtimer=New timer
+update=Update 
+wakeonlan=Wake on lan
+wakeupthat=Wake up that
+wakeonlansettings=Wake on lan settings
+unmountselecteddirectory=Unmount selected directory
+viewmountlist=View mount list
+uploadselectedfile=Upload selected file
+vlcrecordtype=VLC record type
+vlcrecordmuxtype=VLC record mux-type
+displayonwhiletranscoding=Display on while transcoding
+transcodestream=Transcode stream
+transcode=Transcode
+usetranscoding=Use transcoding
+recordstreamtofile=Record stream to file
+ipodvideo=iPod video
+custom=CPersonnalisation
+ipodaudio=iPodaudio
+mp3audio=mp3 audio
+rootofhostedwebentermountdirectory=Root of hosted web. Enter mount directory.
+reset=Reset
+cards=Carts
+alertinordertosendallfiletypesyouhavetoselectandenableundersettingswebserverallowallfileextensions=In order to send all filetypes you have to select and enable under settings: Webserver allow all file extensions!
+alertyoucannoteditadirectory=You can not edit a directory!
+alertnotimplemented=Not implemented!
+path=Path
+permission=Permission
+read=Read
+write=Write
+item=Item
+changepermissions=Change permissions
+workindicator=Workindicator
+messageinstatusline=Message in statusline
+startmode=Start mode
+selectstartmodus=Select startmodus
+lastmode=Last mode
+esoundsoundserver=Esound: Soundserver
+standby=Standby
+standbypowersavingmode=Standby powersaving mode (exp.)
+shutdowncompletelyafter=Shut down completely after:
+shutdowndelay=Shutdown delay
+standbyoffwith=Standby off with:
+selectabutton=Select a button
+temporarilystorevideotex=Temporarily store videotex
+osdxtras=OSD-extras
+volumelevelindicator=Volumelevel indicator
+selectvolumebarposition=Select volumebar position
+topright=Top right
+topleft=Top left
+bottomleft=Bottom left
+bottomright=Bottom right
+bottomcenter=Bottom center
+elevatedcenter=Elevated center
+muteiconatvolumelevel0=Mute icon at volumelevel 0
+notforac3=Not for AC3
+infobar=Infobar
+intheinfobar=In the infobar
+subchanneldisplayposition=Sub-channel display position
+subchanneldisplay=Sub-channel display
+satellitedisplayinfobar=Satellite display infobar
+virtualzap=Virtual zap
+infoatepgchange=Info at EPG change
+infobarshowtype=Infobar show type
+showinfobar=Show infobar
+popup=Popup
+radiotext=Radiotext
+programtextposition=Program text position
+extendedchannellist=Extended channel list
+zapitnotetorunpzapitkillbeforesave=Zapit (Note to run: pzapit -kill before save)
+savelastchannel=Save last channel
+tvstartchannel=TV start channel
+radiostartchannel=Radio start channel
+enterchannelnumber=Entrer le num&eacute;ro de chaine
+saveaudiopids=Save audio PIDs
+othersbouquet=others Bouquet
+remotecontrol=Remotecontrole
+initialdelaytime=Initial delay time
+milliseconds=Millisecondes
+repeatdelay=Repeat delay
+filebrowser=Filebrowser
+filesystem=Filesystem
+showfilesystemrights=Show filesystem rights
+startdirectoryisabsolute=Start directory is absolute
+driverandbootoptions=Driver and boot options
+loaddriverforsptsmode=Load driver for SPTS-mode
+infoonboot=Info on boot
+usehwsections=Use HW sections
+activateaviawatchdog=Activate AVIA-Watchdog
+activatenhxwatchdog=Activat nHX-Watchdog
+philipssagemrcpatch=Philips/Sagem RC patch
+avia500sptsfix=AVIA500 SPTS fix
+enablerealtimeclockrtc=Activat realtime clock (RTC)
+usepmtupdate=Use PMT update
+onlyexpertbootconsole=Only expert boot console!
+expertbootconsole=Expert boot console
+fullduplexmode=Full Duplex mode
+miscellaneous=Miscellaneous
+showbootmenu=Show boot-menu
+right=right
+left=left
+plugins=Plugins
+
+# =========== GENERAL / GLOBAL
 global.no_iframes=Your Browser does not support IFrames.
 clear=clear
 submit=Submit
@@ -17,7 +434,7 @@ server=Server
 refreshing=refreshing ...
 refresh=refresh
 record=record
-zap=zap
+zap=&nbsp;&nbsp;&nbsp;.
 lookup=lookup
 save_values_desc=submit and save values
 save_values=Save values ...
@@ -59,7 +476,7 @@ automatic=automatically
 show=show
 hide=hide
 
-#========= MAIN Menue
+# ========= MAIN Menue
 main.live_tv_desc=LiveTV
 main.live_tv_popup_desc=LiveTV popup
 main.remote_full_desc=Remote & OSD full
@@ -80,7 +497,7 @@ main.extensions_desc=User Extensions ...
 main.info=Info
 main.info_desc=Information about yWeb, Updates
 
-#========= Boxcontrol Menue
+# ========= Boxcontrol Menue
 bc.menue.bouquets_desc=Switch channels
 bc.menue.bouquets=Bouquets
 bc.menue.control_desc=control box functions (reboot, remote control, SPTS, ...)
@@ -102,14 +519,15 @@ bc.menue.switch_to_tv=switch to TV
 bc.menue.switch_to_radio=switch to Radio
 bc.menue.webinf_slavebox=Webinterface der SlaveBox
 bc.menue.volumen_display=volumen display
-
+bc.menu.snr_display=Quality of signal
 bc.menue.signal=Signal strength
 
-========= Boxcontrol
+# ========= Boxcontrol
 bc.control.freemem=FreeMem
 bc.control.lock=lock
 bc.control.unlock=unlock
 bc.control.standby_mode=standby mode
+bc.control.rc_mode=Remotecontrole / LCD
 bc.control.recording_mode=recording mode
 bc.control.box=box
 bc.control.remote=remote
@@ -122,24 +540,25 @@ bc.control.shutdown.ask=Really shutdown the Box?
 bc.control.shutdown=shutdown
 bc.control.status=status
 bc.control.restart=restart
+bc.control.lcd_unlock=LCD unlock (exp.)
 
-========= Boxcontrol - Message
+# ========= Boxcontrol - Message
 bc.msg.message_to_screen_desc=enter message to send to TV screen
 bc.msg.message_to_screen=Message on screen
 bc.msg.popup_to_screen=Message as popup
 bc.msg.send_message=send message
 
-======== Boxcontrol - Screenshot
+# ======== Boxcontrol - Screenshot
 bc.screenshot.create=Screenshot
 bc.screenshot.delete=Delete screenshot
 bc.screenshot.zoom=Zoom screenshot
 bc.screenshot.wait_text=Create screenshot
 bc.screenshot.checkenable=OSD and/or TV must be enabled!
 
-========= Boxcontrol - Others
+# ========= Boxcontrol - Others
 bc.channels=Channels
 
-====== EXtension
+# ====== EXtension
 ext.installer_updater=Installer/Updater
 ext.uninstaller=Extensions Uninstaller
 ext.search_for_ext=Search for Extensions ...
@@ -163,7 +582,7 @@ ext.site=Site
 ext.refresh_now=Settings saved. Refreshing Menue now.
 ext.ext_saved=Extensions Settings saved
 
-====== Bouquet
+# ====== Bouquet
 bou.bouquet=Bouquet
 bou.bouquets_must_be_saved=All bouquets must be saved!
 bou.bouquet_editor=Bouquet-Editor
@@ -181,7 +600,8 @@ bou.delete1=Really delete Bouquet
 bou.delete2=
 bou.no_bouquet_name=No Bouquet-Name entered
 
-========EPG
+# ========EPG
+get_epg=Get EPG ...
 epg.get_epg=get EPG ...
 epg.epg_plus=EPG Plus
 epg.select_bouquet=select bouquet - channels will be updated
@@ -192,7 +612,27 @@ epg.next_hours=next hours
 epg.set_timer=Set timer for recording. Done.
 epg.zap_to=Set switch to channel. Done.
 
-========EPG Streaminfo
+# ========EPG (miscsettings new by shanthi)
+miscsettings.epg_head=EPG
+miscsettings.epg_save=EPG save
+miscsettings.epg_save_standby=Save EPG in standby
+miscsettings.epg_save_frequently=Save_frequently
+miscsettings.epg_read=Read saved EPG
+miscsettings.epg_dir=EPG save directory
+miscsettings.epg_cache=EPG cache
+miscsettings.epg_extendedcache=EPG cache (days)
+miscsettings.epg_old_events=Keep old events (h)
+miscsettings.epg_max_events=Max. EPG events.
+miscsettings.epg_scan= Scan EPG
+miscsettings.epg_scan_live=Live scan EPG
+miscsettings.epg_scan_standby=EPG scan standby
+miscsettings.epg_scan_always=EPG scan always
+miscsettings.epg_scan_bouquets=EPG scan bouquets
+miscsettings.epg_scan_bq=Active Bouquet
+miscsettings.epg_scan_fav=Scan all fav. bouquets
+miscsettings.epg_scan_sel=Scan selected bouquets
+
+# ========EPG Streaminfo
 epg.si.streaminfo=Streaminfo
 epg.si.resolution=Resolution
 epg.si.ratio=Aspect Ratio
@@ -209,13 +649,13 @@ epg.si.apid=Audio PID
 epg.si.vtxtpid=Teletext PID
 epg.si.crypt=Crypt systems
 
-========Settings
+# ========Settings
 set.reload_neutrino=reload Neutrino
 set.reboot_required=reboot required
 set.sync_with_neutrino_desc=After changing settings via yWeb: <br/>Choose on TV "Main Menu->Service->Soft restart", to accept the changes within neutrino.<br/><br/>After changing settings within Neutrino: <br/>Choose on TV "Main Menu->Settings->Save settings now", to accept these changes and reload this page.
 set.sync_with_neutrino=Synchronization with Neutrino
 
-=======Settings General & Menue
+# =======Settings General & Menue
 set.menue.webserver=Webserver
 set.menue.epg=EPG
 set.menue.timer_settings=Timer Settings
@@ -235,7 +675,7 @@ set.menue.boot_options=Boot options
 set.menue.peronalization=Personalization
 set.menue.plugins=Plugins
 set.menue.others=Others
-========Neutrino Settings - Recording
+# ========Neutrino Settings - Recording
 set.rec.rec_dest=Recoring destination
 set.rec.device=Recording device
 set.rec.recmode=record mode
@@ -273,7 +713,7 @@ set.rec.timeshift.auto_record=Autom. Recording (in Sec, 0=deactivate)
 set.rec.timeshift.auto_delete=Automatic deletion
 set.rec.timeshift.tmp_timeshift=Temporaly timeshift
 
-========Neutrino Settings - Movieplayer
+# ========Neutrino Settings - Movieplayer
 set.mp.sources=Sources
 set.mp.streamingserver_ip=Streamingserver IP
 set.mp.streamingserver_port=Streamingserver Port
@@ -295,7 +735,7 @@ set.mp.used_buffer=Used Buffer (WabberQueue)
 set.mp.number_buffersegments=Number of buffer segs
 set.mp.picture_in_browser=TV Picture in Browser
 
-========Neutrino Settings - Parental
+# ========Neutrino Settings - Parental
 set.parental.activate=Activate
 set.parental.type.never=Never
 set.parental.type.bouquet=Bouquet
@@ -303,7 +743,7 @@ set.parental.type.preset=Preset
 set.parental.minimum_age=Minimum Age
 set.parental.pin=PIN
 
-========Settings NHTTP
+# ========Settings NHTTP
 set.nhttpd.webserver=Webserver
 set.nhttpd.authentication=Authentication
 set.nhttpd.client_without_authentication_desc=Client with no authentication check. Enter IP.
@@ -327,7 +767,7 @@ set.nhttpd.server_configuration=Server Configuration
 set.nhttpd.check_password=Password must have 4 letters at minimum
 set.nhttpd.check_port=Port is required
 
-=========Settings yWeb
+# =========Settings yWeb
 set.yweb.enter_ip_desc=enter IP (xxx.xxx.xxx.xxx)
 set.yweb.enter_mac_desc=enter MAC Adress (xx:xx:xx:xx:xx:xx)
 set.yweb.description=Description
@@ -341,7 +781,7 @@ set.yweb.box_color=Color
 set.yweb.start_page=Start page
 set.yweb.remote=Remote
 
-========Settings Picture viewer
+# ========Settings Picture viewer
 set.pv.pictureviewer=Pictureviewer
 set.pv.scale=Scaling
 set.pv.scale.none=none
@@ -352,7 +792,7 @@ set.pv.start_dir=Start Directory
 set.pv.decoding_server_ip=Decoding-Server IP
 set.pv.decoding_server_port=Decoding-Server Port</td>
 
-========Settings Audioplayer
+# ========Settings Audioplayer
 set.ap.audioplayer=Audioplayer
 set.ap.display_order.actor_title=Actor, Title
 set.ap.display_order.title_actor=Title, Actor
@@ -366,7 +806,7 @@ set.ap.decode_priority=High decoding priority
 set.ap.start_dir=Start directory
 set.ap.parse_shoutcast=Shoutcast Meta-Data
 
-========Settings Timer
+# ========Settings Timer
 set.timer.header=Timer Settings
 set.timer.username=Username
 set.timer.password=Password
@@ -376,14 +816,14 @@ set.timer.klack.security_code_desc=your klack security code to get your data wit
 set.timer.klack.security_code=Security Code
 set.timer.channel_name_replacelist=Channel name replace list
 
-========Settings Backup/Restore
+# ========Settings Backup/Restore
 set.settings.backup=Backup
 set.settings.backup_desc=Backup your settings
 set.settings.restore=Restore
 set.settings.restore_desc=Upload and restore your settings. Your STB will reboot.
 set.settings.warning=Backup & Restore is only useful for the same image with the same level of development. 
 
-============ Tools Info
+# ============ Tools Info
 tools.info.show_messages=Kernel Messages
 tools.info.processes=Processes
 tools.info.memory=Memory
@@ -394,7 +834,7 @@ tools.info.mtd=mtd
 tools.info.stat=Statistics
 tools.info.version=Version
 
-============ Tools yInstaller
+# ============ Tools yInstaller
 tools.yinstaller.no_file_given=No file given!
 tools.yinstaller.space.mtd=Space total
 tools.yinstaller.space.used=used
@@ -405,7 +845,7 @@ tools.yinstaller.head=yInstaller
 tools.yinstaller.tar_file=tar-File
 tools.yinstaller.upload_install=upload and install
 
-============ Tools
+# ============ Tools
 tools.automount_desc=organize file automounts
 tools.automount=AutoMounts
 tools.mounts_desc=organize file mounts
@@ -426,7 +866,7 @@ tools.boot_logo=Boot Logo
 tools.filemgr_desc=organize files and directorys
 tools.filemgr=File manager
 
-=========== LIVE Menue
+# =========== LIVE Menue
 live.heading=Live/Timer
 live.live=Live
 live.tv_popup_desc=LiveTV (popup)
@@ -440,7 +880,7 @@ live.epg_plus_popup_desc=EPG+ (popup)
 live.epg_plus=EPG Plus
 live.timer_sync=Timer Sync
 
-=========== LIVE tv/radio
+# =========== LIVE tv/radio
 live.get_stream_info=Getting <br/>Streaming-Informationen.
 live.getting_bouquets=getting bouquets ...
 live.getting_channels=getting channels ...
@@ -467,7 +907,7 @@ live.select_channel=select channel - use go to zap
 live.live_popup_msg=Under Live-View do not zap channels direct by the web or by the box' RC.
 live.unlock=unlock RC
 
-=========== LIVE Record
+# =========== LIVE Record
 live.rec.record_mode=Record Mode
 live.rec.filename=Filename
 live.rec.display_on=Display on
@@ -489,7 +929,7 @@ live.rec.access=Access
 live.rec.type=Type
 live.rec.ip_port=IP:Port
 
-=========== LIVE Settings
+# =========== LIVE Settings
 live.set.vlc_settings=VLC Settings (IE &amp; Mozilla >= 0.8.6.1)
 live.set.deinterlace=Deinterlace
 live.set.http_caching=http caching
@@ -499,10 +939,11 @@ live.set.enter_ip=enter IP (xxx.xxx.xxx.xxx) of slave-box
 live.set.vlc_rec_dir=VLC Recording Directory
 live.set.refresh_liveview=Refresh LiveView
 
-=========== LIVE Timer Edit
+# =========== LIVE Timer Edit
 live.timer_edit.timer=Timer
 live.timer_edit.times=Times
 live.timer_edit.alarm_date=Alarm date
+live.timer_edit.type=Timer-Type
 live.timer_edit.time=Time
 live.timer_edit.stop_date=Stop date
 live.timer_edit.repeat=Repeat
@@ -522,7 +963,7 @@ live.timer_edit.plugin=Plugin
 live.timer_edit.rec_dir=Recordind directory
 live.timer_edit.description=Description
 
-=========== LIVE Timer Sync
+# =========== LIVE Timer Sync
 live.timer-sync.get_timer=Get timer.
 live.timer-sync.header=Timer Sync
 live.timer-sync.timer_source=Timer Source
@@ -543,14 +984,14 @@ live.timer-sync.log=Log
 live.timer-sync.action=Action
 live.timer-sync.status=Status
 
-========== INFO
+# ========== INFO
 info.help=Help
 info.About=About
 info.check_for_updates=Check for Updates
 info.your_version=Your Version
 info.actual_version=Actual Version
 
-=========Remote control
+# =========Remote control
 rc.key_power=Standby
 rc.key_mute=Mute
 rc.key_1=1

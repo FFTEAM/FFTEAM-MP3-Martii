@@ -1,8 +1,425 @@
 #	yWeb language file (Czech) by marsim21
-#	language version: 1.0
-#	$Date: 2014-04-09 16:02:10 +0100 (st, 09 Duben 2014) $
-#	$Revision: 213 $
-#========= Hlavní / Celkové nastavení
+#	language version: 1.2 edit by shanthi
+#	$Date$
+#	$Revision$
+# =========== meine Anpassungen unsortiert
+start.head=yWeb&nbsp;start wizard
+recordsettingshl=Record settings
+send.zapit=Save
+alert.zapit=You have to select one...
+alertautomounts=Really want to delete mount?
+changeautomounts=Change
+adautomounts=Add
+delautomounts=Delete
+editmountsettings=Edit mount settings
+addnewmount=Add a new mount
+deletemount=Delete mount
+mountname=Mount name
+typmountname=Typ
+ipmountname=IP
+directoymountname=Directoy
+optionenmountname=Options
+gototopdir=Go to top diretory (root)
+goonedirup=Go one diretory up
+addfolderhere=Add folder here
+uploadc=Upload
+pasteitem=Paste item
+uploadfilename=Upload filename:
+nothingselected=Nothing is selected
+addfolder=Add folder:
+alertnothingtopaste=Nothing to paste
+deleteitem=Delete item
+copyitem=Copy item
+cutitem=Cut item
+downloaditem=Download item
+edititem=Edit item
+selecteditem=Selected item
+fileproperties=File properties
+size=Size
+group=Group
+filepermissions=File permissions
+owner=Owner
+others=Others
+chmod=chmod
+rename=Rename
+workindicator=Workindicator
+statusline=Statusline
+msgstatusline=Message in statusline
+notimplemented=Not implemented
+filemanagereditor=File Manager Editor
+copytext=Copy text
+cuttext=Cut text
+reload=Reload
+closewithoutsave=Close without save
+editor=Editor
+editmountsettings=Edit mount settings
+editmount=Change
+mountselecteddirectory=Mount selected directory
+mount=Mount
+viewunmountlist=View unmountlist
+typ=Typ
+ip=IP
+remotedirectory=Remote directory. For CIFS do not use a leading slash.
+localdirec=Local directory
+localdirecmount=Mount local directory mount
+mac=MAC
+optionen1=Option 1
+optionen2=Option 2
+moptionen1=Mount option 1
+moptionen2=Mount option 2
+automount=Automount
+username=Username
+password=Password
+submitsavevalues=Submit and save values
+uploadlogo=Upload the logo
+attention=Attention
+abootlogomust=The bootlogo must already exist in the target format!
+bootlogo=Bootlogo
+bootlogolcd=LCD-Bootlogo
+createimage=Create image
+partition=Partition
+generateimage=Generate image to download
+flash=Flash ...
+uploaddialog=Go to upload dialog
+note=Note
+rebootbeforeflash=Reboot before flashing!
+rebootbeforeflashe=Better you reboot you Box before you flashe!
+rebootbox=Really restart the box?
+downloadyimage=Download your image
+doimage=Do image
+downloadokdelimage=Download ok!Delete image in / tmp.
+ywebversionis=yWeb version is:
+ok=OK
+fail=fail
+webserver=webserver:
+versionis=Version is
+authenticationison=Authentication is running
+notice=Notice
+notsettostandardport=Not set to standard port
+actual=Actual:
+wait=please wait...
+collectinginfo=Collecting info
+programs=Programs:
+udpstreamtsnotinstall=UDP-stream TS is not installed.
+udpstreamingdisabled=UDP-streaming is disabled.
+udpstreamtsinstallat=UDP-streaming is install at:
+udpstreamingenabled=UDP-streaming is enabled.
+automountinstallat=Automount is install at::
+automountenabled=Automount is enabled.
+automountnotinstall=Automountne is not installed.
+automountdisabled=Automount is disabled.
+ether-wakeinstallat=Ether-wake est is install at:
+wakeonlanenabled=Wake on LAN is enabled.
+ether-wakenotinstall=Wake on LAN is not installed.
+wakeonlandisabled=Wake on LAN is disabled.
+wakeup=Wakeup
+fcpinstallat=FCP is install at:
+imageflashingenabled=Image flashing is enabled.
+fcpnotinstall=FCP is not installed.
+imageflashingdisabled=Imageflashing is disabled.
+dboxshotinstallat=dboxshot is install at:
+remoteosdenabled=Remote OSD is enabled.
+dboxshotnotinstall=dboxshot is not installed.
+remoteosddisabled=dboxshot is disabled.
+fbshotinstallat=FBshot is install at:
+osdscreenshotenabled=OSD-screenshot is enabled.
+fbshotnotinstall=FBshot is not installed.
+osdscreenshotdisabled=OSD-screenshot is disabled.
+settings=Settings
+managementip2setto=Management IP(2) set to:
+managementip1setto=Management IP(1) set to:
+youripis=Your IP is
+copyright=Copyright
+copyrighttxt=yWeb (this Web interface) is licensed under the terms of the Open Source GPL 2 license.
+copyrighttxt2=yWeb use icons from famfamfam.
+copyrighttxt3=which are licensed under Creative Common Attribution License 2.5
+important=Important
+importanttxt=Do not make YWEB accessible to untrusted networks!<br/> <br/> Otherwise someone else can access your Box.
+setaudiovideo=Setting audio / video
+video=Video
+videosignalart=Video Signal Art
+selectvideooutput=Select video output
+screensize=Screen size
+selectvideoformat=Select videoformat
+automatic=automatic
+backgroundimagesize=Background image size
+selectbackgroundformat=Select background format
+rgbsync=RGB sync
+selectvcroutput=Select VCR output
+vcrautoswitchonoff=VCR autoswitch
+scartinputautomatic=Scart input automatic
+no=No
+yes=Yes
+audio=Audio
+analogoutput=Analog output
+selectaudiomode=Select audiomode
+monoleft=Mono Left
+monoright=Mono Right
+audiochannelisselectableinmenu=Audio channel is selectable in menu:
+enableaudioselectwithleftright=Enable audio select with left/right:
+dolbydigitaldefault=Dolby Digital par default:
+volumecontrol=Volumecontrol
+selectvolumecontrol=Select volumecontrol
+volumestepsize=Volume stepsize:
+reloadneutrino=Reload Neutrino
+settingsarereadonly=(* Settings are read only)
+settingslcd=Settings LCD
+lcd=LCD
+power=Power
+inverselcd=Inverse
+dimmtimeout=Dimm timeout
+brightnessafterdimmtimeout=Brightness after dimm timeout
+contrastbrightness=Contrast / Brightness
+lcdcontrast063=Contrast 0 to 63
+contrast=Contrast
+lcdbrightnessnormal0255=Brightness (normal) 0 to 255
+brightness=Brightness
+lcdbrightnessstandby0255=Brightness (standby) 0 to 255
+lcdbrightnessstandby=Brightness standby
+usesetdefault=use default settings
+displaymodes=Displaymodes
+egpdisplay=EPG display
+selectvisualisationoflcd=Select visualisation of lcd
+standardcanal=Standard canal
+broadcast=Broadcast
+canalbroadcast=Canal broadcast
+canaldividinglinebroadcast=Canal / dividing line / Broadcast
+canalshortbroadcast=Canal (short) / Broadcast
+canalshortdividinglinebroadcast=Canal (short) / dividing line / Broadcast
+statusline=Statusline
+progressofthebroadcast=Progress of the Broadcast
+volumelevel=Volumelevel
+volumelevelprogress=Volumelevel progress
+volumelevelprogressaudio=Volumelevel / Progress / Audio
+keysremotecontrol=Keys Remotecontrol
+modechange=Mode change
+tvradiomode=Mode TV / Radio
+nokey=No key
+channellist=Channel list
+okbuttonfor=OK button for
+okbuttonfor2=OK button for...
+bouquetchannels=Bouquet channels
+bouquetlist=Bouquet list
+pagescrollup=Page scroll up
+pagescrolldown=Page scroll down
+closechannellist=Close channel list
+changesortorder=Change sort order
+keywordsearchinepg=Keyword search in EPG
+addrecordingtimer=Add recording timer
+addremidtimer=Add remid timer
+updateepg=Update EPG
+quickswitchover=Quick switch over
+channelup=Channel up
+channeldown=Channel down
+bouquetup=Bouquet up
+bouquetdown=Bouquet down
+subchannelup=Sub-channel up
+subchanneldown=Sub-channel down
+subchanneltoggle=Sub-channel toggle
+zaphistorybouquet=Zap history bouquet
+usedefault=Use default
+lastchannel=Last channel
+enterip=Enter IP (xxx.xxx.xxx.xxx)
+port=Port
+scale=Scale
+enterscaleforscreen=Enter scale for screen
+personalization=Personalization
+accesspersonalization=Access personalization
+requirespin=Requires PIN
+pincode=PIN-code
+coloredbuttons=Colored buttons
+bluebuttonfeatures=Blue button (features)
+enabled=Enabled
+disabled=Disabled
+redbuttonepginfo=Red button (EPG/Info)
+mainmenu=Mainmenu
+tvmode=TV-mode
+notvisible=Not visible
+visible=Visible
+pin=PIN
+radiomode=Radio-mode
+scartinput=Scart input
+games=Games
+audioplayer=Audioplayer
+internetradio=Internet radio
+movieplayer=Movieplayer
+pictureviewer=Pictureviewer
+upndbrowser=UPNP-Browser
+sleeptimer=Sleeptimer
+settingsmenuwithpin=Settings menu with PIN
+youthprotection=Youth-protection
+network=Network
+colorsthemesfont=Coulors / Themes / Font
+lcddisplay=LCD Display
+keysettings=Key sttings
+mediaplayback=Mediaplayer
+driverandbootoptions=Driver and boot options
+varioussettings=Various settings
+service=Service
+servicemenuwithpin=Service menu with PIN
+bouquetmanagement=Bouquet management
+channelsearch=Channelsearch
+reloadchannellists=Reload channel lists
+reloadplugins=Reload plugins
+rebootneutrino=Reboot Neutrino
+restartepg=Restart EPG
+transmitterepgstatistics=Transmitter / EPG statistics
+imageinformation=Image informations
+softwareupdate=Software update
+extentionlist=Extention list
+directrecording=Direct recording
+maxfilesizemb=Max. filesize (Mb)
+sizeringbuffer=Size Ringbuffer
+kb=Kb
+mb=Mb
+syncwriteosync=Sync-write (O_SYNC)
+syncwritefdatasync=Sync-write (fdatasync)
+recordvideotext=Record videotext
+recordpmt=Record PMT
+choosedirectoryonrecord=Choose directory on record
+epginfilename=EPG in filename
+filenametemplate=Filename template
+directorypermissions=Directory permissions
+recordingdirectories=Recording directories
+recordingdirectory=Recording directory
+parentaltype=Parental type
+alertparentalcontrolpinmustbe4digits=Parental control PIN must be 4 digits!
+inforequestisbeingprocessed=Info request is being processed!
+infopleasewait=please wait ...
+lcdshot=LCD-Shot
+dellcdshot=Delete LCD-Shot
+options=Options
+optionen=Options
+displaycolor=Display color
+zoommode=Zoom-mode
+zoomfactor=Zoom-factor
+dataoutput=Data output
+compressed=Compressed
+coloroutput=Color output
+grayscaleimage=Grayscale image
+output=Output
+imagewillbeflasheddonotinterrupt=Image will be flashed. Do not interrupt this action!
+erasing=Erasing
+writing=Writing
+verifying=Verifying
+switchondemomodeflashingwillbesimulated=Switch on demo mode. Flashing will be simulated!
+demomode=Demo-mode
+uploadandflash=Upload and flash
+imageflashen=Image flashing
+fcpisnotinstalled=FCP is not installed!
+yourbrowserdoesnotsupportiframes=Your browser does not support iframes!
+shelloutputwindow=Shell output window
+thispagecouldbeusedformanagementpurposesonly=This page could be used for management purposes only!
+gethelpfrom=Get help from:
+welcometo=Welcome to
+inquiryisworkedon=Inquiry is working on...
+yourbrowserdoesnotsupportiframesordoesnotshowtheminthepresentconfiguration=Your browser does not support iframes or does not show them in the present configuration!
+noipfortheslaveboxsetsettingpossibleundersettingsyweb=No IP for the slavebox! <br> Set setting possible under: Settings->yWeb.
+deletetimer=Delete timer
+modifytimer=Modify timer
+newtimer=New timer
+update=Update 
+wakeonlan=Wake on lan
+wakeupthat=Wake up that
+wakeonlansettings=Wake on lan settings
+unmountselecteddirectory=Unmount selected directory
+viewmountlist=View mount list
+uploadselectedfile=Upload selected file
+vlcrecordtype=VLC record type
+vlcrecordmuxtype=VLC record mux-type
+displayonwhiletranscoding=Display on while transcoding
+transcodestream=Transcode stream
+transcode=Transcode
+usetranscoding=Use transcoding
+recordstreamtofile=Record stream to file
+ipodvideo=iPod video
+custom=CPersonnalisation
+ipodaudio=iPodaudio
+mp3audio=mp3 audio
+rootofhostedwebentermountdirectory=Root of hosted web. Enter mount directory.
+reset=Reset
+cards=Carts
+alertinordertosendallfiletypesyouhavetoselectandenableundersettingswebserverallowallfileextensions=In order to send all filetypes you have to select and enable under settings: Webserver allow all file extensions!
+alertyoucannoteditadirectory=You can not edit a directory!
+alertnotimplemented=Not implemented!
+path=Path
+permission=Permission
+read=Read
+write=Write
+item=Item
+changepermissions=Change permissions
+workindicator=Workindicator
+messageinstatusline=Message in statusline
+startmode=Start mode
+selectstartmodus=Select startmodus
+lastmode=Last mode
+esoundsoundserver=Esound: Soundserver
+standby=Standby
+standbypowersavingmode=Standby powersaving mode (exp.)
+shutdowncompletelyafter=Shut down completely after:
+shutdowndelay=Shutdown delay
+standbyoffwith=Standby off with:
+selectabutton=Select a button
+temporarilystorevideotex=Temporarily store videotex
+osdxtras=OSD-extras
+volumelevelindicator=Volumelevel indicator
+selectvolumebarposition=Select volumebar position
+topright=Top right
+topleft=Top left
+bottomleft=Bottom left
+bottomright=Bottom right
+bottomcenter=Bottom center
+elevatedcenter=Elevated center
+muteiconatvolumelevel0=Mute icon at volumelevel 0
+notforac3=Not for AC3
+infobar=Infobar
+intheinfobar=In the infobar
+subchanneldisplayposition=Sub-channel display position
+subchanneldisplay=Sub-channel display
+satellitedisplayinfobar=Satellite display infobar
+virtualzap=Virtual zap
+infoatepgchange=Info at EPG change
+infobarshowtype=Infobar show type
+showinfobar=Show infobar
+popup=Popup
+radiotext=Radiotext
+programtextposition=Program text position
+extendedchannellist=Extended channel list
+zapitnotetorunpzapitkillbeforesave=Zapit (Note to run: pzapit -kill before save)
+savelastchannel=Save last channel
+tvstartchannel=TV start channel
+radiostartchannel=Radio start channel
+enterchannelnumber=Entrer le num&eacute;ro de chaine
+saveaudiopids=Save audio PIDs
+othersbouquet=others Bouquet
+remotecontrol=Remotecontrole
+initialdelaytime=Initial delay time
+milliseconds=Millisecondes
+repeatdelay=Repeat delay
+filebrowser=Filebrowser
+filesystem=Filesystem
+showfilesystemrights=Show filesystem rights
+startdirectoryisabsolute=Start directory is absolute
+driverandbootoptions=Driver and boot options
+loaddriverforsptsmode=Load driver for SPTS-mode
+infoonboot=Info on boot
+usehwsections=Use HW sections
+activateaviawatchdog=Activate AVIA-Watchdog
+activatenhxwatchdog=Activat nHX-Watchdog
+philipssagemrcpatch=Philips/Sagem RC patch
+avia500sptsfix=AVIA500 SPTS fix
+enablerealtimeclockrtc=Activat realtime clock (RTC)
+usepmtupdate=Use PMT update
+onlyexpertbootconsole=Only expert boot console!
+expertbootconsole=Expert boot console
+fullduplexmode=Full Duplex mode
+miscellaneous=Miscellaneous
+showbootmenu=Show boot-menu
+right=right
+left=left
+plugins=Plugins
+
+# ========= Hlavní / Celkové nastavení
 global.no_iframes= Váš prohlížeč nepodporuje i-frame.
 clear=Vymazat
 submit=Spustit
@@ -17,7 +434,7 @@ server=Server
 refreshing=Aktualizovat ...
 refresh=Aktualizuje
 record=Nahrávání
-zap=Přepnout
+zap=&nbsp;&nbsp;&nbsp;.
 lookup=Nahlédnout
 save_values_desc=Odeslat a uložit hodnoty
 save_values=Ukladaní hodnot ...
@@ -57,7 +474,7 @@ automatic=Automaticé
 show=Ukázat
 hide=Skrýt
 
-#======== Hlavní nabídka
+# ======== Hlavní nabídka
 main.boxcontrol=Ovládání zařízení
 main.boxcontrol_desc=Ovládání zařízení a Oblíbených
 main.live=Naživo
@@ -76,7 +493,7 @@ main.remote_full_desc=Dálkové ovládaní a OSD
 main.stream_to_vlc_client_desc=Stream do VLC klienta
 main.version=Verze
 
-#========= Nabídka ovládaní boxu
+# ========= Nabídka ovládaní boxu
 bc.menue.bouquets_desc=Přepínaní kanálů
 bc.menue.bouquets=Oblíbené
 bc.menue.control_desc=funkce ovládaní zařízení (reBoot , Dálkové ovládání, SPTS, ...)
@@ -98,14 +515,15 @@ bc.menue.switch_to_tv=Přepnout do TV
 bc.menue.switch_to_radio=Přepnout do Rádio
 bc.menue.webinf_slavebox=Webinterface pro podřízené zařízení
 bc.menue.volumen_display=Zobrazení hlasitosti
-
+bc.menu.snr_display=Quality of signal
 bc.menue.signal=Síla signálu
 
-#========= Ovládání
+# ========= Ovládání
 bc.control.freemem=Volná pamět
 bc.control.lock=Zamčené
 bc.control.unlock=Odemčené
 bc.control.standby_mode=Režim připravenosti
+bc.control.rc_mode=Remotecontrole / LCD
 bc.control.recording_mode=Režim nahrávaní
 bc.control.box=Box
 bc.control.remote=Ovladač
@@ -118,24 +536,25 @@ bc.control.shutdown.ask=Skutečně vypnout zařízení?
 bc.control.shutdown=Vypnout
 bc.control.status=Stav
 bc.control.restart=Restart
+bc.control.lcd_unlock=LCD unlock (exp.)
 
-========= Ovládání - Zpráva
+# ========= Ovládání - Zpráva
 bc.msg.message_to_screen_desc=Vložte zprávu pro odeslání na TV obrazovku
 bc.msg.message_to_screen=Zprávu na obrazovku
 bc.msg.popup_to_screen=Zprávu do okna
 bc.msg.send_message=Poslat zprávu
 
-======== Ovládání - Zesnímání obrazu obrazovky
+# ======== Ovládání - Zesnímání obrazu obrazovky
 bc.screenshot.create=Zesnímat obrazovku
 bc.screenshot.delete=Vymazat obrazovku
 bc.screenshot.zoom=Zoomovat obrazovku
 bc.screenshot.wait_text=Vytvářím obrázek obrazovky
 bc.screenshot.checkenable=OSD a/nebo TV musí být použitý!
 
-========= Ovládání - Jiné
+# ========= Ovládání - Jiné
 bc.channels=Kanály
 
-====== Rozšíření
+# ====== Rozšíření
 ext.installer_updater=Instalace/Aktualizace
 ext.uninstaller=Odinstalovat rozšíření
 ext.search_for_ext=Vyhledávání rozšíření ...
@@ -159,7 +578,7 @@ ext.site=Stránka
 ext.refresh_now=Nastavení uložené. Nyní obnovte Menu.
 ext.ext_saved=Nastavení rozšíření uložení
 
-====== Oblíbené
+# ====== Oblíbené
 bou.bouquet=Oblíbené
 bou.bouquets_must_be_saved=Všechny Oblíbené musí být uložené!
 bou.bouquet_editor=Úprava oblíbených
@@ -177,7 +596,8 @@ bou.delete1=Skutečně vymazat oblíbené?
 bou.delete2=Opravdu odstranit
 bou.no_bouquet_name=Nezadaný název oblíbených
 
-======= EPG
+# ======= EPG
+get_epg=Načtení EPG ...
 epg.get_epg=Načtení EPG ...
 epg.epg_plus=EPG Plus
 epg.select_bouquet=Výběr oblíbených - kanály budou aktualizované
@@ -188,7 +608,7 @@ epg.next_hours=Následující hodiny
 epg.set_timer=Nastavení časovače. Vykonané.
 epg.zap_to=Přepnutí na kanál. Vykonané.
 
-======= EPG Streaminfo
+# ======= EPG Streaminfo
 epg.si.streaminfo=Informace streamu
 epg.si.resolution=Rozlíšení
 epg.si.ratio=Poměr stran
@@ -205,13 +625,33 @@ epg.si.apid=Zvukový PID
 epg.si.vtxtpid=TeleText PID
 epg.si.crypt=Kodovací systém
 
-======= Nastavení
+# ========EPG (miscsettings new by shanthi)
+miscsettings.epg_head=EPG
+miscsettings.epg_save=EPG save
+miscsettings.epg_save_standby=Save EPG in standby
+miscsettings.epg_save_frequently=Save_frequently
+miscsettings.epg_read=Read saved EPG
+miscsettings.epg_dir=EPG save directory
+miscsettings.epg_cache=EPG cache
+miscsettings.epg_extendedcache=EPG cache (days)
+miscsettings.epg_old_events=Keep old events (h)
+miscsettings.epg_max_events=Max. EPG events.
+miscsettings.epg_scan= Scan EPG
+miscsettings.epg_scan_live=Live scan EPG
+miscsettings.epg_scan_standby=EPG scan standby
+miscsettings.epg_scan_always=EPG scan always
+miscsettings.epg_scan_bouquets=EPG scan bouquets
+miscsettings.epg_scan_bq=Active Bouquet
+miscsettings.epg_scan_fav=Scan all fav. bouquets
+miscsettings.epg_scan_sel=Scan selected bouquets
+
+# ======= Nastavení
 set.reload_neutrino=Restart Neutrina
 set.reboot_required=Nutný ReBoot
 set.sync_with_neutrino_desc=Po změnách nastavení přes yWeb:<br/>Vybrat na TV "Hlavní Menu-> Služby-> Restart software", pro přijetí změn uvnitř neutrína.<br/>Po změnách nastavení uvnitř Neutrina: <br/>Vybrat na TV "Hlavní Menu-> Nastavení-> Uložení nastavení", pro použití těchto změn a znovu načíst tuto stránku.
 set.sync_with_neutrino=Synchronizovat s Neutrínem
 
-====== Hlavné nastavenia a Ponuka
+# ====== Hlavné nastavenia a Ponuka
 set.menue.webserver=Webservr
 set.menue.timer_settings=Nastavení tvinfo.de
 set.menue.zapit=Přepínání
@@ -230,7 +670,7 @@ set.menue.boot_options=Volby zavádění
 set.menue.peronalization=Osobní zohlednění
 set.menue.plugins=Doplňky
 set.menue.others=Ostatní
-======= Nastavení nahrávání v Neutrine
+# ======= Nastavení nahrávání v Neutrine
 set.rec.rec_dest=Umístění nahrávek
 set.rec.device=Nahrávací zařízení
 set.rec.recmode=Nastavení režimu nahrávání
@@ -268,7 +708,7 @@ set.rec.timeshift.auto_record=Automatické nahrávání ( v sec , 0 = deaktivov�
 set.rec.timeshift.auto_delete=Automatické vymazání časového posunu
 set.rec.timeshift.tmp_timeshift=Dočasný časový posun
 
-======= Nastavení Movieplayera v Neutrine 
+# ======= Nastavení Movieplayera v Neutrine 
 set.mp.sources=Volba zdroje 
 set.mp.streamingserver_ip=IP Stream serveru 
 set.mp.streamingserver_port=Port Stream serveru 
@@ -290,7 +730,7 @@ set.mp.used_buffer=Použij buffer (WabberQueue)
 set.mp.number_buffersegments=Čislo segmentu bufferu 
 set.mp.picture_in_browser=TV obrázek v prohlížeči
 
-======= Rodičovské nastavení v Neutrine 
+# ======= Rodičovské nastavení v Neutrine 
 set.parental.activate=Aktivace 
 set.parental.type.never=Nikdy 
 set.parental.type.bouquet=Oblíbené 
@@ -298,7 +738,7 @@ set.parental.type.preset=Předdefinovaným
 set.parental.minimum_age=Minimální věk 
 set.parental.pin=PIN
 
-======= Nastavení NHTTP
+# ======= Nastavení NHTTP
 set.nhttpd.webserver=Webserver
 set.nhttpd.authentication=Autorizace
 set.nhttpd.client_without_authentication_desc=Klient bez kontroly autorizace . Vložení IP .
@@ -322,7 +762,7 @@ set.nhttpd.server_configuration=Konfigurace serveru
 set.nhttpd.check_password=Heslo pro potvrzení , minimum 4 písmena
 set.nhttpd.check_port=Port je potřebný
 
-========= Nastavení yWeb 
+# ========= Nastavení yWeb 
 set.yweb.enter_ip_desc=Zadání IP (xxx.xxx.xxx.xxx) 
 set.yweb.enter_mac_desc=Zadání MAC adresy (xx: xx: xx: xx: xx: xx) 
 set.yweb.description=Popis 
@@ -336,7 +776,7 @@ set.yweb.box_color=Barva
 set.yweb.start_page=Startovní stránka 
 set.yweb.remote=Ovladač
 
-======== Nastavení prohlížeče obrázků 
+# ======== Nastavení prohlížeče obrázků 
 set.pv.pictureviewer=Prohlížeč obrázků 
 set.pv.scale=Zobrazení 
 set.pv.scale.none=Žádné 
@@ -347,7 +787,7 @@ set.pv.start_dir=Startovací adresář
 set.pv.decoding_server_ip=IP do Serveru-Dekódovací 
 set.pv.decoding_server_port=Port Serveru-Dekódovací
 
-======== Nastavení přehrávače hudby 
+# ======== Nastavení přehrávače hudby 
 set.ap.audioplayer=Přehrávač hudby 
 set.ap.display_order.actor_title=Umělec, Titul 
 set.ap.display_order.title_actor=Titul, Umělec 
@@ -361,7 +801,7 @@ set.ap.decode_priority=Vyšší priorita dekódování
 set.ap.start_dir=Startovací adresář 
 set.ap.parse_shoutcast=Shoutcast Meta-Data
 
-======= Nastavení časovače
+# ======= Nastavení časovače
 set.timer.header=Nastavení časovače tvinfo.de
 set.timer.username=Uživatel
 set.timer.password=Heslo
@@ -371,14 +811,14 @@ set.timer.klack.security_code_desc=váš " klackem " Bezpečnostní kód dostane
 set.timer.klack.security_code=Bezpečnostní kód
 set.timer.channel_name_replacelist=Název kanálu směnného seznamu
 
-======= Nastavení Zálohy / Obnovení
+# ======= Nastavení Zálohy / Obnovení
 set.settings.backup=Záloha
 set.settings.backup_desc=Zálohování vašich nastavení
 set.settings.restore=Obnova
 set.settings.restore_desc=Nahrání a obnova vašich nastavení . Váš STB bude rebootnutý .
 set.settings.warning=Záloha a Obnovení je možné pouze pro tentýž Image se stejnou úrovní vývoje.
 
-============ Nástroje Info
+# ============ Nástroje Info
 tools.info.show_messages=Zprávy kernelu
 tools.info.processes=Procesy
 tools.info.memory=Paměť
@@ -389,7 +829,7 @@ tools.info.mtd=mtd
 tools.info.stat=Stav
 tools.info.version=Verze
 
-============ Nástroje yInstaller
+# ============ Nástroje yInstaller
 tools.yinstaller.no_file_given=Vybrán soubor !
 tools.yinstaller.space.mtd=Celková kapacita
 tools.yinstaller.space.user=Použitá
@@ -400,7 +840,7 @@ tools.yinstaller.head=yInstaller
 tools.yinstaller.tar_file=tar - Soubor
 tools.yinstaller.upload_install=Nahrát a instalovat
 
-============ Nástroje 
+# ============ Nástroje 
 tools.automount_desc=Správu automaticky připojených souborů 
 tools.automount=Automatické připojení 
 tools.mounts_desc=Správa připojených souborů 
@@ -419,7 +859,7 @@ tools.cmd.enter_command=Vložení příkazu pro provedení
 tools.cmd.execute_command=Provedení operačního příkazu 
 tools.boot_logo=Bootovací logo
 
-=========== Nabídka ŽIVÁ TV 
+# =========== Nabídka ŽIVÁ TV 
 live.heading=ŽIVÁ TV / Časovač 
 live.live=ŽIVÁ TV 
 live.tv_popup_desc=ŽIVÁ TV (okno) 
@@ -433,7 +873,7 @@ live.epg_plus_popup_desc=EPG + (okno)
 live.epg_plus=EPG Plus 
 live.timer_sync=Synchronizace časovače
 
-=========== ŽIVÉ TV / Rádio
+# =========== ŽIVÉ TV / Rádio
 live.get_stream_info=Získávání <br/> informaci streamování .
 live.getting_bouquets=Získávání oblíbených ....
 live.getting_channels=Získávání kanálů ...
@@ -460,7 +900,7 @@ live.select_channel=Výběr kanálu (použije na přepnutí )
 live.live_popup_msg=V módu Live - View není přepínání kanálů přímo ovládané přes Web , Box - dálkově ovládání
 live.unlock=Odblokování RC (dálkové ovládání)
 
-=========== Nahrávání přes živou Tv
+# =========== Nahrávání přes živou Tv
 live.rec.record_mode=Režim nahrávání
 live.rec.filename=Název souboru
 live.rec.display_on=Zapnout zobrazení
@@ -482,7 +922,7 @@ live.rec.access=Přístup
 live.rec.type=Typ
 live.rec.ip_port=IP : Port
 
-=========== Nastavení ŽIVÁ TV
+# =========== Nastavení ŽIVÁ TV
 live.set.vlc_settings=Nastavení VLC ( IE & Mozilla > = 0.8.6.1 )
 live.set.deinterlace=Deinterlace
 live.set.http_caching=Vyrovnávací paměť http
@@ -492,10 +932,11 @@ live.set.enter_ip=Vložit IP ( xxx.xxx.xxx.xxx ) druhého Boxu
 live.set.vlc_rec_dir=VLC nahrávací adresář
 live.set.refresh_liveview=Obnovit ŽiváTV
 
-=========== ŽIVÉ Timer Edit
+# =========== ŽIVÉ Timer Edit
 live.timer_edit.timer=Úprava časovače
 live.timer_edit.times=Časy
 live.timer_edit.alarm_date=Nastavená doba spuštění
+live.timer_edit.type=Timer-Type
 live.timer_edit.time=Čas
 live.timer_edit.stop_date=Nastavená doba zastavení
 live.timer_edit.repeat=Opakování
@@ -515,7 +956,7 @@ live.timer_edit.plugin=Doplněk
 live.timer_edit.rec_dir=Adresář nahrávání
 live.timer_edit.description=Popis
 
-=========== LIVE Timer Sync
+# =========== LIVE Timer Sync
 live.timer-sync.get_timer=Načíst časovač .
 live.timer-sync.header=Synchronizace TVInfo časovače
 live.timer-sync.timer_source=Zdroj časovače
@@ -536,14 +977,14 @@ live.timer-sync.log=Log
 live.timer-sync.action=Akce
 live.timer-sync.status=Stav
 
-========== INFO
+# ========== INFO
 info.hel=Pomoc
 info.About=O programu
 info.check_for_updates=Kontrola aktualizace
 info.your_version=Vaše instalována verze
 info.actual_version=Aktuální verze
 
-========= Dálkové ovládání
+# ========= Dálkové ovládání
 rc.key_power=Spánek
 rc.key_mute=Umlčení
 rc.key_1=1

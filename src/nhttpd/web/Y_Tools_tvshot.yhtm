@@ -49,7 +49,7 @@ function do_clearshot(){
 			<button name="clearshot" ytype="clearshot" onclick="do_clearshot();">{=L:bc.tv.delete_shot=}</button>
 		</span>
 		<span id="statusline">
-			<img border="0" src="/images/wait.gif" width="20" height="20" alt="wait"/>
+			<img border="0" src="/images/wait.gif" width="20" height="20" alt="{=L:wait=}"/>
 			{=L:bc.tv.shap_wait_text=}
 		</span>
 		</div>

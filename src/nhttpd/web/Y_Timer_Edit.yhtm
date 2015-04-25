@@ -170,9 +170,9 @@ function init()
 		</table>
 		<br/>
 
-<!--		<input type="button" value="speichern" title="submit and save values" onclick="do_submit()"/>-->
-		<button type="button" ytype="save" title="submit and save values" onclick="do_submit()">{=L:save=}</button>
-		<button type="button" ytype="cancel" title="cancel" onclick='window.document.location.href="/Y_Timer_List.yhtm"'>{=L:cancel=}</button>
+<!--		<input type="button" value="speichern" title="{=L:submitandsavevalues=}" onclick="do_submit()"/>-->
+		<button type="button" ytype="save" title="{=L:submitandsavevalues=}" onclick="do_submit()">{=L:save=}</button>
+		<button type="button" ytype="cancel" title="{=L:cancel=}" onclick='window.document.location.href="/Y_Timer_List.yhtm"'>{=L:cancel=}</button>
 	</form>
 	</div>
 </div>
