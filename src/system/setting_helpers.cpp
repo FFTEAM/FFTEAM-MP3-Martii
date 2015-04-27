@@ -530,12 +530,14 @@ bool CTZChangeNotifier::changeNotify(const neutrino_locale_t, void * Data)
 			perror("unlink failed");
 		if (symlink(cmd.c_str(), "/etc/localtime"))
 			perror("symlink failed");
+#if 0
 	/* for yocto tzdata compatibility */
 	FILE *f = fopen("/etc/timezone", "w");
 	if (f) {
 		fprintf(f, "%s\n", zone.c_str());
 		fclose(f);
 	}
+#endif
 #if 0
 		cmd = ":" + zone;
 		setenv("TZ", cmd.c_str(), 1);
@@ -723,7 +725,11 @@ bool CAutoModeNotifier::changeNotify(const neutrino_locale_t /*OptionName*/, voi
 					i, VIDEOMENU_VIDEOMODE_OPTIONS[i].key, VIDEO_STD_MAX);
 			continue;
 		}
+#ifdef BOXMODEL_APOLLO
+		modes[VIDEOMENU_VIDEOMODE_OPTIONS[i].key] = g_settings.enabled_auto_modes[i];
+#else
 		modes[VIDEOMENU_VIDEOMODE_OPTIONS[i].key] = g_settings.enabled_video_modes[i];
+#endif
 	}
 	videoDecoder->SetAutoModes(modes);
 	return false;
