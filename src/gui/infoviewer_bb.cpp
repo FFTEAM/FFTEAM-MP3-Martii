@@ -688,7 +688,7 @@ void CInfoViewerBB::paint_ca_icons(int caid, const char *icon, int &icon_space_o
 	int py = g_InfoViewer->BoxEndY + 2; /* hand-crafted, should be automatic */
 	int px = 0;
 	static map<int, std::pair<int,const char*> > icon_map;
-	const int icon_space = 2, icon_number = 10;
+	const int icon_space = 5, icon_number = 10;
 
 	static int icon_offset[icon_number] = {0,0,0,0,0,0,0,0,0,0};
 	static int icon_sizeW [icon_number] = {0,0,0,0,0,0,0,0,0,0};
@@ -828,13 +828,14 @@ void CInfoViewerBB::showIcon_CA_Status(int /*notfirst*/)
 			char decode[16] = {0};
 			while ((read = getline(&buffer, &len, fd)) != -1)
 			{
-				if ((sscanf(buffer, "=%*[^9-0]%x", &ecm_caid) == 1) || (sscanf(buffer, "caid: %x", &ecm_caid) == 1)){
+				if ((sscanf(buffer, "=%*[^9-0]%x", &ecm_caid) == 1) || (sscanf(buffer, "caid: %x", &ecm_caid) == 1))
+				{
 					if (mgcamd_emu && ((ecm_caid & 0xFF00) == 0x1700)){
 						sscanf(buffer, "=%*[^','], pid %6s",ecm_pid);
 					}
 					continue;
 				}
-				else if ((sscanf(buffer, "decode:%15s", decode) == 1) || (sscanf(buffer, "source:%15s", decode) == 3) || (sscanf(buffer, "from: %15s", decode) == 3))
+				else if ((sscanf(buffer, "decode:%15s", decode) == 1) || (sscanf(buffer, "source:%15s", decode) == 2) || (sscanf(buffer, "from: %15s", decode) == 3))
 				{
 					card = strstr(buffer, "127.0.0.1");
 					break;
@@ -845,7 +846,7 @@ void CInfoViewerBB::showIcon_CA_Status(int /*notfirst*/)
 				free (buffer);
 			if (strncasecmp(decode, "net", 3) == 0)
 			  decMode = (card == NULL) ? 1 : 3; // net == 1, card == 3
-			else if ((strncasecmp(decode, "emu", 3) == 0) || (strncasecmp(decode, "Net", 3) == 3) || (strncasecmp(decode, "int", 1) == 1) || (sscanf(decode, "protocol: char*", 3) == 0) || (sscanf(decode, "from: char*", 3) == 0) || (strncasecmp(decode, "cache", 5) == 0) || (strstr(decode, "/" ) != NULL))
+			else if ((strncasecmp(decode, "emu", 3) == 0) || (strncasecmp(decode, "Net", 3) == 0) || (strncasecmp(decode, "int", 1) == 0) || (sscanf(decode, "protocol: char*", 3) == 0) || (sscanf(decode, "from: char*", 3) == 0) || (strncasecmp(decode, "cache", 5) == 0) || (strstr(decode, "/" ) != NULL))
 			  decMode = 2; //emu
 			else if ((strncasecmp(decode, "com", 3) == 0) || (strncasecmp(decode, "slot", 4) == 0) || (strncasecmp(decode, "local", 5) == 0))
 			  decMode = 3; //card
@@ -994,10 +995,10 @@ void CInfoViewerBB::paintEmuIcons(int decMode)
 	const char emu_gray[] = "white";
 	const char emu_yellow[] = "yellow";
 	enum E{
-		GBOX,MGCAMD,OSCAM,OSEMU,WICARD,CAMD3,NEWCS,CS2GBOX,NET,EMU,CARD
+		GBOX,MGCAMD,OSCAM,OSEMU,WICARD,CAMD3,NET,EMU,CARD
 	};
 	static int emus_icon_sizeW[CARD+1] = {0};
-	const char *icon_emu[CARD+1] = {"gbox", "mgcamd", "oscam", "osemu", "wicard", "camd3", "newcs", "cs2gbox", "net", "emu", "card"};
+	const char *icon_emu[CARD+1] = {"gbox", "mgcamd", "oscam", "osemu", "wicard", "camd3", "net", "emu", "card"};
 	int icon_sizeH = 0;
 	static int ga = g_InfoViewer->ChanInfoX+30+16;
 	if (emus_icon_sizeW[GBOX] == 0)
@@ -1029,8 +1030,6 @@ void CInfoViewerBB::paintEmuIcons(int decMode)
 			case OSEMU:
 			case CAMD3:
 			case WICARD:
-			case NEWCS:
-			case CS2GBOX:
 			snprintf(buf, sizeof(buf), "/var/etc/.%s", icon_emu[e]);
 			icon_flag = (stat(buf, &sb) == -1) ? 0 : decMode ? 2 : 1;
 			break;
@@ -1115,7 +1114,7 @@ void CInfoViewerBB::paintECM()
 		{
 			ecmInfoEmpty = false;
 			if(emu == 1 || emu == 2){
-				sscanf(buffer, "%*s %15s ECM on CaID 0x%4s, pid 0x%4s", caid1, pid1);						// gbox, mgcamd
+				sscanf(buffer, "%*s %*s ECM on CaID 0x%4s, pid 0x%4s", caid1, pid1);						// gbox, mgcamd
 				sscanf(buffer, "prov: %06[^',',(]", prov1);									// gbox, mgcamd
 				sscanf(buffer, "caid: 0x%4s", caid2);											// oscam
 				sscanf(buffer, "pid: 0x%4s", pid2);											// oscam
@@ -1317,10 +1316,18 @@ void CInfoViewerBB::paintECM()
 			g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-135, g_InfoViewer->BoxStartY-140, 80, caid1, COL_INFOBAR_TEXT, 0, true);
 			g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-135, g_InfoViewer->BoxStartY-120, 80, pid1, COL_INFOBAR_TEXT, 0, true);
 			g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-135, g_InfoViewer->BoxStartY-100, 70, source1, COL_INFOBAR_TEXT, 0, true);
-			//g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-70, g_InfoViewer->BoxStartY-100, 20, "", COL_INFOBAR_TEXT, 0, true);
 			g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-55, g_InfoViewer->BoxStartY-100, 70, response1, COL_INFOBAR_TEXT, 0, true);
-			//g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-25, g_InfoViewer->BoxStartY-100, 20, "", COL_INFOBAR_TEXT, 0, true);
 			g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-135, g_InfoViewer->BoxStartY-80, 130, prov1, COL_INFOBAR_TEXT, 0, true);
+			g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-215, g_InfoViewer->BoxStartY-140, 80, "CaID:", COL_INFOBAR_TEXT, 0, true);
+			g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-135, g_InfoViewer->BoxStartY-140, 130, caid2, COL_INFOBAR_TEXT, 0, true);
+			g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-215, g_InfoViewer->BoxStartY-120, 80, "PID:", COL_INFOBAR_TEXT, 0, true);
+			g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-135, g_InfoViewer->BoxStartY-120, 130, pid2, COL_INFOBAR_TEXT, 0, true);
+			g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-215, g_InfoViewer->BoxStartY-100, 80, "Decode:", COL_INFOBAR_TEXT, 0, true);
+			g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-135, g_InfoViewer->BoxStartY-100, 130, from1, COL_INFOBAR_TEXT, 0, true);
+			g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-215, g_InfoViewer->BoxStartY-80, 80, "Provider:", COL_INFOBAR_TEXT, 0, true);
+			g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-135, g_InfoViewer->BoxStartY-80, 130, prov2, COL_INFOBAR_TEXT, 0, true);
+			g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-215, g_InfoViewer->BoxStartY-60, 42, "CW0:", COL_INFOBAR_TEXT, 0, true);
+			g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-215, g_InfoViewer->BoxStartY-40, 42, "CW1:", COL_INFOBAR_TEXT, 0, true);
 		}
 	}
  }

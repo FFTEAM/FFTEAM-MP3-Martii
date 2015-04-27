@@ -748,7 +748,7 @@ void CInfoViewer::showTitle (const int ChanNum, const std::string & Channel, con
 	last_curr_id = last_next_id = 0;
 	showButtonBar = !calledFromNumZap;
 
-	fileplay = (ChanNum == 0);
+	fileplay = (ChanNum == 0) && !CMoviePlayerGui::getInstance().Playing();
 	newfreq = true;
 
 	reset_allScala();
@@ -884,7 +884,7 @@ void CInfoViewer::showTitle (const int ChanNum, const std::string & Channel, con
 				g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_INFO]->RenderString(
 					ChanNameX + 10 + ChanNumWidth + chname_width, tmpY,
 					BoxEndX - (ChanNameX + 20) - time_width - LEFT_OFFSET - 10 - ChanNumWidth - chname_width,
-					prov_name, color /*COL_INFOBAR_TEXT*/);
+					prov_name, color );
 			}
 
 		}
@@ -969,9 +969,6 @@ void CInfoViewer::loop(bool show_dot)
 
 	if (isVolscale)
 		CVolume::getInstance()->showVolscale();
-
-	if (clock)
-		clock->setBlit();
 
 	while (!(res & (messages_return::cancel_info | messages_return::cancel_all))) {
 		frameBuffer->blit();
@@ -1091,9 +1088,6 @@ void CInfoViewer::loop(bool show_dot)
                 }
 #endif
 	}
-
-	if (clock)
-		clock->setBlit(false);
 
 	if (hideIt) {
 		CVolume::getInstance()->hideVolscale();
@@ -1383,7 +1377,7 @@ int CInfoViewer::handleMsg (const neutrino_msg_t msg, neutrino_msg_data_t data)
 {
 	if ((msg == NeutrinoMessages::EVT_CURRENTNEXT_EPG) || (msg == NeutrinoMessages::EVT_NEXTPROGRAM)) {
 //printf("CInfoViewer::handleMsg: NeutrinoMessages::EVT_CURRENTNEXT_EPG data %llx current %llx\n", *(t_channel_id *) data, channel_id & 0xFFFFFFFFFFFFULL);
-		if ((*(t_channel_id *) data) == (channel_id & 0xFFFFFFFFFFFFULL)) {
+		if (!CMoviePlayerGui::getInstance().Playing() && (*(t_channel_id *) data) == (channel_id & 0xFFFFFFFFFFFFULL)) {
 			getEPG (*(t_channel_id *) data, info_CurrentNext);
 			if (is_visible)
 				show_Data (true);
