@@ -265,7 +265,7 @@ int CPersonalizeGui::exec(CMenuTarget* parent, const string & actionKey)
 		CMenuDForwarder *fw = new CMenuDForwarder(CRCInput::getKeyName(um->key), true, um->title, cms, to_string(i).c_str());
 		cms->setCaller(fw);
 
-		uMenu->addItem(fw);
+		uMenu->addItem(fw, true);
 		uMenu->hide();
 		return menu_return::RETURN_REPAINT;
 	}
@@ -318,7 +318,7 @@ int CPersonalizeGui::exec(CMenuTarget* parent, const string & actionKey)
 //the PIN code feature, as well as determine whether or not the EPG menu/Features menu is accessible.
 int CPersonalizeGui::ShowPersonalizationMenu()
 {
-	width = w_max (40, 10);
+	width = 40;
 
 	CMenuWidget* pMenu = new CMenuWidget(LOCALE_PERSONALIZE_HEAD, NEUTRINO_ICON_PERSONALIZE, width, MN_WIDGET_ID_PERSONALIZE);
 	pMenu->addIntroItems(NONEXISTANT_LOCALE, LOCALE_PERSONALIZE_ACCESS);
