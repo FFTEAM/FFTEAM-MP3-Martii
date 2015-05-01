@@ -47,11 +47,11 @@
 #include <gui/widget/icons.h>
 #include <gui/widget/messagebox.h>
 
+#include <driver/display.h>
 #include <driver/fontrenderer.h>
 #include <driver/screen_max.h>
 #include <driver/rcinput.h>
 #include <driver/fade.h>
-#include <driver/display.h>
 #include <driver/scanepg.h>
 
 #include <daemonc/remotecontrol.h>
@@ -394,7 +394,7 @@ int CBouquetList::show(bool bShowChannelList)
 	CVFD::getInstance()->setMode(CVFD::MODE_MENU_UTF8, "");
 	fheight     = g_Font[SNeutrinoSettings::FONT_TYPE_CHANNELLIST]->getHeight();
 
-	width  = w_max (need_width, 20);//500
+	width  = w_max (need_width, 20);
 	height = h_max (16 * fheight, 40);
 
 	footerHeight = std::max(h_max_icon+8, g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->getHeight()+8);

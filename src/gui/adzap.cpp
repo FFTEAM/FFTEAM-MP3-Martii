@@ -58,7 +58,7 @@ CAdZapMenu *CAdZapMenu::getInstance()
 CAdZapMenu::CAdZapMenu()
 {
     frameBuffer = CFrameBuffer::getInstance();
-    width = w_max(40, 10);
+    width = 40;
     hheight = g_Font[SNeutrinoSettings::FONT_TYPE_MENU_TITLE]->getHeight();
     mheight = g_Font[SNeutrinoSettings::FONT_TYPE_MENU]->getHeight();
     height = hheight + 13 * mheight + 10;

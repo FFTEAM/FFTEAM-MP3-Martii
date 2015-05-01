@@ -1136,7 +1136,7 @@ void CInfoViewer::showSubchan ()
 			int dy = g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_INFO]->getHeight(); // 25;
 
 			if (g_RemoteControl->director_mode) {
-				int w = 20 + g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->getRenderWidth (g_Locale->getText (LOCALE_NVODSELECTOR_DIRECTORMODE)) + 20;	// UTF-8
+				int w = 20 + g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->getRenderWidth (g_Locale->getText (LOCALE_NVODSELECTOR_DIRECTORMODE)) + 20;
 				int h = g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->getHeight();
 				if (w > dx)
 					dx = w;
@@ -1535,7 +1535,7 @@ void CInfoViewer::getEPG(const t_channel_id for_channel_id, CSectionsdClient::Cu
 
 	CEitManager::getInstance()->getCurrentNextServiceKey(for_channel_id, info);
 
-	/* if there is no EPG, send an event so that parental lock can work */
+	/* of there is no EPG, send an event so that parental lock can work */
 	if (info.current_uniqueKey == 0 && info.next_uniqueKey == 0) {
 		sendNoEpg(for_channel_id);
 		oldinfo = info;
@@ -1563,8 +1563,6 @@ void CInfoViewer::showSNR ()
 {
 	if (! is_visible)
 		return;
-	char percent[10];
-	uint16_t ssig, ssnr;
 	/* right now, infobar_show_channellogo == 3 is the trigger for signal bars etc.
 	   TODO: decouple this  */
 	if (!fileplay && !IS_WEBTV(channel_id) && ( g_settings.infobar_show_channellogo == 3 || g_settings.infobar_show_channellogo == 5 || g_settings.infobar_show_channellogo == 6 )) {
@@ -1586,6 +1584,9 @@ void CInfoViewer::showSNR ()
 			g_SignalFont->RenderString (3 + BoxStartX + ((ChanWidth - satNameWidth) / 2), BoxStartY + 2 * chanH - 3, satNameWidth, freq, SDT_freq_update ? COL_COLORED_EVENTS_TEXT:COL_INFOBAR_TEXT);
 			SDT_freq_update = false;
 		}
+
+		char percent[10];
+		uint16_t ssig, ssnr;
 		int sw, snr, sig, posx, posy;
 
 		int height;
@@ -2051,7 +2052,7 @@ void CInfoViewer::killTitle()
 			bottom += infoViewerBB->InfoHeightY_Info;
 		//printf("killTitle(%d, %d, %d, %d)\n", BoxStartX, BoxStartY, BoxEndX+ SHADOW_OFFSET-BoxStartX, bottom-BoxStartY);
 		if ((g_settings.infoviewer_ecm_info == 1) || (g_settings.infoviewer_ecm_info == 2))
-			frameBuffer->paintBackgroundBox(BoxStartX, BoxStartY-185, BoxEndX+ SHADOW_OFFSET, bottom);
+			frameBuffer->paintBackgroundBox(BoxStartX, BoxStartY-225, BoxEndX+ SHADOW_OFFSET, bottom);
 		else
 		frameBuffer->paintBackgroundBox(BoxStartX, BoxStartY, BoxEndX+ SHADOW_OFFSET, bottom);
 		if (g_settings.radiotext_enable && g_Radiotext) {

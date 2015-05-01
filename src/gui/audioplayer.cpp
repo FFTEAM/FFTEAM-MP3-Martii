@@ -30,7 +30,8 @@
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -42,11 +43,11 @@
 #include <global.h>
 #include <neutrino.h>
 
+#include <driver/display.h>
 #include <driver/fontrenderer.h>
 #include <driver/rcinput.h>
 #include <driver/audioplay.h>
 #include <driver/audiometadata.h>
-#include <driver/display.h>
 
 #include <daemonc/remotecontrol.h>
 
@@ -73,7 +74,7 @@ extern CPictureViewer * g_PicViewer;
 #include <system/settings.h>
 #include <system/helpers.h>
 #include <driver/screen_max.h>
-#include <zapit/zapit.h>
+
 #include <algorithm>
 #include <sys/time.h>
 #include <fstream>
@@ -87,6 +88,7 @@ extern CPictureViewer * g_PicViewer;
 #include <curl/types.h>
 #endif
 
+#include <zapit/zapit.h>
 #include <video.h>
 extern cVideo * videoDecoder;
 
@@ -309,7 +311,8 @@ int CAudioPlayerGui::exec(CMenuTarget* parent, const std::string &actionKey)
 	if (my_system(AUDIOPLAYER_END_SCRIPT) != 0)
 		perror(AUDIOPLAYER_END_SCRIPT " failed");
 
-	g_Zapit->unlockPlayBack();
+	//g_Zapit->unlockPlayBack();
+	CZapit::getInstance()->EnablePlayback(true);
 	// Start Sectionsd
 	g_Sectionsd->setPauseScanning(false);
 	videoDecoder->StopPicture();
@@ -374,9 +377,9 @@ int CAudioPlayerGui::show()
 
 		if ( msg == CRCInput::RC_timeout  || msg == NeutrinoMessages::EVT_TIMER)
 		{
-			int timeout = time(NULL) - m_idletime;
-			int screensaver_timeout = g_settings.audioplayer_screensaver;
-			if (screensaver_timeout !=0 && timeout > screensaver_timeout*60 && !m_screensaver)
+			int delay = time(NULL) - m_idletime;
+			int screensaver_delay = g_settings.screensaver_delay;
+			if (screensaver_delay != 0 && delay > screensaver_delay*60 && !m_screensaver)
 				screensaver(true);
 
 			if (msg == NeutrinoMessages::EVT_TIMER && data == stimer) {
@@ -740,11 +743,12 @@ int CAudioPlayerGui::show()
 			picture->exec(this, "audio");
 			delete picture;
 			pictureviewer = false;
+			screensaver(false);
 			videoDecoder->setBlank(true);
 			videoDecoder->ShowPicture(DATADIR "/neutrino/icons/mp3.jpg");
 			CVFD::getInstance()->setMode(CVFD::MODE_AUDIO);
 			paintLCD();
-			screensaver(false);
+			update = true;
 		}
 		else if (msg == CRCInput::RC_help)
 		{
@@ -789,16 +793,16 @@ int CAudioPlayerGui::show()
 					smsKey = m_SMSKeyInput.handleMsg(msg);
 					//printf("  new key: %c", smsKey);
 					/* show a hint box with current char (too slow at the moment?)*/
-					char selectedKey[2];
-					selectedKey[0] = smsKey;
-					selectedKey[1] = 0;
+					char selectedKey[1];
+					sprintf(selectedKey,"%c",smsKey);
 					int x1=(g_settings.screen_EndX- g_settings.screen_StartX)/2 + g_settings.screen_StartX-50;
 					int y1=(g_settings.screen_EndY- g_settings.screen_StartY)/2 + g_settings.screen_StartY;
 					int h = g_Font[SNeutrinoSettings::FONT_TYPE_CHANNEL_NUM_ZAP]->getHeight();
 					w = std::max(w, g_Font[SNeutrinoSettings::FONT_TYPE_CHANNEL_NUM_ZAP]->getRenderWidth(selectedKey));
 					m_frameBuffer->paintBoxRel(x1 - 7, y1 - h - 5, w + 14, h + 10, COL_MENUCONTENT_PLUS_6, RADIUS_SMALL);
 					m_frameBuffer->paintBoxRel(x1 - 4, y1 - h - 3, w +  8, h +  6, COL_MENUCONTENTSELECTED_PLUS_0, RADIUS_SMALL);
-					g_Font[SNeutrinoSettings::FONT_TYPE_CHANNEL_NUM_ZAP]->RenderString(x1,y1,w+1,selectedKey,COL_MENUCONTENTSELECTED_TEXT);
+					g_Font[SNeutrinoSettings::FONT_TYPE_CHANNEL_NUM_ZAP]
+						->RenderString(x1,y1,w+1,selectedKey,COL_MENUCONTENTSELECTED_TEXT);
 
 					g_RCInput->getMsg_ms(&msg, &data, AUDIOPLAYERGUI_SMSKEY_TIMEOUT - 200);
 
@@ -1194,10 +1198,12 @@ void CAudioPlayerGui::scanXmlData(xmlDocPtr answer_parser, const char *nametag, 
 						}
 						child = child->xmlNextNode;
 					}
-					if 	(strcmp("audio/mpeg", type) == 0) 	skip = false;
-					else if (strcmp("application/ogg", type) == 0) 	skip = false;
-					else if (strcmp("mp3", type) == 0) 		skip = false;
-					else if (strcmp("application/mp3", type) == 0) 	skip = false;
+					if (type) {
+						if 	(strcmp("audio/mpeg", type) == 0) 	skip = false;
+						else if (strcmp("application/ogg", type) == 0) 	skip = false;
+						else if (strcmp("mp3", type) == 0) 		skip = false;
+						else if (strcmp("application/mp3", type) == 0) 	skip = false;
+					}
 				} else {
 					url = xmlGetAttribute(element, urltag);
 					name = xmlGetAttribute(element, nametag);
@@ -1402,7 +1408,8 @@ bool CAudioPlayerGui::openFilebrowser(void)
 		printTimevalDiff(start,end);
 #endif
 		//store last dir
-		g_settings.network_nfs_audioplayerdir = m_Path;
+		if( (g_settings.network_nfs_audioplayerdir.size()) > m_Path.size() && g_settings.network_nfs_audioplayerdir != m_Path.c_str() )
+			g_settings.network_nfs_audioplayerdir = m_Path;
 
 		result = true;
 	}
@@ -1890,7 +1897,7 @@ void CAudioPlayerGui::paintItemID3DetailsLine (int pos)
 			tmp += " / ";
 			tmp += m_playlist[m_selected].MetaData.date;
 		}
-		int w = g_Font[SNeutrinoSettings::FONT_TYPE_MENU]->getRenderWidth(tmp) + 10; // UTF-8
+		int w = g_Font[SNeutrinoSettings::FONT_TYPE_MENU]->getRenderWidth(tmp) + 10;
 		g_Font[SNeutrinoSettings::FONT_TYPE_MENU]->RenderString(m_x + m_width - w - 5, ypos2 + 2 + 1*m_fheight,
 				w, tmp, COL_MENUCONTENTDARK_TEXT);
 		tmp = m_playlist[m_selected].MetaData.artist;
@@ -2061,7 +2068,7 @@ int CAudioPlayerGui::getNext()
 	return ret;
 }
 
-void CAudioPlayerGui::updateMetaData(bool screen_saver)
+void CAudioPlayerGui::updateMetaData()
 {
 	bool updateMeta = false;
 	bool updateLcd = false;
@@ -2117,7 +2124,8 @@ void CAudioPlayerGui::updateMetaData(bool screen_saver)
 			updateLcd = true;
 		}
 
-		paintCover();
+		if (!m_screensaver)
+			paintCover();
 	}
 	if (CAudioPlayer::getInstance()->hasMetaDataChanged() != 0)
 		updateLcd = true;
@@ -2198,9 +2206,9 @@ void CAudioPlayerGui::updateTimes(const bool force)
 			}
 			m_frameBuffer->blit();
 		}
-		if ((updatePlayed || updateTotal) && m_time_total != 0)
+		if ((updatePlayed || updateTotal) && m_curr_audiofile.FileType != CFile::STREAM_AUDIO && m_time_total != 0)
 		{
-			CVFD::getInstance()->showAudioProgress(100 * m_time_played / m_time_total, CNeutrinoApp::getInstance()->isMuted());
+			CVFD::getInstance()->showAudioProgress(100 * m_time_played / m_time_total);
 		}
 	}
 }
@@ -2211,19 +2219,18 @@ void CAudioPlayerGui::paintLCD()
 	{
 	case CAudioPlayerGui::STOP:
 		CVFD::getInstance()->showAudioPlayMode(CVFD::AUDIO_MODE_STOP);
-		CVFD::getInstance()->showAudioProgress(0, CNeutrinoApp::getInstance()->isMuted());
+		CVFD::getInstance()->showAudioProgress(0);
 		break;
 	case CAudioPlayerGui::PLAY:
 		CVFD::getInstance()->showAudioPlayMode(CVFD::AUDIO_MODE_PLAY);
-
 		CVFD::getInstance()->showAudioTrack(m_curr_audiofile.MetaData.artist, m_curr_audiofile.MetaData.title,
 						    m_curr_audiofile.MetaData.album);
 		if (m_curr_audiofile.FileType != CFile::STREAM_AUDIO && m_time_total != 0)
-			CVFD::getInstance()->showAudioProgress(100 * m_time_played / m_time_total, CNeutrinoApp::getInstance()->isMuted());
+			CVFD::getInstance()->showAudioProgress(100 * m_time_played / m_time_total);
 
 #ifdef INCLUDE_UNUSED_STUFF
 		else
-			CVFD::getInstance()->showAudioProgress(100 * CAudioPlayer::getInstance()->getScBuffered() / 65536, CNeutrinoApp::getInstance()->isMuted());
+			CVFD::getInstance()->showAudioProgress(100 * CAudioPlayer::getInstance()->getScBuffered() / 65536);
 #endif /* INCLUDE_UNUSED_STUFF */
 		break;
 	case CAudioPlayerGui::PAUSE:
@@ -2248,14 +2255,14 @@ void CAudioPlayerGui::screensaver(bool on)
 	if (on)
 	{
 		m_screensaver = true;
-		m_frameBuffer->Clear();
+		CScreenSaver::getInstance()->Start();
 		stimer = g_RCInput->addTimer(10*1000*1000, false);
 	}
 	else
 	{
 		g_RCInput->killTimer(stimer);
 		m_screensaver = false;
-		videoDecoder->StopPicture();
+		CScreenSaver::getInstance()->Stop();
 		videoDecoder->ShowPicture(DATADIR "/neutrino/icons/mp3.jpg");
 		paint();
 		m_idletime = time(NULL);
@@ -2676,8 +2683,15 @@ void CAudioPlayerGui::savePlaylist()
 		if (!playlistFile)
 		{
 			// an error occured
-			std::string msg = std::string(g_Locale->getText(LOCALE_AUDIOPLAYER_PLAYLIST_FILEERROR_MSG)) + "\n" + absPlaylistFilename;
-			DisplayErrorMessage(msg.c_str());
+			const int msgsize = 255;
+			char msg[msgsize] = "";
+			snprintf(msg,
+				 msgsize,
+				 "%s\n%s",
+				 g_Locale->getText(LOCALE_AUDIOPLAYER_PLAYLIST_FILEERROR_MSG),
+				 absPlaylistFilename.c_str());
+
+			DisplayErrorMessage(msg);
 			// refresh view
 			this->paint();
 			std::cout << "CAudioPlayerGui: could not create play list file "
@@ -2702,8 +2716,15 @@ void CAudioPlayerGui::savePlaylist()
 	this->paint();
 }
 
-bool CAudioPlayerGui::askToOverwriteFile(const std::string& filename) {
-	std::string msg = std::string(g_Locale->getText(LOCALE_AUDIOPLAYER_PLAYLIST_FILEOVERWRITE_MSG)) + "\n" + filename;
+bool CAudioPlayerGui::askToOverwriteFile(const std::string& filename)
+{
+
+	char msg[filename.length() + 127];
+	snprintf(msg,
+		 filename.length() + 126,
+		 "%s\n%s",
+		 g_Locale->getText(LOCALE_AUDIOPLAYER_PLAYLIST_FILEOVERWRITE_MSG),
+		 filename.c_str());
 	bool res = (ShowMsg(LOCALE_AUDIOPLAYER_PLAYLIST_FILEOVERWRITE_TITLE,
 			       msg, CMessageBox::mbrYes, CMessageBox::mbYes | CMessageBox::mbNo)
 		    == CMessageBox::mbrYes);

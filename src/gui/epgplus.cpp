@@ -174,8 +174,8 @@ void EpgPlus::TimeLine::paint (time_t startTime, int pduration)
 	this->frameBuffer->paintBoxRel (this->x, this->y, this->width, this->fontTime->getHeight()
 					, toggleColor ? COL_MENUCONTENT_PLUS_2 : COL_MENUCONTENT_PLUS_1);
 
-	this->fontDate->RenderString (this->x + 4, this->y + this->fontDate->getHeight(), this->width,
-				      EpgPlus::getTimeString (startTime, "%d-%b") , COL_MENUCONTENT_TEXT);
+	this->fontDate->RenderString (this->x + 4, this->y + this->fontDate->getHeight()
+				      , this->width, EpgPlus::getTimeString (startTime, "%d-%b") , COL_MENUCONTENT_TEXT);
 
 	// paint ticks
 	for (int i = 0; i < numberOfTicks; ++i, xPos += tickDist, tickTime += pduration / numberOfTicks) {
@@ -190,13 +190,13 @@ void EpgPlus::TimeLine::paint (time_t startTime, int pduration)
 
 		int textWidth = this->fontTime->getRenderWidth (timeStr);
 
-		this->fontTime->RenderString (xPos - textWidth - 4, this->y + this->fontTime->getHeight(), textWidth,
-					      timeStr, toggleColor ? COL_MENUCONTENT_P1 : COL_MENUCONTENT_P2);
+		this->fontTime->RenderString (xPos - textWidth - 4, this->y + this->fontTime->getHeight()
+					      , textWidth, timeStr, toggleColor ? COL_MENUCONTENT_P1 : COL_MENUCONTENT_P2);
 
 		timeStr = EpgPlus::getTimeString (tickTime, "%M");
 		textWidth = this->fontTime->getRenderWidth (timeStr);
-		this->fontTime->RenderString (xPos + 4, this->y + this->fontTime->getHeight(), textWidth,
-					      timeStr, toggleColor ? COL_MENUCONTENT_P1 : COL_MENUCONTENT_P2);
+		this->fontTime->RenderString (xPos + 4, this->y + this->fontTime->getHeight()
+					      , textWidth, timeStr, toggleColor ? COL_MENUCONTENT_P1 : COL_MENUCONTENT_P2);
 
 		toggleColor = !toggleColor;
 	}
@@ -292,8 +292,8 @@ void EpgPlus::ChannelEventEntry::paint (bool pisSelected, bool toggleColor)
 	this->frameBuffer->paintBoxRel (this->x, this->y, this->width, this->font->getHeight()
 			, this->channelEvent.description.empty()? COL_MENUCONTENT_PLUS_0 : (pisSelected ? COL_MENUCONTENTSELECTED_PLUS_0 : (toggleColor ? COL_MENUCONTENT_PLUS_1 : COL_MENUCONTENT_PLUS_2)));
 
-	this->font->RenderString (this->x + 2, this->y + this->font->getHeight(), this->width - 4 > 0 ? this->width - 4 : 0,
-				  this->channelEvent.description, pisSelected ? COL_MENUCONTENTSELECTED_TEXT : (toggleColor ? COL_MENUCONTENT_P1 : COL_MENUCONTENT_P2));
+	this->font->RenderString (this->x + 2, this->y + this->font->getHeight()
+				  , this->width - 4 > 0 ? this->width - 4 : 0, this->channelEvent.description, pisSelected ? COL_MENUCONTENTSELECTED_TEXT : (toggleColor ? COL_MENUCONTENT_P1 : COL_MENUCONTENT_P2));
 
 	// paint the separation line
 	if (separationLineHeight > 0) {

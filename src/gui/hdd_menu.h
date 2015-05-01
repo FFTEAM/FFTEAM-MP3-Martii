@@ -75,9 +75,12 @@ class CHDDMenuHandler : public CMenuTarget
 		};
 		std::vector<hdd_s> hdd_list;
 #endif
+		void showError(neutrino_locale_t err);
 	public:
 		CHDDMenuHandler();
 		~CHDDMenuHandler();
+
+		static CHDDMenuHandler* getInstance();
 		int exec( CMenuTarget* parent,  const std::string &actionkey);
 		int doMenu();
 };

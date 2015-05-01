@@ -60,15 +60,13 @@ class CBuildInfo :  public CMenuTarget, public CComponentsWindow
 		{
 			BI_TYPE_ID_USED_COMPILER,
 			BI_TYPE_ID_USED_CXXFLAGS,
-#if !HAVE_SPARK_HARDWARE
 			BI_TYPE_ID_USED_BUILD,
-#endif
 			BI_TYPE_ID_USED_KERNEL,
 #if 0
 			BI_TYPE_ID_CREATOR,
 #endif
 
-			BI_TYPE_IDS,
+			BI_TYPE_IDS
 		};
 
 		CBuildInfo();

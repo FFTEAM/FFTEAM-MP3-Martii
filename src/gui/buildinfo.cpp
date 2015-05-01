@@ -139,11 +139,9 @@ bool CBuildInfo::HasData()
 	v_info.push_back(flags);
 #endif
 
-#if !HAVE_SPARK_HARDWARE
 #ifdef USED_BUILD
 	build_info_t build = {BI_TYPE_ID_USED_BUILD , LOCALE_BUILDINFO_COMPILED_ON, USED_BUILD};
 	v_info.push_back(build);
-#endif
 #endif
 
 	CComponentsText utext;

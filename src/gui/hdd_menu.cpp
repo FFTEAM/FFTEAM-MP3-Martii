@@ -47,7 +47,6 @@
 #include <neutrino_menue.h>
 #include "hdd_menu.h"
 
-#include <driver/display.h>
 #include <gui/filebrowser.h>
 #include <gui/widget/icons.h>
 #include <gui/widget/stringinput.h>
@@ -62,6 +61,9 @@
 
 #include <mymenu.h>
 #include <driver/screen_max.h>
+#include <driver/record.h>
+#include <driver/display.h>
+
 
 #define e2fsckBinary   "/sbin/e2fsck"
 #define ext3FsckBinary "/sbin/fsck.ext3"
@@ -142,7 +144,7 @@ std::string getFmtType(const char* name, int num)
 
 CHDDMenuHandler::CHDDMenuHandler()
 {
-	width = w_max (58, 10);
+	width = 58;
 }
 
 CHDDMenuHandler::~CHDDMenuHandler()
@@ -182,10 +184,10 @@ int CHDDMenuHandler::exec(CMenuTarget* parent, const std::string &actionkey)
 			return menu_return::RETURN_REPAINT;
 		}
 
-	return doMenu ();
+	return doMenu();
 }
 
-int CHDDMenuHandler::doMenu ()
+int CHDDMenuHandler::doMenu()
 {
 	FILE * f;
 	int fd;
@@ -406,6 +408,11 @@ int CHDDMenuHandler::doMenu ()
 	hddmenu=NULL;
 	delete hddmenu;
 	return ret;
+}
+
+void CHDDMenuHandler::showError(neutrino_locale_t err)
+{
+	ShowMsg(LOCALE_MESSAGEBOX_ERROR, g_Locale->getText(err), CMessageBox::mbrOk, CMessageBox::mbOk);
 }
 
 int CHDDDestExec::exec(CMenuTarget* /*parent*/, const std::string&)
@@ -646,13 +653,12 @@ int CHDDFmtExec::exec(CMenuTarget* /*parent*/, const std::string& key)
 
 	printf("CHDDFmtExec: key %s\n", key.c_str());
 
-	res = ShowMsg ( LOCALE_HDD_FORMAT, g_Locale->getText(LOCALE_HDD_FORMAT_WARN), CMessageBox::mbrNo, CMessageBox::mbYes | CMessageBox::mbNo );
+	res = ShowMsg(LOCALE_HDD_FORMAT, g_Locale->getText(LOCALE_HDD_FORMAT_WARN), CMessageBox::mbrNo, CMessageBox::mbYes | CMessageBox::mbNo );
 	if(res != CMessageBox::mbrYes)
-		return 0;
+		return menu_return::RETURN_REPAINT;
 
 	bool srun = my_system(3, "killall", "-9", "smbd");
 
-	//res = check_and_umount(dst);
 	res = umount_all(key.c_str());
 	printf("CHDDFmtExec: umount res %d\n", res);
 

@@ -48,7 +48,7 @@ char none_cam[] = "keine";
 
 CBluePanel::CBluePanel()
 {
-	width = w_max (40, 10);
+	width = 40;
 }
 
 CBluePanel::~CBluePanel()
