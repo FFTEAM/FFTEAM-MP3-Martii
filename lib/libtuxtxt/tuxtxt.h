@@ -37,6 +37,7 @@
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 
+#include <driver/framebuffer.h>
 #include "tuxtxt_def.h"
 
 #include <ft2build.h>
@@ -249,8 +250,8 @@ const char *ObjectType[] =
 #define NoServicesFound 3
 
 /* framebuffer stuff */
-static unsigned char *lfb = 0;
-static unsigned char *lbb = 0;
+static fb_pixel_t *lfb = NULL;
+static fb_pixel_t *lbb = NULL;
 struct fb_var_screeninfo var_screeninfo;
 struct fb_fix_screeninfo fix_screeninfo;
 
@@ -594,12 +595,13 @@ char versioninfo[16];
 int hotlist[10];
 int maxhotlist;
 
-int pig, fb, lcd;
+int pig, rc, fb, lcd;
 int sx, ex, sy, ey;
 int PosX, PosY, StartX, StartY;
 int lastpage;
 int inputcounter;
-int zoommode, screenmode, transpmode, hintmode, boxed, nofirst, savedscreenmode, showflof, show39, showl25, prevscreenmode;
+int zoommode[2], screenmode[2], transpmode[2], hintmode, nofirst, savedscreenmode[2], showflof, show39, showl25, prevscreenmode[2];
+bool boxed, oldboxed;
 char dumpl25;
 int catch_row, catch_col, catched_page, pagecatching;
 int prev_100, prev_10, next_10, next_100;
@@ -1250,33 +1252,18 @@ const unsigned short defaultcolors[] =	/* 0x0bgr */
 	0x420, 0x210, 0x420, 0x000, 0x000
 };
 
-#if !HAVE_TRIPLEDRAGON
-/* 32bit colortable */
-unsigned char bgra[][5] = { 
-"\0\0\0\xFF", "\0\0\0\xFF", "\0\0\0\xFF", "\0\0\0\xFF",
-"\0\0\0\xFF", "\0\0\0\xFF", "\0\0\0\xFF", "\0\0\0\xFF",
-"\0\0\0\xFF", "\0\0\0\xFF", "\0\0\0\xFF", "\0\0\0\xFF",
-"\0\0\0\xFF", "\0\0\0\xFF", "\0\0\0\xFF", "\0\0\0\xFF",
-"\0\0\0\xFF", "\0\0\0\xFF", "\0\0\0\xFF", "\0\0\0\xFF",
-"\0\0\0\xFF", "\0\0\0\xFF", "\0\0\0\xFF", "\0\0\0\xFF",
-"\0\0\0\xFF", "\0\0\0\xFF", "\0\0\0\xFF", "\0\0\0\xFF",
-"\0\0\0\xFF", "\0\0\0\xFF", "\0\0\0\xFF", "\0\0\0\xFF",
-"\0\0\0\xFF", "\0\0\0\xFF", "\0\0\0\xC0", "\0\0\0\x00",
-"\0\0\0\x33" };
-#else
-/* actually "ARGB" */
-unsigned char bgra[][5] = {
-"\xFF\0\0\0", "\xFF\0\0\0", "\xFF\0\0\0", "\xFF\0\0\0",
-"\xFF\0\0\0", "\xFF\0\0\0", "\xFF\0\0\0", "\xFF\0\0\0",
-"\xFF\0\0\0", "\xFF\0\0\0", "\xFF\0\0\0", "\xFF\0\0\0",
-"\xFF\0\0\0", "\xFF\0\0\0", "\xFF\0\0\0", "\xFF\0\0\0",
-"\xFF\0\0\0", "\xFF\0\0\0", "\xFF\0\0\0", "\xFF\0\0\0",
-"\xFF\0\0\0", "\xFF\0\0\0", "\xFF\0\0\0", "\xFF\0\0\0",
-"\xFF\0\0\0", "\xFF\0\0\0", "\xFF\0\0\0", "\xFF\0\0\0",
-"\xFF\0\0\0", "\xFF\0\0\0", "\xFF\0\0\0", "\xFF\0\0\0",
-"\xFF\0\0\0", "\xFF\0\0\0", "\xC0\0\0\0", "\x00\0\0\0",
-"\x33\0\0\0" };
-#endif
+fb_pixel_t argb[] = {
+	0xff000000, 0xff000000, 0xff000000, 0xff000000,
+	0xff000000, 0xff000000, 0xff000000, 0xff000000,
+	0xff000000, 0xff000000, 0xff000000, 0xff000000,
+	0xff000000, 0xff000000, 0xff000000, 0xff000000,
+	0xff000000, 0xff000000, 0xff000000, 0xff000000,
+	0xff000000, 0xff000000, 0xff000000, 0xff000000,
+	0xff000000, 0xff000000, 0xff000000, 0xff000000,
+	0xff000000, 0xff000000, 0xff000000, 0xff000000,
+	0xff000000, 0xff000000, 0xc0000000, 0x00000000,
+	0x33000000
+};
 
 /* old 8bit color table */
 unsigned short rd0[] = {0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0x00<<8, 0x00<<8, 0x00<<8, 0,      0      };
@@ -1753,37 +1740,37 @@ const char lcd_digits[] =
 };
 #endif
 /* functions */
-void ConfigMenu(int Init);
-void CleanUp();
-void PageInput(int Number);
-void ColorKey(int);
-void PageCatching();
-void CatchNextPage(int, int);
-void GetNextPageOne(int up);
-void GetNextSubPage(int offset);
-void SwitchZoomMode();
-void SwitchScreenMode(int newscreenmode);
-void SwitchTranspMode();
-void SwitchHintMode();
-void CreateLine25();
-void CopyBB2FB();
-void RenderCatchedPage();
-void RenderCharFB(int Char, tstPageAttr *Attribute);
-void RenderCharBB(int Char, tstPageAttr *Attribute);
-void RenderCharLCD(int Digit, int XPos, int YPos);
-void RenderMessage(int Message);
-void RenderPage();
-void DecodePage();
-int  Init(int source);
-int  GetNationalSubset(const char *country_code);
-int  GetTeletextPIDs();
-int  GetRCCode();
-int  eval_triplet(int iOData, tstCachedPage *pstCachedPage,
+static void ConfigMenu(int Init);
+static void CleanUp();
+static void PageInput(int Number);
+static void ColorKey(int);
+static void PageCatching();
+static void CatchNextPage(int, int);
+static void GetNextPageOne(int up);
+static void GetNextSubPage(int offset);
+static void SwitchZoomMode();
+static void SwitchScreenMode(int newscreenmode);
+static void SwitchTranspMode();
+static void SwitchHintMode();
+static void CreateLine25();
+static void CopyBB2FB();
+static void RenderCatchedPage();
+static void RenderCharFB(int Char, tstPageAttr *Attribute);
+static void RenderCharBB(int Char, tstPageAttr *Attribute);
+static void RenderCharLCD(int Digit, int XPos, int YPos);
+static void RenderMessage(int Message);
+static void RenderPage();
+static void DecodePage();
+static int  Init(int source);
+static int  GetNationalSubset(const char *country_code);
+static int  GetTeletextPIDs();
+static int  GetRCCode();
+static int  eval_triplet(int iOData, tstCachedPage *pstCachedPage,
 						unsigned char *pAPx, unsigned char *pAPy,
 						unsigned char *pAPx0, unsigned char *pAPy0,
 						unsigned char *drcssubp, unsigned char *gdrcssubp,
 						signed char *endcol, tstPageAttr *attrPassive, unsigned char* pagedata);
-void eval_object(int iONr, tstCachedPage *pstCachedPage,
+static void eval_object(int iONr, tstCachedPage *pstCachedPage,
 					  unsigned char *pAPx, unsigned char *pAPy,
 					  unsigned char *pAPx0, unsigned char *pAPy0,
 					  tObjType ObjType, unsigned char* pagedata);
