@@ -3505,7 +3505,7 @@ class CYTHistory : public CMenuTarget
 
 CYTHistory::CYTHistory(MB_SETTINGS &_settings, std::string &_search, bool _is_nk)
 {
-	width = w_max(40, 10);
+	width = 40;
 	selected = -1;
 	settings = &_settings;
 	search = &_search;
