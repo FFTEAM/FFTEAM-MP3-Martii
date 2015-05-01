@@ -53,8 +53,8 @@
 #include <system/helpers.h>
 #include <system/hddstat.h>
 #include <daemonc/remotecontrol.h>
-#include <driver/volume.h>
 #include <driver/radiotext.h>
+#include <driver/volume.h>
 
 #include <zapit/femanager.h>
 #include <zapit/zapit.h>
@@ -846,7 +846,7 @@ void CInfoViewerBB::showIcon_CA_Status(int /*notfirst*/)
 				free (buffer);
 			if (strncasecmp(decode, "net", 3) == 0)
 			  decMode = (card == NULL) ? 1 : 3; // net == 1, card == 3
-			else if ((strncasecmp(decode, "emu", 3) == 0) || (strncasecmp(decode, "Net", 3) == 0) || (strncasecmp(decode, "int", 1) == 0) || (sscanf(decode, "protocol: char*", 3) == 0) || (sscanf(decode, "from: char*", 3) == 0) || (strncasecmp(decode, "cache", 5) == 0) || (strstr(decode, "/" ) != NULL))
+			else if ((strncasecmp(decode, "emu", 3) == 0) || (strncasecmp(decode, "Net", 1) == 0) || (strncasecmp(decode, "int", 3) == 0) || (sscanf(decode, "protocol: char*", 3) == 0) || (sscanf(decode, "from: char*", 3) == 0) || (strncasecmp(decode, "cache", 5) == 0) || (strstr(decode, "/" ) != NULL))
 			  decMode = 2; //emu
 			else if ((strncasecmp(decode, "com", 3) == 0) || (strncasecmp(decode, "slot", 4) == 0) || (strncasecmp(decode, "local", 5) == 0))
 			  decMode = 3; //card
@@ -1316,7 +1316,9 @@ void CInfoViewerBB::paintECM()
 			g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-135, g_InfoViewer->BoxStartY-140, 80, caid1, COL_INFOBAR_TEXT, 0, true);
 			g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-135, g_InfoViewer->BoxStartY-120, 80, pid1, COL_INFOBAR_TEXT, 0, true);
 			g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-135, g_InfoViewer->BoxStartY-100, 70, source1, COL_INFOBAR_TEXT, 0, true);
+			//g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-70, g_InfoViewer->BoxStartY-100, 20, "", COL_INFOBAR_TEXT, 0, true);
 			g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-55, g_InfoViewer->BoxStartY-100, 70, response1, COL_INFOBAR_TEXT, 0, true);
+			//g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-25, g_InfoViewer->BoxStartY-100, 20, "", COL_INFOBAR_TEXT, 0, true);
 			g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-135, g_InfoViewer->BoxStartY-80, 130, prov1, COL_INFOBAR_TEXT, 0, true);
 			g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-215, g_InfoViewer->BoxStartY-140, 80, "CaID:", COL_INFOBAR_TEXT, 0, true);
 			g_Font[SNeutrinoSettings::FONT_TYPE_INFOBAR_SMALL]->RenderString(g_InfoViewer->BoxEndX-135, g_InfoViewer->BoxStartY-140, 130, caid2, COL_INFOBAR_TEXT, 0, true);
