@@ -76,7 +76,7 @@ void CMotorControl::Init(void)
 
 	satfindpid = -1;
 
-	width = w_max(720, 0);
+	width = 720;
 	m_font  = *CNeutrinoFonts::getInstance()->getDynFont(width, mheight);
 	height = hheight + (24 * mheight) - 5;
 	height = h_max(height, 0);
