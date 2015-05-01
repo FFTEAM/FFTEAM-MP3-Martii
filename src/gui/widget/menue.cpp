@@ -1808,13 +1808,13 @@ int CMenuOptionChooser::exec(CMenuTarget*)
 				if(msg == CRCInput::RC_left) {
 					if(count > 0)
 						optionValname = (char *) options[(count-1) % number_of_options].valname,
-						*optionValue = options[(count-1) % number_of_options].key;
+							      *optionValue = options[(count-1) % number_of_options].key;
 					else
 						optionValname = (char *) options[number_of_options-1].valname,
-						*optionValue = options[number_of_options-1].key;
+							      *optionValue = options[number_of_options-1].key;
 				} else
 					optionValname = (char *) options[(count+1) % number_of_options].valname,
-					*optionValue = options[(count+1) % number_of_options].key;
+						      *optionValue = options[(count+1) % number_of_options].key;
 				break;
 			}
 		}
