@@ -66,7 +66,7 @@ extern cVideo *videoDecoder;
 
 CMiscMenue::CMiscMenue()
 {
-	width = w_max (40, 10);
+	width = 40;
 
 	epg_save = NULL;
 	epg_save_standby = NULL;
