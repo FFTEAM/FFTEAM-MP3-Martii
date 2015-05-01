@@ -61,21 +61,36 @@
 #include <sectionsdclient/sectionsdclient.h>
 #include <cs_api.h>
 
-#if HAVE_SPARK_HARDWARE
-#include <gui/cec_setup.h> // FIXME
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
+#include <gui/cec_setup.h>
 #endif
 
 //#define RCDEBUG
 
 #define ENABLE_REPEAT_CHECK
 
-#if HAVE_DUCKBOX_HARDWARE
-const char * const RC_EVENT_DEVICE[NUMBER_OF_EVENT_DEVICES] = {"/dev/input/event0"};
+#if HAVE_SPARK_HARDWARE
+/* this relies on event0 being the AOTOM frontpanel driver device
+ * TODO: what if another input device is present? */
+#ifdef HAVE_SPARK_HARDWARE
+const char * const RC_EVENT_DEVICE[NUMBER_OF_EVENT_DEVICES] = {"/dev/input/nevis_ir", "/dev/input/event0"};
+#else
+const char * const RC_EVENT_DEVICE[NUMBER_OF_EVENT_DEVICES] = {"/dev/input/nevis_ir"};
+#endif
 #elif HAVE_GENERIC_HARDWARE
 /* the FIFO created by libstb-hal */
 const char * const RC_EVENT_DEVICE[NUMBER_OF_EVENT_DEVICES] = {"/tmp/neutrino.input"};
 #else
+#if HAVE_DUCKBOX_HARDWARE
+#if defined (BOXMODEL_IPBOX9900) || defined (BOXMODEL_IPBOX99) || defined (BOXMODEL_IPBOX55)
+const char * const RC_EVENT_DEVICE[NUMBER_OF_EVENT_DEVICES] = {"/dev/input/event0", "/dev/input/event1"};
+#else
+const char * const RC_EVENT_DEVICE[NUMBER_OF_EVENT_DEVICES] = {"/dev/input/event0"};
+#endif
+#else
+//const char * const RC_EVENT_DEVICE[NUMBER_OF_EVENT_DEVICES] = {"/dev/input/nevis_ir", "/dev/input/event0"};
 const char * const RC_EVENT_DEVICE[NUMBER_OF_EVENT_DEVICES] = {"/dev/input/nevis_ir"};
+#endif
 #endif
 typedef struct input_event t_input_event;
 
@@ -157,6 +172,7 @@ CRCInput::CRCInput(bool &_timer_wakeup)
 	repeat_block = repeat_block_generic = 0;
 	open();
 	rc_last_key =  KEY_MAX;
+	firstKey = true;
 	longPressEnd = 0;
 
 	//select and setup remote control hardware
@@ -648,7 +664,7 @@ void CRCInput::getMsg_us(neutrino_msg_t * msg, neutrino_msg_data_t * data, uint6
 #ifdef KEYBOARD_INSTEAD_OF_REMOTE_CONTROL
 		if (FD_ISSET(fd_keyb, &rfds))
 		{
-			int trkey;
+			uint32_t trkey;
 			char key = 0;
 			read(fd_keyb, &key, sizeof(key));
 
@@ -1004,10 +1020,6 @@ void CRCInput::getMsg_us(neutrino_msg_t * msg, neutrino_msg_data_t * data, uint6
 								*msg  = NeutrinoMessages::EVT_SCAN_REPORT_NUM_SCANNED_TRANSPONDERS;
 								*data = *(unsigned*) p;
 								break;
-							case CZapitClient::EVT_SCAN_REPORT_FREQUENCY:
-								*msg = NeutrinoMessages::EVT_SCAN_REPORT_FREQUENCY;
-								*data = *(unsigned*) p;
-								break;
 							case CZapitClient::EVT_SCAN_FOUND_A_CHAN:
 								*msg = NeutrinoMessages::EVT_SCAN_FOUND_A_CHAN;
 								break;
@@ -1086,6 +1098,10 @@ void CRCInput::getMsg_us(neutrino_msg_t * msg, neutrino_msg_data_t * data, uint6
 								break;
 							case CZapitClient::EVT_BACK_ZAP_COMPLETE:
 								*msg          = NeutrinoMessages::EVT_BACK_ZAP_COMPLETE;
+								*data = (neutrino_msg_data_t) p;
+								break;
+							case CZapitClient::EVT_WEBTV_ZAP_COMPLETE:
+								*msg          = NeutrinoMessages::EVT_WEBTV_ZAP_COMPLETE;
 								*data = (neutrino_msg_data_t) p;
 								break;
 							default:
@@ -1172,11 +1188,6 @@ void CRCInput::getMsg_us(neutrino_msg_t * msg, neutrino_msg_data_t * data, uint6
 								*data = (unsigned long) p;
 								dont_delete_p = true;
 								break;
-							case CTimerdClient::EVT_BATCHEPG :
-								*msg = NeutrinoMessages::EVT_BATCHEPG;
-								*data = 0;
-								break;
-
 							default :
 								printf("[neutrino] event INITID_TIMERD - unknown eventID 0x%x\n",  emsg.eventID );
 
@@ -1184,6 +1195,13 @@ void CRCInput::getMsg_us(neutrino_msg_t * msg, neutrino_msg_data_t * data, uint6
 					}
 					else if (emsg.initiatorID == CEventServer::INITID_NEUTRINO)
 					{
+						printf("CRCInput::getMsg_us: INITID_NEUTRINO: msg %x size %d data %p\n", (int) emsg.eventID, emsg.dataSize, p);
+						if (emsg.eventID == NeutrinoMessages::EVT_HOTPLUG) {
+							printf("EVT_HOTPLUG: [%s]\n", (char *) p);
+							*msg  = emsg.eventID;
+							*data = (neutrino_msg_data_t) p;
+							dont_delete_p = true;
+						}
 #if 0
 						if ((emsg.eventID == NeutrinoMessages::EVT_RECORDING_ENDED) &&
 								(read_bytes == sizeof(stream2file_status2_t)))
@@ -1252,6 +1270,11 @@ void CRCInput::getMsg_us(neutrino_msg_t * msg, neutrino_msg_data_t * data, uint6
 				if (ev.type == EV_SYN)
 					continue; /* ignore... */
 				SHTDCNT::getInstance()->resetSleepTimer();
+				if (ev.value && firstKey) {
+					firstKey = false;
+					CTimerManager::getInstance()->cancelShutdownOnWakeup();
+				}
+
 				uint32_t trkey = translate(ev.code);
 #ifdef _DEBUG
 				printf("%d key: %04x value %d, translate: %04x -%s-\n", ev.value, ev.code, ev.value, trkey, getKeyName(trkey).c_str());
@@ -1295,7 +1318,7 @@ void CRCInput::getMsg_us(neutrino_msg_t * msg, neutrino_msg_data_t * data, uint6
 					if (*timer_wakeup) {
 						unlink("/tmp/.timer_wakeup");
 						*timer_wakeup = false;
-#if HAVE_SPARK_HARDWARE
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 						CCECSetup cecsetup;
 						cecsetup.setCECSettings(true);
 #endif
@@ -1309,7 +1332,7 @@ void CRCInput::getMsg_us(neutrino_msg_t * msg, neutrino_msg_data_t * data, uint6
 					if (trkey == rc_last_key) {
 						/* only allow selected keys to be repeated */
 						if (mayRepeat(trkey, bAllowRepeatLR) ||
-						    (g_settings.shutdown_real_rcdelay && (trkey == RC_standby) && (g_info.hw_caps->can_shutdown)))
+							(g_settings.shutdown_real_rcdelay && ((trkey == RC_standby) && (g_info.hw_caps->can_shutdown))))
 						{
 #ifdef ENABLE_REPEAT_CHECK
 							if (rc_last_repeat_key != trkey) {
@@ -1339,6 +1362,12 @@ void CRCInput::getMsg_us(neutrino_msg_t * msg, neutrino_msg_data_t * data, uint6
 						{
 							last_keypress = now_pressed;
 
+							FILE* rclocked = fopen("/tmp/rc.locked", "r");
+							if (rclocked)
+							{
+								fclose(rclocked);
+								continue;
+							}
 							*msg = trkey;
 							*data = 0; /* <- button pressed */
 							if(g_settings.key_click)
@@ -1591,7 +1620,7 @@ const char * CRCInput::getSpecialKeyName(const unsigned int key)
 			case RC_analog_off:
 				return "analog off";
 			case RC_www:
-				return "window print";
+				return "www";
 			case RC_find:
 				return "find";
 			case RC_pip:
@@ -1673,9 +1702,9 @@ int CRCInput::translate(int code)
 		case KEY_HOME:
 			return RC_home;
 #endif
-		case BTN_0: // FIXME -- needed?
+		case 0x100: // FIXME -- needed?
 			return RC_up;
-		case BTN_1: // FIXME -- needed?
+		case 0x101: // FIXME -- needed?
 			return RC_down;
 #ifdef HAVE_AZBOX_HARDWARE
 		case KEY_HOME:

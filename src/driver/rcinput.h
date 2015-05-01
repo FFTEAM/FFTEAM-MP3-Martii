@@ -147,7 +147,18 @@ class CRCInput
 		int 		fd_pipe_high_priority[2];
 		int 		fd_pipe_low_priority[2];
 		int         	fd_gamerc;
+#ifdef HAVE_SPARK_HARDWARE
+#define NUMBER_OF_EVENT_DEVICES 2
+#else
 #define NUMBER_OF_EVENT_DEVICES 1 // this is currently valid for all supported platforms
+#endif
+#ifdef HAVE_DUCKBOX_HARDWARE
+#if defined (BOXMODEL_IPBOX9900) || defined (BOXMODEL_IPBOX99) || defined (BOXMODEL_IPBOX55)
+#define NUMBER_OF_EVENT_DEVICES 2
+#else
+#define NUMBER_OF_EVENT_DEVICES 1 // this is currently valid for all supported platforms
+#endif
+#endif
 		int         	fd_rc[NUMBER_OF_EVENT_DEVICES];
 		int		fd_keyb;
 		int		fd_event;
@@ -301,6 +312,7 @@ class CRCInput
 
 		uint64_t repeat_block;
 		uint64_t repeat_block_generic;
+		bool		firstKey;
 		CRCInput(bool &_timer_wakeup);      //constructor - opens rc-device and starts needed threads
 		~CRCInput();     //destructor - closes rc-device
 
