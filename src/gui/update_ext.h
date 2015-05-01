@@ -120,7 +120,6 @@ static unsigned int timer_msec;
 #define WRITE_UPDATE_LOG(fmt, args...) \
 		snprintf(updateLogBuf, sizeof(updateLogBuf), "[update:%d] " fmt, __LINE__ , ## args); \
 		updateLog(updateLogBuf);
-
 #endif
 
 #endif // __CEXTUPDATE__

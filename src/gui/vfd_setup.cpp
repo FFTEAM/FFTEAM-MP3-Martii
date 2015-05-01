@@ -55,7 +55,7 @@
 
 CVfdSetup::CVfdSetup()
 {
-	width = w_max (40, 10);
+	width = 40;
 	dim_time = NULL;
 #if !HAVE_SPARK_HARDWARE
 	vfd_enabled = (cs_get_revision() != 10) && (cs_get_revision() != 11);
@@ -337,26 +337,17 @@ bool CVfdSetup::changeNotify(const neutrino_locale_t OptionName, void * /* data 
 		CVFD::getInstance()->setled();
 	}
 #else
-	if (ARE_LOCALES_EQUAL(OptionName, LOCALE_LCDCONTROLER_BRIGHTNESS))
-	{
+	if (ARE_LOCALES_EQUAL(OptionName, LOCALE_LCDCONTROLER_BRIGHTNESS)) {
 		CVFD::getInstance()->setMode(CVFD::MODE_TVRADIO);
 		CVFD::getInstance()->setBrightness(brightness);
-	}
-	else if (ARE_LOCALES_EQUAL(OptionName, LOCALE_LCDCONTROLER_BRIGHTNESSSTANDBY))
-	{
+	} else if (ARE_LOCALES_EQUAL(OptionName, LOCALE_LCDCONTROLER_BRIGHTNESSSTANDBY)) {
 		CVFD::getInstance()->setMode(CVFD::MODE_STANDBY);
 		CVFD::getInstance()->setBrightnessStandby(brightnessstandby);
-	}
-	else if (ARE_LOCALES_EQUAL(OptionName, LOCALE_LCDCONTROLER_BRIGHTNESSDEEPSTANDBY))
-	{
+	} else if (ARE_LOCALES_EQUAL(OptionName, LOCALE_LCDCONTROLER_BRIGHTNESSDEEPSTANDBY)) {
 		CVFD::getInstance()->setBrightnessDeepStandby(brightnessdeepstandby);
-	}
-	else if (ARE_LOCALES_EQUAL(OptionName, LOCALE_LEDCONTROLER_MODE_TV))
-	{
+	} else if (ARE_LOCALES_EQUAL(OptionName, LOCALE_LEDCONTROLER_MODE_TV)) {
 		CVFD::getInstance()->setled();
-	}
-	else if (ARE_LOCALES_EQUAL(OptionName, LOCALE_LEDCONTROLER_BACKLIGHT_TV))
-	{
+	} else if (ARE_LOCALES_EQUAL(OptionName, LOCALE_LEDCONTROLER_BACKLIGHT_TV)) {
 		CVFD::getInstance()->setBacklight(g_settings.backlight_tv);
 	}
 #endif

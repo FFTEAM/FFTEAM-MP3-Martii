@@ -49,15 +49,13 @@
 
 CSoftwareUpdate::CSoftwareUpdate()
 {
-	width = w_max (40, 10);
+	width = 40;
 	fe = new CFlashExpert();
-	update_item = NULL;
 }
 
 CSoftwareUpdate::~CSoftwareUpdate()
 {
 	delete fe;
-	delete update_item;
 }
 
 int CSoftwareUpdate::exec(CMenuTarget* parent, const std::string &/*actionKey*/)
@@ -83,7 +81,7 @@ int CSoftwareUpdate::showSoftwareUpdate()
 	//flashing
 	CFlashUpdate flash;
 
-	update_item = new CMenuForwarder(LOCALE_FLASHUPDATE_CHECKUPDATE_INTERNET, true, NULL, &flash, "inet", CRCInput::RC_red);
+	CMenuForwarder *update_item = new CMenuForwarder(LOCALE_FLASHUPDATE_CHECKUPDATE_INTERNET, true, NULL, &flash, "inet", CRCInput::RC_red);
 	update_item->setHint("", LOCALE_MENU_HINT_SOFTUPDATE_CHECK);
 	softUpdate.addItem(update_item);
 
@@ -91,7 +89,7 @@ int CSoftwareUpdate::showSoftwareUpdate()
 	update_item->setHint("", LOCALE_MENU_HINT_SOFTUPDATE_CHECK_LOCAL);
 	softUpdate.addItem(update_item);
 
-	CUpdateSettings update_settings(update_item);
+	CUpdateSettings update_settings;
 	CMenuWidget mtdexpert(LOCALE_FLASHUPDATE_EXPERTFUNCTIONS, NEUTRINO_ICON_UPDATE, width, MN_WIDGET_ID_MTDEXPERT);
 	//settings
 	mf = new CMenuForwarder(LOCALE_FLASHUPDATE_SETTINGS, true, NULL, &update_settings, NULL, CRCInput::RC_yellow);

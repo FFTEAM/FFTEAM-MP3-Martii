@@ -140,7 +140,7 @@ bool CUserMenu::showUserMenu(neutrino_msg_t msg)
 		return true;
 	}
 
-	width = w_max (40, 10);
+	width = 40;
 
 	CMenuItem* menu_item = NULL;
 	CMenuItem* last_menu_item = NULL;
@@ -532,7 +532,7 @@ const char *CUserMenu::getUserMenuButtonName(int button, bool &active)
 				continue;
 			case SNeutrinoSettings::ITEM_AUDIO_SELECT:
 				if(loc == NONEXISTANT_LOCALE && !text) {
-					if (g_RemoteControl->current_PIDs.APIDs.size() > 0)
+					if (!g_RemoteControl->current_PIDs.APIDs.empty())
 						text = g_RemoteControl->current_PIDs.APIDs[
 							g_RemoteControl->current_PIDs.PIDs.selected_apid].desc;
 				} else

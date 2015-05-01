@@ -46,10 +46,9 @@
 #include <system/debug.h>
 
 
-CUpdateSettings::CUpdateSettings(CMenuForwarder * update_item)
+CUpdateSettings::CUpdateSettings()
 {
-	width = w_max (40, 10);
-	updateItem = update_item;
+	width = 40;
 #ifdef USE_SMS_INPUT
 	input_url_file = new CKeyboardInput(LOCALE_FLASHUPDATE_URL_FILE, g_settings.softupdate_url_file);
 #endif
@@ -136,12 +135,14 @@ int CUpdateSettings::initMenu()
 	CMenuOptionChooser *name_backup = new CMenuOptionChooser(LOCALE_FLASHUPDATE_NAMEMODE2, &g_settings.softupdate_name_mode_backup, SOFTUPDATE_NAME_MODE2_OPTIONS, SOFTUPDATE_NAME_MODE2_OPTION_COUNT, true);
 //	name_backup->setHint("", LOCALE_MENU_HINT_XXX);
 
+#ifndef BOXMODEL_APOLLO
 	CMenuOptionChooser *apply_settings = new CMenuOptionChooser(LOCALE_FLASHUPDATE_MENU_APPLY_SETTINGS, &g_settings.apply_settings, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true, OnOffNotifier);
 //	apply_settings->setHint("", LOCALE_MENU_HINT_XXX);
 
 	CMenuOptionChooser *name_apply = new CMenuOptionChooser(LOCALE_FLASHUPDATE_NAMEMODE1, &g_settings.softupdate_name_mode_apply, SOFTUPDATE_NAME_MODE1_OPTIONS, SOFTUPDATE_NAME_MODE1_OPTION_COUNT, g_settings.apply_settings);
 //	name_apply->setHint("", LOCALE_MENU_HINT_XXX);
 	OnOffNotifier->addItem(name_apply);
+#endif
 #endif
 
 #if 0
@@ -150,14 +151,20 @@ int CUpdateSettings::initMenu()
 	OnOffNotifier->addItem(apply_kernel);
 #endif
 
+	CMenuOptionChooser *autocheck = new CMenuOptionChooser(LOCALE_FLASHUPDATE_AUTOCHECK, &g_settings.softupdate_autocheck, OPTIONS_OFF0_ON1_OPTIONS, OPTIONS_OFF0_ON1_OPTION_COUNT, true, OnOffNotifier);
+//	apply_settings->setHint("", LOCALE_MENU_HINT_XXX);
+
 	w_upsettings.addItem(fw_update_dir);
 	w_upsettings.addItem(fw_url);
 #if ENABLE_EXTUPDATE
 	w_upsettings.addItem(name_backup);
+#ifndef BOXMODEL_APOLLO
 	w_upsettings.addItem(GenericMenuSeparatorLine);
 	w_upsettings.addItem(apply_settings);
 	w_upsettings.addItem(name_apply);
 #endif
+#endif
+	w_upsettings.addItem(autocheck);
 
 #if 0
 	w_upsettings.addItem(apply_kernel);
