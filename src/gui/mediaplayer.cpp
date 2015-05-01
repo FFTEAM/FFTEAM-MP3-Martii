@@ -63,7 +63,7 @@ CMediaPlayerMenu::CMediaPlayerMenu()
 	setMenuTitel();
 	setUsageMode();
 
-	width = w_max (40, 10); //%
+	width = 40;
 	
 	audioPlayer 	= NULL;
 	inetPlayer 	= NULL;
@@ -89,6 +89,7 @@ CMediaPlayerMenu::~CMediaPlayerMenu()
 int CMediaPlayerMenu::exec(CMenuTarget* parent, const std::string &actionKey)
 {
 	printf("init mediaplayer menu in usage mode %d\n", usage_mode);
+
 	if (parent)
 		parent->hide();
 	

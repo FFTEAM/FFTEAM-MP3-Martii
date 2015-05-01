@@ -135,13 +135,13 @@ libneutrino_gui_a_SOURCES += \
 	update_ext.cpp
 endif
 
-libneutrino_gui_a_SOURCES += \
-	luainstance.cpp
-
 if ENABLE_TESTING
 libneutrino_gui_a_SOURCES += \
 	test_menu.cpp
 endif
+
+libneutrino_gui_a_SOURCES += \
+	luainstance.cpp
 
 libneutrino_gui2_a_SOURCES = \
 	color.cpp \
