@@ -73,7 +73,7 @@
 CTextBox::CTextBox(const char * text, Font* font_text, const int pmode,
 		   const CBox* position, CFBWindow::color_t textBackgroundColor)
 {
-	//TRACE("[CTextBox] new\r\n");
+	//TRACE("[CTextBox] new %d\n", __LINE__);
 	initVar();
 
 	if(text != NULL)
@@ -109,7 +109,7 @@ CTextBox::CTextBox(const char * text, Font* font_text, const int pmode,
 
 CTextBox::CTextBox(const char * text)
 {
-	//TRACE("[CTextBox] new\r\n");
+	//TRACE("[CTextBox] new %d\r", __LINE__);
 	initVar();
 
 	if(text != NULL)
@@ -123,7 +123,7 @@ CTextBox::CTextBox(const char * text)
 
 CTextBox::CTextBox()
 {
-	//TRACE("[CTextBox] new\r\n");
+	//TRACE("[CTextBox] new %d\n", __LINE__);
 	initVar();
 
 	//Initialise the window frames first and than refresh text line array
