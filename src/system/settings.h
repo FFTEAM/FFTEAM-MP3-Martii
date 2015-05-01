@@ -47,7 +47,7 @@
 #include <list>
 
 #ifdef BOXMODEL_APOLLO
-#define VIDEOMENU_VIDEOMODE_OPTION_COUNT 14
+#define VIDEOMENU_VIDEOMODE_OPTION_COUNT 16
 #else
 #define VIDEOMENU_VIDEOMODE_OPTION_COUNT 13
 #endif
@@ -134,12 +134,14 @@ struct SNeutrinoSettings
 	int psi_step;
 	uint32_t video_mixer_color;
 #endif
+
 #ifdef BOXMODEL_APOLLO
 	int brightness;
 	int contrast;
 	int saturation;
+	int enable_sd_osd;
 #endif
-	int current_volume;
+	char current_volume;
 	int audio_initial_volume;
 	int current_volume_step;
 	int channel_mode;
@@ -213,6 +215,7 @@ struct SNeutrinoSettings
 	int hdmi_cec_broadcast;
 #endif
 	int enabled_video_modes[VIDEOMENU_VIDEOMODE_OPTION_COUNT];
+	int enabled_auto_modes[VIDEOMENU_VIDEOMODE_OPTION_COUNT];
 	int cpufreq;
 	int standby_cpufreq;
 	int make_hd_list;
@@ -557,9 +560,9 @@ struct SNeutrinoSettings
 	int screenshot_cover;
 	int screenshot_mode;
 #if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
+	int screenshot_res;
 	int screenshot_png_compression;
 	int screenshot_backbuffer;
-	int screenshot_res;
 #else
 	int screenshot_video;
 	int screenshot_scale;
@@ -611,6 +614,7 @@ struct SNeutrinoSettings
 	int channellist_hdicon;
 	int channellist_numeric_adjust;
 	int channellist_show_channellogo;
+	int channellist_show_infobox;
 	int channellist_show_numbers;
 	int repeat_blocker;
 	int repeat_genericblocker;
@@ -635,6 +639,12 @@ struct SNeutrinoSettings
 	int screen_StartY_lcd;
 	int screen_EndX_lcd;
 	int screen_EndY_lcd;
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
+	int screen_StartX_int;
+	int screen_StartY_int;
+	int screen_EndX_int;
+	int screen_EndY_int;
+#endif
 	int screen_preset;
 	int screen_width;
 	int screen_height;
@@ -643,6 +653,7 @@ struct SNeutrinoSettings
 
 	//Software-update
 	int softupdate_mode;
+	std::string image_settings_backup_path;
 	std::string softupdate_url_file;
 	std::string softupdate_proxyserver;
 	std::string softupdate_proxyusername;
@@ -726,7 +737,9 @@ struct SNeutrinoSettings
 	int lcd_info_line;
 	std::string lcd_setting_dim_time;
 	int lcd_setting_dim_brightness;
+#if HAVE_SPARK_HARDWARE || HAVE_DUCKBOX_HARDWARE
 	int lcd_vfd_scroll;
+#endif
 #if HAVE_SPARK_HARDWARE
 	enum LED_MODE {
 		LED_MODE_TV = 0,
