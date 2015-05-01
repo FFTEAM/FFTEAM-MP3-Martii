@@ -594,10 +594,9 @@ static void clear_inject_queue(void)
 {
 	pthread_mutex_lock(&inject_mutex);
 	while (!sem_trywait(&inject_sem)) {
-		if (inject_queue[inject_queue_index_read].data) {
+		if (inject_queue[inject_queue_index_read].data)
 			free(inject_queue[inject_queue_index_read].data);
-			inject_queue[inject_queue_index_read].data = NULL;
-		}
+		inject_queue[inject_queue_index_read].data = NULL;
 		inject_queue_index_read++;
 		inject_queue_index_read %= INJECT_QUEUE_LIMIT;
 	}
@@ -610,16 +609,19 @@ void teletext_write(int pid, uint8_t *data, int size)
 		clear_inject_queue();
 		last_injected_pid = pid;
 	}
-	bool do_sem_post = true;
+	size -= 1;
+	data++;
 	pthread_mutex_lock(&inject_mutex);
-	if (inject_queue[inject_queue_index_write].data && inject_queue[inject_queue_index_write].size != size) {
-		free(inject_queue[inject_queue_index_write].data);
+	bool do_sem_post = true;
+	if (inject_queue[inject_queue_index_write].data) {
+		if (inject_queue[inject_queue_index_write].size != size) {
+			free(inject_queue[inject_queue_index_write].data);
+			inject_queue[inject_queue_index_write].data = (uint8_t *) malloc(size);
+		}
 		do_sem_post = false;
-	}
-	if (!inject_queue[inject_queue_index_write].data) {
+	} else
 		inject_queue[inject_queue_index_write].data = (uint8_t *) malloc(size);
-		inject_queue[inject_queue_index_write].size = size;
-	}
+	inject_queue[inject_queue_index_write].size = size;
 	if (inject_queue[inject_queue_index_write].data) {
 		memcpy(inject_queue[inject_queue_index_write].data, data, size);
 		inject_queue_index_write++;
@@ -645,9 +647,9 @@ static bool read_injected_packet(unsigned char * &packet, int &size, int timeout
 		packet = inject_queue[inject_queue_index_read].data;
 		if (packet) {
 			size = inject_queue[inject_queue_index_read].size;
-			inject_queue[inject_queue_index_read].data = NULL;
 			inject_queue_index_read++;
 			inject_queue_index_read %= INJECT_QUEUE_LIMIT;
+			inject_queue[inject_queue_index_read].data = NULL;
 		}
 		else
 			res = false;
@@ -1199,7 +1201,7 @@ void *tuxtxt_CacheThread(void * /*arg*/)
 int tuxtxt_start_thread(int source = 0);
 int tuxtxt_start_thread(int source)
 {
-	if (!tuxtxt_cache.vtxtpid)
+	if (tuxtxt_cache.vtxtpid == -1)
 		return 0;
 
 	tuxtxt_cache.thread_starting = 1;
