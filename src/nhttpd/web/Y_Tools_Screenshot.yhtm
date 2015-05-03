@@ -54,7 +54,6 @@ function do_snapshot() {
 		loadSyncURL("/control/screenshot?name="+filename+"&osd="+enableOSD+"&video="+enableVideo);
 		do_showshot_bmp(filename);
 	}
-
 }
 function do_showshot(_filename) {
 	if (_filename == "")
