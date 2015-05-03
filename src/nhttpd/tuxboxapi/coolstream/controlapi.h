@@ -42,7 +42,7 @@ private:
 	void epgDetailList(CyhookHandler *hh);
 	void EpgSearchXMLCGI(CyhookHandler *hh);
 	void EpgSearchTXTCGI(CyhookHandler *hh);
-	void EpgSearchCGI(CyhookHandler *hh, bool xml_forat = false);
+	void EpgSearchCGI(CyhookHandler *hh, bool xml_format = false);
 	// subs
 	friend class CNeutrinoWebserver; // for timer /fb/ compatibility
 	void doModifyTimer(CyhookHandler *hh);
@@ -78,6 +78,7 @@ private:
 	void ShutdownCGI(CyhookHandler *hh);
 	void VolumeCGI(CyhookHandler *hh);
 	void ChannellistCGI(CyhookHandler *hh);
+	void LogolistCGI(CyhookHandler *hh);
 	void GetBouquetCGI(CyhookHandler *hh);
 	void GetBouquetsCGI(CyhookHandler *hh);
 	void EpgCGI(CyhookHandler *hh);
@@ -107,6 +108,7 @@ private:
 	void changeBouquetCGI(CyhookHandler *hh);
 	void updateBouquetCGI(CyhookHandler *hh);
 	void build_live_url(CyhookHandler *hh);
+	void build_playlist(CyhookHandler *hh);
 	void logoCGI(CyhookHandler *hh);
 	void ConfigCGI(CyhookHandler *hh);
 	void FileCGI(CyhookHandler *hh);

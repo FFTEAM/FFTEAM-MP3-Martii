@@ -39,6 +39,8 @@
 #include <driver/screenshot.h>
 #include <gui/rc_lock.h>
 #include <rcsim.h>
+#include <driver/pictureviewer/pictureviewer.h>
+extern CPictureViewer *g_PicViewer;
 
 // yhttpd
 #include <yhttpd.h>
@@ -59,9 +61,8 @@ extern CPlugins *g_PluginList;//for relodplugins
 extern CBouquetManager *g_bouquetManager;
 #if HAVE_DUCKBOX_HARDWARE
 #define EVENTDEV "/dev/input/event0"
-#endif
-#if HAVE_SPARK_HARDWARE
-#define EVENTDEV "/dev/input/nevis_ir"
+#elif HAVE_SPARK_HARDWARE
+#define EVENTDEV "/dev/input/event1"
 #else
 #define EVENTDEV "/dev/input/input0"
 #endif
@@ -164,6 +165,7 @@ const CControlAPI::TyCgiCall CControlAPI::yCgiCallList[]=
 	{"getservicesxml", 	&CControlAPI::GetServicesxmlCGI,""},
 	{"getbouquetsxml", 	&CControlAPI::GetBouquetsxmlCGI,""},
 	{"channellist", 	&CControlAPI::ChannellistCGI,	"text/plain"},
+	{"logolist",	 	&CControlAPI::LogolistCGI,	"text/plain"},
 	{"getbouquet", 		&CControlAPI::GetBouquetCGI,	"+xml"},
 	{"getbouquets", 	&CControlAPI::GetBouquetsCGI,	"+xml"},
 	{"getmode", 		&CControlAPI::GetModeCGI,	"text/plain"},
@@ -218,6 +220,7 @@ const CControlAPI::TyCgiCall CControlAPI::yCgiCallList[]=
 	{"updatebouquet",	&CControlAPI::updateBouquetCGI,	"text/plain"},
 	// utils
 	{"build_live_url",	&CControlAPI::build_live_url,	""},
+	{"build_playlist",	&CControlAPI::build_playlist,	""},
 	{"get_logo",		&CControlAPI::logoCGI,	"text/plain"},
 	// settings
 	{"config",		&CControlAPI::ConfigCGI,	"text/plain"},
@@ -839,6 +842,41 @@ void CControlAPI::ChannellistCGI(CyhookHandler *hh)
 	SendChannelList(hh);
 }
 
+void CControlAPI::LogolistCGI(CyhookHandler *hh)
+{
+	std::string result = "";
+	int mode = NeutrinoAPI->Zapit->getMode();
+	CBouquetManager::ChannelIterator cit = mode == CZapitClient::MODE_RADIO ? g_bouquetManager->radioChannelsBegin() : g_bouquetManager->tvChannelsBegin();
+	for (; !(cit.EndOfChannels()); cit++)
+	{
+		std::vector<t_channel_id> v;
+		CZapitChannel * channel = *cit;
+		size_t pos = std::find(v.begin(), v.end(), channel->getChannelID()) - v.begin();
+		if (pos < v.size())
+			continue;
+		v.push_back(channel->getChannelID());
+		result += string_printf(PRINTF_CHANNEL_ID_TYPE_NO_LEADING_ZEROS";%s;"PRINTF_CHANNEL_ID_TYPE_NO_LEADING_ZEROS"", channel->getChannelID(), channel->getName().c_str(), (channel->getChannelID() & 0xFFFFFFFFFFFFULL));
+
+		if (hh->ParamList["1"].compare("files") == 0)
+		{
+			std::string logoFile = "";
+			std::string logoLink = "";
+			char link[PATH_MAX + 1] = {0};
+			if (g_PicViewer->GetLogoName(channel->getChannelID(), NeutrinoAPI->GetServiceName(channel->getChannelID()), logoFile, NULL, NULL))
+			{
+				result += string_printf(";%s", logoFile.c_str());
+				realpath(logoFile.c_str(), link);
+				logoLink = string(link);
+				if (strcmp(logoFile.c_str(), logoLink.c_str()) != 0)
+					result += string_printf(";%s", logoLink.c_str());
+			}
+		}
+
+		result += "\n";
+	}
+	hh->SetHeader(HTTP_OK, "text/plain; charset=UTF-8");
+	hh->WriteLn(result);
+}
 //-----------------------------------------------------------------------------
 // get actual and next event data for given channel
 //-----------------------------------------------------------------------------
@@ -1346,21 +1384,27 @@ inline static bool sortByDateTime (const CChannelEvent& a, const CChannelEvent& 
 extern const char * GetGenre(const unsigned char contentClassification); // UTF-8
 void CControlAPI::EpgSearchXMLCGI(CyhookHandler *hh) 
 {
-	EpgSearchCGI(hh, true);//xml_forat = true
+	EpgSearchCGI(hh, true); //xml_format = true
 }
 void CControlAPI::EpgSearchTXTCGI(CyhookHandler *hh) 
 {
-	EpgSearchCGI(hh, false);//xml_forat = false
+	EpgSearchCGI(hh, false); //xml_format = false
 }
 
-void CControlAPI::EpgSearchCGI(CyhookHandler *hh, bool xml_forat ) 
+void CControlAPI::EpgSearchCGI(CyhookHandler *hh, bool xml_format )
 {
 	t_channel_id channel_id;
-	CChannelEventList	evtlist;
-	bool param_empty = hh->ParamList.empty();
-	const int m_search_epg_item = 5;
-	if(!param_empty){
-		if(xml_forat){
+	CChannelEventList evtlist;
+
+	if (!hh->ParamList.empty()) {
+		bool search_epginfo = true;
+		if (hh->ParamList["epginfo"] == "false")
+			search_epginfo = false;
+
+		const int m_search_epg_item = search_epginfo ? 5 /*SEARCH_EPG_ALL*/ : 1 /*SEARCH_EPG_TITLE*/;
+		std::string m_search_keyword = hh->ParamList["1"];
+
+		if(xml_format){
 		  	hh->SetHeader(HTTP_OK, "text/xml; charset=UTF-8");
 			hh->WriteLn("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
 			hh->WriteLn("<neutrino commandversion=\"1\">");
@@ -1368,8 +1412,6 @@ void CControlAPI::EpgSearchCGI(CyhookHandler *hh, bool xml_forat )
 		else{
 			hh->SetHeader(HTTP_OK, "text/plain; charset=UTF-8"); // default
 		}
-
-		std::string m_search_keyword =hh->ParamList["1"];
     
 		std::vector<t_channel_id> v;
 		int channel_nr =  CNeutrinoApp::getInstance ()->channelList->getSize();//unique channelList TV or Radio
@@ -1413,12 +1455,14 @@ void CControlAPI::EpgSearchCGI(CyhookHandler *hh, bool xml_forat )
 				if( (eventIterator->startTime+eventIterator->duration) < u_azeit)
 						continue;
 					struct tm *tmStartZeit = localtime(&eventIterator->startTime);
-					if(xml_forat){
+					if(xml_format){
 					hh->printf("\t<epgsearch>");
 					hh->printf("\t\t<channelname>%s</channelname>\n",ZapitTools::UTF8_to_UTF8XML(NeutrinoAPI->GetServiceName(eventIterator->channelID).c_str()).c_str());;
 					hh->printf("\t\t<epgtitle>%s</epgtitle>\n",ZapitTools::UTF8_to_UTF8XML(epg.title.c_str()).c_str());
-					hh->printf("\t\t<info1>%s</info1>\n",ZapitTools::UTF8_to_UTF8XML(epg.info1.c_str()).c_str());
-					hh->printf("\t\t<info2>%s</info2>\n",ZapitTools::UTF8_to_UTF8XML(epg.info2.c_str()).c_str());
+					if (search_epginfo) {
+						hh->printf("\t\t<info1>%s</info1>\n",ZapitTools::UTF8_to_UTF8XML(epg.info1.c_str()).c_str());
+						hh->printf("\t\t<info2>%s</info2>\n",ZapitTools::UTF8_to_UTF8XML(epg.info2.c_str()).c_str());
+					}
 					if (CEitManager::getInstance()->getEPGid(eventIterator->eventID, eventIterator->startTime, &longepg)) {
 						hh->printf("\t\t<fsk>%u</fsk>\n", longepg.fsk);
 #ifdef FULL_CONTENT_CLASSIFICATION
@@ -1457,10 +1501,12 @@ void CControlAPI::EpgSearchCGI(CyhookHandler *hh, bool xml_forat )
 					hh->WriteLn(datetimer_str);
 					hh->WriteLn(NeutrinoAPI->GetServiceName(eventIterator->channelID));
 					hh->WriteLn(epg.title);
-					if(!epg.info1.empty())
-						hh->WriteLn(epg.info1);
-					if(!epg.info2.empty())
-						hh->WriteLn(epg.info2);
+					if (search_epginfo) {
+						if(!epg.info1.empty())
+							hh->WriteLn(epg.info1);
+						if(!epg.info2.empty())
+							hh->WriteLn(epg.info2);
+					}
 					if (CEitManager::getInstance()->getEPGid(eventIterator->eventID, eventIterator->startTime, &longepg)) {
 						hh->printf("fsk:%u\n", longepg.fsk);
 #ifdef FULL_CONTENT_CLASSIFICATION
@@ -1482,7 +1528,7 @@ void CControlAPI::EpgSearchCGI(CyhookHandler *hh, bool xml_forat )
 				}
 			}
 		}
-		if(xml_forat)
+		if(xml_format)
 			hh->printf("</neutrino>");
 	}else
 		hh->SendError();
@@ -2753,6 +2799,7 @@ void CControlAPI::updateBouquetCGI(CyhookHandler *hh)
 	hh->SendOk();
 }
 //-------------------------------------------------------------------------
+#if 1
 // audio_no : (optional) audio channel
 // host : (optional) ip of dbox
 void CControlAPI::build_live_url(CyhookHandler *hh)
@@ -2817,6 +2864,82 @@ void CControlAPI::build_live_url(CyhookHandler *hh)
 		hh->SetHeader(HTTP_OK, "text/html; charset=UTF-8");
 		hh->Write(url);
 	}
+}
+#else
+void CControlAPI::build_live_url(CyhookHandler *hh)
+{
+	int mode = NeutrinoAPI->Zapit->getMode();
+	// build url
+	std::string url = "";
+	if(!hh->ParamList["host"].empty())
+		url = "http://"+hh->ParamList["host"];
+	else
+		url = "http://"+hh->HeaderList["Host"];
+	/* strip off optional custom port */
+	if (url.rfind(":") != 4)
+		url = url.substr(0, url.rfind(":"));
+
+	url += ":31339/id=";
+
+	// response url
+	if(!hh->ParamList["vlc_link"].empty())
+	{
+		write_to_file("/tmp/vlc.m3u", "#EXTM3U\n");
+		for (int i = 0; i < (int) g_bouquetManager->Bouquets.size(); i++) {
+			ZapitChannelList chanlist;
+			if (mode == CZapitClient::MODE_RADIO)
+				g_bouquetManager->Bouquets[i]->getRadioChannels(chanlist);
+			else
+				g_bouquetManager->Bouquets[i]->getTvChannels(chanlist);
+			if(!chanlist.empty() && !g_bouquetManager->Bouquets[i]->bHidden && g_bouquetManager->Bouquets[i]->bUser) {
+				for(int j = 0; j < (int) chanlist.size(); j++) {
+					CZapitChannel * channel = chanlist[j];
+					//printf("---> %s/n",channel->getName().c_str());
+					write_to_file("/tmp/vlc.m3u", "#EXTINF:-1,"+channel->getName()+"\n",true);
+					write_to_file("/tmp/vlc.m3u", url+string_printf(PRINTF_CHANNEL_ID_TYPE_NO_LEADING_ZEROS, channel->getChannelID())+"\n",true);
+				}
+			}
+		}
+		hh->SendRedirect("/tmp/vlc.m3u");
+	} else
+		hh->SendError();
+}
+#endif
+//-------------------------------------------------------------------------
+void CControlAPI::build_playlist(CyhookHandler *hh)
+{
+	// build url
+	std::string url = "";
+	if(!hh->ParamList["host"].empty())
+		url = "http://"+hh->ParamList["host"];
+	else
+		url = "http://"+hh->HeaderList["Host"];
+	/* strip off optional custom port */
+	if (url.rfind(":") != 4)
+		url = url.substr(0, url.rfind(":"));
+
+	url += ":31339/id=";
+
+	if(!hh->ParamList["id"].empty()) {
+		url += hh->ParamList["id"];
+		t_channel_id channel_id;
+		sscanf(hh->ParamList["id"].c_str(), SCANF_CHANNEL_ID_TYPE, &channel_id);
+		std::string chan_name = NeutrinoAPI->Zapit->getChannelName(channel_id);
+		std::string illegalChars = "\\/:?\"<>| ";
+		std::string::iterator it;
+		for (it = chan_name.begin() ; it < chan_name.end() ; ++it){
+		    bool found = illegalChars.find(*it) != string::npos;
+	    	if(found){
+	        	*it = '_';
+	    	}
+		}
+		std::string m3u = "/tmp/" + chan_name + ".m3u";
+		write_to_file(m3u, "#EXTM3U\n");
+		write_to_file(m3u, "#EXTINF:-1,"+NeutrinoAPI->Zapit->getChannelName(channel_id)+"\n",true);
+		write_to_file(m3u, url, true);
+		hh->SendRedirect(m3u);
+	} else
+		hh->SendError();
 }
 //-------------------------------------------------------------------------
 void CControlAPI::logoCGI(CyhookHandler *hh)
