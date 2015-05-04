@@ -451,6 +451,9 @@ void CStreamManager::AddPids(int fd, CZapitChannel *channel, stream_pids_t &pids
 		for (int i = 0; i <  channel->getAudioChannelCount(); i++)
 			pids.insert(channel->getAudioChannel(i)->pid);
 
+	} else {
+		for (stream_pids_t::iterator it = pids.begin(); it != pids.end(); ++it)
+			pids.insert(*it);
 	}
 
 	CGenPsi psi;
@@ -674,6 +677,8 @@ bool CStreamManager::Listen()
 {
 	struct sockaddr_in socketAddr;
 	int socketOptActive = 1;
+	int sendsize = 10*IN_SIZE;
+	unsigned int m = sizeof(sendsize);
 
 	if ((listenfd = socket (AF_INET, SOCK_STREAM, 0)) < 0) {
 		fprintf (stderr, "network port %u open: ", port);
@@ -703,7 +708,10 @@ bool CStreamManager::Listen()
 		goto _error;
 	}
 
-	printf("CStreamManager::Listen: on %d, fd %d\n", port, listenfd);
+	setsockopt(listenfd, SOL_SOCKET, SO_SNDBUF, (void *)&sendsize, m);
+	sendsize = 0;
+	getsockopt(listenfd, SOL_SOCKET, SO_SNDBUF, (void *)&sendsize, &m);
+	printf("CStreamManager::Listen: on %d, fd %d (%d)\n", port, listenfd, sendsize);
 	return true;
 _error:
 	close (listenfd);
