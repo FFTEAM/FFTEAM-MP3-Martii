@@ -32,11 +32,11 @@
 #include <gui/infoclock.h>
 #include <gui/keybind_setup.h>
 #include <system/debug.h>
-/* compat header from zapit/include */
 #include <audio.h>
 #include <system/settings.h>
 #include <system/helpers.h>
 #include <daemonc/remotecontrol.h>
+#include <driver/display.h>
 #include <driver/volume.h>
 #include <driver/display.h>
 #include <gui/audiomute.h>
@@ -46,8 +46,6 @@
 #include <driver/nglcd.h>
 #endif
 
-
-#define VOLUME_SCRIPT	CONFIGDIR "/volume.sh"
 
 extern CRemoteControl * g_RemoteControl;
 extern cAudio * audioDecoder;
@@ -94,10 +92,7 @@ void CVolume::setVolumeExt(int vol)
 
 void CVolume::setVolume(const neutrino_msg_t key)
 {
-	if (!g_RCInput) /* don't die... */
-		return;
 	neutrino_msg_t msg	= key;
-	static bool do_vol = true; /* false if volume is handled by external script */
 	int mode = CNeutrinoApp::getInstance()->getMode();
 	
 	if (msg <= CRCInput::RC_MaxRC) {
@@ -124,27 +119,14 @@ void CVolume::setVolume(const neutrino_msg_t key)
 			if ((msg == (neutrino_msg_t) g_settings.key_volumeup || msg == (neutrino_msg_t) g_settings.key_volumedown) ||
 			    (sub_chan_keybind && (msg == CRCInput::RC_right || msg == CRCInput::RC_left))) {
 				int dir = (msg == (neutrino_msg_t) g_settings.key_volumeup || msg == CRCInput::RC_right) ? 1 : -1;
-				if (my_system(2, VOLUME_SCRIPT, dir > 0 ? "up" : "down") == 0)
-				{
-					do_vol = false;
-					/* clear all repeated events */
-					neutrino_msg_t tmp = msg;
-					while (msg == tmp)
-						g_RCInput->getMsg(&tmp, &data, 0);
-					if (tmp != CRCInput::RC_timeout)
-						g_RCInput->postMsg(tmp, data);
-				} else
-					do_vol = true;
 				if (CNeutrinoApp::getInstance()->isMuted() && (dir > 0 || g_settings.current_volume > 0)) {
 					hideVolscale();
-					if (do_vol) {
-						CAudioMute::getInstance()->AudioMute(false, true);
-						setVolume(msg);
-						return;
-					}
+					CAudioMute::getInstance()->AudioMute(false, true);
+					setVolume(msg);
+					return;
 				}
 
-				if (do_vol && !CNeutrinoApp::getInstance()->isMuted()) {
+				if (!CNeutrinoApp::getInstance()->isMuted()) {
 					/* current_volume is char, we need signed to catch v < 0 */
 					int v = g_settings.current_volume;
 					v += dir * g_settings.current_volume_step;
@@ -162,7 +144,7 @@ void CVolume::setVolume(const neutrino_msg_t key)
 					}
 					g_settings.current_volume = v;
 #ifdef ENABLE_GRAPHLCD
-					nGLCD::ShowVolume(false);
+					nGLCD::ShowVolume(true);
 #endif
 				}
 			}
