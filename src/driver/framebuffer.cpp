@@ -46,6 +46,7 @@
 
 #include <gui/audiomute.h>
 #include <gui/color.h>
+#include <gui/pictureviewer.h>
 #include <system/debug.h>
 #include <global.h>
 #include <video.h>
