@@ -3,8 +3,6 @@
 
         Copyright (C) 2011-2014 CoolStream International Ltd
 
-	Copyright (C) 2010-2012, 2014 Stefan Seyfried
-
 	based on code which is
 	Copyright (C) 2002 Andreas Oberritter <obi@tuxbox.org>
 	Copyright (C) 2001 TripleDES
@@ -73,7 +71,7 @@ extern cCpuFreqManager * cpuFreq;
 #define ENABLE_MULTI_CHANNEL
 
 #define TS_SIZE 188
-#define DMX_BUFFER_SIZE (2048*TS_SIZE)
+#define DMX_BUFFER_SIZE (5*2048*TS_SIZE)
 #define IN_SIZE (250*TS_SIZE)
 
 CStreamInstance::CStreamInstance(int clientfd, t_channel_id chid, stream_pids_t &_pids)
@@ -140,7 +138,7 @@ bool CStreamInstance::Send(ssize_t r)
 			}
 		} while ((count > 0) && (i-- > 0));
 		if (count)
-			printf("send err, fd %d: (%d from %d)\n", *it, r-count, r);
+			printf("send err, fd %d: (%zd from %zd)\n", *it, r-count, r);
 	}
 	return true;
 }
@@ -156,7 +154,7 @@ void CStreamInstance::AddClient(int clientfd)
 {
 	OpenThreads::ScopedLock<OpenThreads::Mutex> m_lock(mutex);
 	fds.insert(clientfd);
-	printf("CStreamInstance::AddClient: %d (count %u)\n", clientfd, fds.size());
+	printf("CStreamInstance::AddClient: %d (count %d)\n", clientfd, fds.size());
 }
 
 void CStreamInstance::RemoveClient(int clientfd)
@@ -164,7 +162,7 @@ void CStreamInstance::RemoveClient(int clientfd)
 	OpenThreads::ScopedLock<OpenThreads::Mutex> m_lock(mutex);
 	fds.erase(clientfd);
 	close(clientfd);
-	printf("CStreamInstance::RemoveClient: %d (count %u)\n", clientfd, fds.size());
+	printf("CStreamInstance::RemoveClient: %d (count %d)\n", clientfd, fds.size());
 }
 
 void CStreamInstance::run()
@@ -196,6 +194,11 @@ void CStreamInstance::run()
 
 	CCamManager::getInstance()->Start(channel_id, CCamManager::STREAM);
 
+#if HAVE_DUCKBOX_HARDWARE || HAVE_SPARK_HARDWARE
+	CFrontend *fe = CFEManager::getInstance()->allocateFE(tmpchan, true);
+	CFEManager::getInstance()->lockFrontend(fe);
+	CZapit::getInstance()->SetRecordMode(true);
+#endif
 	while (running) {
 		ssize_t r = dmx->Read(buf, IN_SIZE, 100);
 		if (r > 0)
@@ -204,6 +207,10 @@ void CStreamInstance::run()
 
 	CCamManager::getInstance()->Stop(channel_id, CCamManager::STREAM);
 
+#if HAVE_DUCKBOX_HARDWARE || HAVE_SPARK_HARDWARE
+	CFEManager::getInstance()->unlockFrontend(fe);
+	CZapit::getInstance()->SetRecordMode(false);
+#endif
 	printf("CStreamInstance::run: exiting %" PRIx64 " (%d fds)\n", channel_id, (int)fds.size());
 
 	Close();
@@ -290,7 +297,7 @@ CFrontend * CStreamManager::FindFrontend(CZapitChannel * channel)
 
 	t_channel_id chid = channel->getChannelID();
 	if (CRecordManager::getInstance()->RecordingStatus(chid)) {
-		printf("CStreamManager::Parse: channel %llx recorded, aborting..\n", chid);
+		printf("CStreamManager::FindFrontend: channel %" PRIx64 " recorded, aborting..\n", chid);
 		return frontend;
 	}
 
@@ -302,19 +309,22 @@ CFrontend * CStreamManager::FindFrontend(CZapitChannel * channel)
 
 	CFEManager::getInstance()->Lock();
 
-	bool unlock = true;
-	CFEManager::getInstance()->lockFrontend(live_fe);
+	bool unlock = false;
+	if (!IS_WEBTV(live_channel_id)) {
+		unlock = true;
+		CFEManager::getInstance()->lockFrontend(live_fe);
+	}
 
 	OpenThreads::ScopedLock<OpenThreads::Mutex> m_lock(mutex);
 	for (streammap_iterator_t it = streams.begin(); it != streams.end(); ++it)
-			frontends.insert(it->second->frontend);
+		frontends.insert(it->second->frontend);
 
 	for (std::set<CFrontend*>::iterator ft = frontends.begin(); ft != frontends.end(); ft++)
 		CFEManager::getInstance()->lockFrontend(*ft);
 
 	frontend = CFEManager::getInstance()->allocateFE(channel, true);
 
-	if (frontend == NULL) {
+	if (unlock && frontend == NULL) {
 		unlock = false;
 		CFEManager::getInstance()->unlockFrontend(live_fe);
 		frontend = CFEManager::getInstance()->allocateFE(channel, true);
@@ -323,7 +333,7 @@ CFrontend * CStreamManager::FindFrontend(CZapitChannel * channel)
 	CFEManager::getInstance()->Unlock();
 
 	if (frontend) {
-		bool found = (live_fe != frontend) || SAME_TRANSPONDER(live_channel_id, chid);
+		bool found = (live_fe != frontend) || IS_WEBTV(live_channel_id) || SAME_TRANSPONDER(live_channel_id, chid);
 		bool ret = false;
 		if (found)
 			ret = zapit.zapTo_record(chid) > 0;
@@ -364,10 +374,10 @@ bool CStreamManager::Parse(int fd, stream_pids_t &pids, t_channel_id &chid, CFro
 		return false;
 	}
 	cbuf[0] = 0;
-	bp = cbuf;
+	bp = &cbuf[0];
 
 	/* read one line */
-	while (bp - cbuf < (int) sizeof(cbuf)) {
+	while (bp - &cbuf[0] < (int) sizeof(cbuf)) {
 		unsigned char c;
 		int res = read(fd, &c, 1);
 		if (res < 0) {
@@ -379,7 +389,7 @@ bool CStreamManager::Parse(int fd, stream_pids_t &pids, t_channel_id &chid, CFro
 	}
 
 	*bp++ = 0;
-	bp = cbuf;
+	bp = &cbuf[0];
 
 	printf("CStreamManager::Parse: got %s\n", cbuf);
 
@@ -396,28 +406,30 @@ bool CStreamManager::Parse(int fd, stream_pids_t &pids, t_channel_id &chid, CFro
 	chid = CZapit::getInstance()->GetCurrentChannelID();
 	CZapitChannel * channel = CZapit::getInstance()->GetCurrentChannel();
 
+#ifndef ENABLE_MULTI_CHANNEL
+	/* parse stdin / url path, start dmx filters */
+	do {
+		int pid;
+		int res = sscanf(bp, "%x", &pid);
+		if (res == 1) {
+			printf("CStreamManager::Parse: pid: 0x%x\n", pid);
+			pids.insert(pid);
+		}
+	} while ((bp = strchr(bp, ',')) && (bp++));
+#else
 	t_channel_id tmpid;
-	if (sscanf(bp, "id=%llx", &tmpid) == 1) {
+	bp = &cbuf[5];
+	if (sscanf(bp, "id=%" SCNx64, &tmpid) == 1) {
 		channel = CServiceManager::getInstance()->FindChannel(tmpid);
 		chid = tmpid;
-	} else {
-		char *obp;
-		/* parse stdin / url path, start dmx filters */
-		do {
-			int pid;
-			int res = sscanf(bp, "%x", &pid);
-			if (res == 1) {
-				printf("CStreamManager::Parse: pid: 0x%x\n", pid);
-				pids.insert(pid);
-			}
-			obp = bp;
-		}
-		while (((bp = strchr(obp, ',')) || (bp = strchr(obp, ':'))) && (bp++));
 	}
+#endif
 	if (!channel)
 		return false;
 
-	printf("CStreamManager::Parse: channel_id %llx [%s]\n", chid, channel->getName().c_str());
+	printf("CStreamManager::Parse: channel_id %" PRIx64 " [%s]\n", chid, channel->getName().c_str());
+	if (IS_WEBTV(chid))
+		return false;
 
 	frontend = FindFrontend(channel);
 	if (!frontend) {
@@ -433,27 +445,24 @@ bool CStreamManager::Parse(int fd, stream_pids_t &pids, t_channel_id &chid, CFro
 void CStreamManager::AddPids(int fd, CZapitChannel *channel, stream_pids_t &pids)
 {
 	if (pids.empty()) {
-		printf("CStreamManager::AddPids: no pids in url, using channel %llx pids\n", channel->getChannelID());
+		printf("CStreamManager::AddPids: no pids in url, using channel %" PRIx64 " pids\n", channel->getChannelID());
 		if (channel->getVideoPid())
 			pids.insert(channel->getVideoPid());
 		for (int i = 0; i <  channel->getAudioChannelCount(); i++)
 			pids.insert(channel->getAudioChannel(i)->pid);
 
-	} else {
-		for (stream_pids_t::iterator it = pids.begin(); it != pids.end(); ++it)
-			pids.insert(*it);
 	}
 
 	CGenPsi psi;
 	for (stream_pids_t::iterator it = pids.begin(); it != pids.end(); ++it) {
 		if (*it == channel->getVideoPid()) {
-			printf("CStreamManager::Parse: genpsi vpid %x (%d)\n", *it, channel->type);
+			printf("CStreamManager::AddPids: genpsi vpid %x (%d)\n", *it, channel->type);
 			psi.addPid(*it, channel->type == 1 ? EN_TYPE_AVC : channel->type == 2 ? EN_TYPE_HEVC : EN_TYPE_VIDEO, 0);
 		} else {
 			for (int i = 0; i <  channel->getAudioChannelCount(); i++) {
 				if (*it == channel->getAudioChannel(i)->pid) {
 					CZapitAudioChannel::ZapitAudioChannelType atype = channel->getAudioChannel(i)->audioChannelType;
-					printf("CStreamManager::Parse: genpsi apid %x (%d)\n", *it, atype);
+					printf("CStreamManager::AddPids: genpsi apid %x (%d)\n", *it, atype);
 					if (channel->getAudioChannel(i)->audioChannelType == CZapitAudioChannel::EAC3) {
 						psi.addPid(*it, EN_TYPE_AUDIO_EAC3, atype, channel->getAudioChannel(i)->description.c_str());
 					} else {
@@ -565,12 +574,11 @@ void CStreamManager::run()
 		mutex.unlock();
 //printf("polling, count= %d\n", poll_cnt);
 		int pollres = poll (pfd, poll_cnt, poll_timeout);
-		if (pollres < 0) {
-			perror("CStreamManager::run(): poll");
+		if (pollres <= 0) {
+			if (pollres < 0)
+				perror("CStreamManager::run(): poll");
 			continue;
 		}
-		if(pollres == 0)
-			continue;
 		for (int i = poll_cnt - 1; i >= 0; i--) {
 			if (pfd[i].revents & (POLLIN | POLLPRI | POLLHUP | POLLRDHUP)) {
 				printf("fd %d has events %x\n", pfd[i].fd, pfd[i].revents);
@@ -635,6 +643,21 @@ bool CStreamManager::StopStream(t_channel_id channel_id)
 	return ret;
 }
 
+bool CStreamManager::StopStream(CFrontend * fe)
+{
+	bool ret = false;
+	for (streammap_iterator_t it = streams.begin(); it != streams.end(); ) {
+		if (it->second->frontend == fe) {
+			delete it->second;
+			streams.erase(it++);
+			ret = true;
+		} else {
+			++it;
+		}
+	}
+	return ret;
+}
+
 bool CStreamManager::StreamStatus(t_channel_id channel_id)
 {
 	bool ret;
@@ -651,8 +674,6 @@ bool CStreamManager::Listen()
 {
 	struct sockaddr_in socketAddr;
 	int socketOptActive = 1;
-	int sendsize = 10*IN_SIZE;
-	unsigned int m = sizeof(sendsize);
 
 	if ((listenfd = socket (AF_INET, SOCK_STREAM, 0)) < 0) {
 		fprintf (stderr, "network port %u open: ", port);
@@ -682,12 +703,7 @@ bool CStreamManager::Listen()
 		goto _error;
 	}
 
-#if 1
-	setsockopt(listenfd, SOL_SOCKET, SO_SNDBUF, (void *)&sendsize, m);
-	sendsize = 0;
-	getsockopt(listenfd, SOL_SOCKET, SO_SNDBUF, (void *)&sendsize, &m);
-	printf("CStreamManager::Listen: on %d, fd %d (%d)\n", port, listenfd, sendsize);
-#endif
+	printf("CStreamManager::Listen: on %d, fd %d\n", port, listenfd);
 	return true;
 _error:
 	close (listenfd);
