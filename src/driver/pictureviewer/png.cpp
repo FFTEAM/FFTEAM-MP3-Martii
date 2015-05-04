@@ -32,7 +32,7 @@ int int_png_load(const char *name, unsigned char **buffer, int* xp, int* yp, int
 	png_infop info_ptr;
 	png_uint_32 width, height;
 	unsigned int i;
-	int bit_depth, color_type, interlace_type, number_passes, pass, int_bpp = 3;
+	int bit_depth, color_type, interlace_type, number_passes, pass, int_bpp;
 	png_byte * fbptr;
 	FILE     * fh;
 
@@ -50,7 +50,11 @@ int int_png_load(const char *name, unsigned char **buffer, int* xp, int* yp, int
 		fclose(fh);
 		return(FH_ERROR_FORMAT);
 	}
+#if (PNG_LIBPNG_VER < 10500)
+	if (setjmp(png_ptr->jmpbuf))
+#else
 	if (setjmp(png_jmpbuf(png_ptr)))
+#endif
 	{
 		png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
 		fclose(fh);
@@ -96,6 +100,7 @@ int int_png_load(const char *name, unsigned char **buffer, int* xp, int* yp, int
 			png_set_strip_alpha(png_ptr);
 		if (bit_depth < 8)
 			png_set_packing(png_ptr);
+		int_bpp = 3;
 	}
 	if (bit_depth == 16)
 		png_set_strip_16(png_ptr);
@@ -154,7 +159,11 @@ int fh_png_getsize(const char *name,int *x,int *y, int /*wanted_width*/, int /*w
 		return(FH_ERROR_FORMAT);
 	}
 
+#if (PNG_LIBPNG_VER < 10500)
+	if (setjmp(png_ptr->jmpbuf))
+#else
 	if (setjmp(png_jmpbuf(png_ptr)))
+#endif
 	{
 		png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
 		fclose(fh);
