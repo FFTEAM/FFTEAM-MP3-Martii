@@ -125,27 +125,32 @@ void nGLCD::Exec() {
 
 	bitmap->Clear(g_settings.glcd_color_bg);
 
-	if (Channel == "Neutrino" && g_settings.glcd_show_logo) {
-		int start_width = 0, start_height = 0;
- 		g_PicViewer->getSize(DATADIR "/neutrino/icons/start.jpg", &start_width, &start_height);
-		if (start_width && start_height) {
-			showImage(DATADIR "/neutrino/icons/start.jpg", (uint32_t) start_width, (uint32_t) start_height,
-				0, 0, (uint32_t) nglcd->bitmap->Width(), (uint32_t) nglcd->bitmap->Height(), false, true);
+	if (Channel == "Neutrino") {
+		if (g_settings.glcd_show_logo) {
+			int start_width = 0, start_height = 0;
+			g_PicViewer->getSize(DATADIR "/neutrino/icons/start.jpg", &start_width, &start_height);
+			if (start_width && start_height) {
+				showImage(DATADIR "/neutrino/icons/start.jpg", (uint32_t) start_width, (uint32_t) start_height,
+					0, 0, (uint32_t) nglcd->bitmap->Width(), (uint32_t) nglcd->bitmap->Height(), false, true);
 
-			GLCD::cFont font_tmp;
+				GLCD::cFont font_tmp;
 
-			int fw = font_epg.Width(Epg);
-			font_tmp.LoadFT2(g_settings.glcd_font, "UTF-8", fontsize_epg * (bitmap->Width() - 4) / fw);
-			fw = font_tmp.Width(Epg);
+				int fw = font_epg.Width(Epg);
+				font_tmp.LoadFT2(g_settings.glcd_font, "UTF-8", fontsize_epg * (bitmap->Width() - 4) / fw);
+				fw = font_tmp.Width(Epg);
 
-			bitmap->DrawText(max(2,(bitmap->Width() - 4 - fw)/2),
-				10 * bitmap->Height()/100, bitmap->Width() - 4, Epg,
-				&font_tmp, g_settings.glcd_color_fg, GLCD::cColor::Transparent);
+				bitmap->DrawText(max(2,(bitmap->Width() - 4 - fw)/2),
+					10 * bitmap->Height()/100, bitmap->Width() - 4, Epg,
+					&font_tmp, g_settings.glcd_color_fg, GLCD::cColor::Transparent);
 
-			lcd->SetScreen(bitmap->Data(), bitmap->Width(), bitmap->Height());
-			lcd->Refresh(true);
-			return;
+				lcd->SetScreen(bitmap->Data(), bitmap->Width(), bitmap->Height());
+				lcd->Refresh(true);
+			}
+		} else {
+			nglcd->bitmap->Clear(g_settings.glcd_color_bg);
+			nglcd->lcd->Refresh(true);
 		}
+		return;
 	}
 
 	if (doStandbyTime) {
@@ -424,7 +429,7 @@ void nGLCD::Run(void)
 
 	struct timespec ts;
 
-	CSectionsdClient::CurrentNextInfo info_CurrentNext;                                 
+	CSectionsdClient::CurrentNextInfo info_CurrentNext;
 	channel_id = -1;
 	info_CurrentNext.current_zeit.startzeit = 0;
 	info_CurrentNext.current_zeit.dauer = 0;
@@ -518,7 +523,7 @@ void nGLCD::Run(void)
 				g_PicViewer->getSize(bmpShot, &bw, &bh);
 				if (bw > 0 && bh > 0) {
 					int lcd_width = bitmap->Width();
-				    int lcd_height = bitmap->Height();
+					int lcd_height = bitmap->Height();
 					if (!showImage(bmpShot, (uint32_t) bw, (uint32_t) bh, 0, 0, (uint32_t) lcd_width, lcd_height, false, true))
 						usleep(1000000);
 					else {
@@ -660,9 +665,9 @@ void nGLCD::Run(void)
 			lcd->Refresh(false);
 		}
 		if (doRescan) {
-		    doRescan = false;
+			doRescan = false;
 			Update();
-	    }
+		}
 		lcd->DeInit();
 		delete lcd;
 		lcd = NULL;
@@ -678,10 +683,10 @@ void nGLCD::StandbyMode(bool b) {
 	if (nglcd) {
 		if (g_settings.glcd_time_in_standby) {
 			nglcd->doStandbyTime = b;
-		    nglcd->doStandby = false;
+			nglcd->doStandby = false;
 		} else {
 			nglcd->doStandbyTime = false;
-		    nglcd->doStandby = b;
+			nglcd->doStandby = b;
 		}
 		nglcd->doMirrorOSD = false;
 		nglcd->UpdateBrightness();
@@ -836,4 +841,4 @@ int nGLCD::handleMsg(const neutrino_msg_t msg, neutrino_msg_data_t /* data */)
 
 	return messages_return::unhandled;
 }
-// vim: ts=4
+
