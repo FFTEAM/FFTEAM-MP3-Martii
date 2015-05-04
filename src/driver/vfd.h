@@ -76,18 +76,28 @@ class CVFD
 
 
 	private:
+#ifdef BOXMODEL_APOLLO
+		fp_display_caps_t		caps;
+#endif
 		MODES				mode;
 
 		std::string			servicename;
+		char				*scrollstr;
+		int				service_number;
+		bool				support_text;
+		bool				support_numbers;
 		char				volume;
 		unsigned char			percentOver;
 		bool				muted;
 		bool				showclock;
 		pthread_t			thrTime;
+#if HAVE_DUCKBOX_HARDWARE
+		pthread_t			thread_start_loop;
+#endif
 		int                             last_toggle_state_power;
 		bool				clearClock;
 		unsigned int                    timeout_cnt;
-		unsigned int                    switch_name_time_cnt;		
+		unsigned int                    switch_name_time_cnt;
 		int fd;
 		int brightness;
 		std::string text;
@@ -98,31 +108,38 @@ class CVFD
 
 		static void* TimeThread(void*);
 		void setlcdparameter(int dimm, int power);
+#if !HAVE_DUCKBOX_HARDWARE
 		void setled(int led1, int led2);
+#endif
 	public:
 
 		~CVFD();
 		bool has_lcd;
+		bool has_led_segment;
 		void setlcdparameter(void);
+#if !HAVE_DUCKBOX_HARDWARE
 		void setled(void);
 		void setled(bool on_off);
 		void setBacklight(bool on_off);
+#else
+		void setBacklight(bool /*on_off*/) { };
+#endif
 		static CVFD* getInstance();
 		void init(const char * fontfile, const char * fontname);
 
 		void setMode(const MODES m, const char * const title = "");
 
-		void showServicename(const std::string & name); // UTF-8
+		void showServicename(const std::string & name, int number = -1); // UTF-8
 		void setEPGTitle(const std::string) { return; };
 		void showTime(bool force = false);
 		/** blocks for duration seconds */
 		void showRCLock(int duration = 2);
 		void showVolume(const char vol, const bool perform_update = true);
-		void showPercentOver(const unsigned char perc, const bool perform_update = true);
+		void showPercentOver(const unsigned char perc, const bool perform_update = true, const MODES origin = MODE_TVRADIO);
 		void showMenuText(const int position, const char * text, const int highlight = -1, const bool utf_encoded = false);
 		void showAudioTrack(const std::string & artist, const std::string & title, const std::string & album);
 		void showAudioPlayMode(AUDIOMODES m=AUDIO_MODE_PLAY);
-		void showAudioProgress(const char perc, bool isMuted);
+		void showAudioProgress(const unsigned char perc);
 		void setBrightness(int);
 		int getBrightness();
 
@@ -147,17 +164,17 @@ class CVFD
 		void Unlock();
 		void Clear();
 		void ShowIcon(fp_icon icon, bool show);
+#if HAVE_DUCKBOX_HARDWARE
+		void UpdateIcons();
+		void ShowScrollText(char * str);
+		static void* ThreadScrollText(void * arg);
+		void ClearIcons();
+#endif
 		void ShowText(const char *str);
+		void ShowNumber(int number);
 		void wake_up();
-		MODES getMode(void) { return mode; }
-		void setAudioMode(void){}
-		void setAudioMode(int){}
-		void setHddUsage(int /*perc*/){};
-
+		MODES getMode(void) { return mode; };
 		std::string getServicename(void) { return servicename; }
-		void setLiveFE(char /*fe*/){}
-		void setCA(bool /*onoff*/){}
-
 #ifdef LCD_UPDATE
         private:
                 CFileList* m_fileList;
